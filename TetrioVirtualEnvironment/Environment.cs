@@ -471,7 +471,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos())
+                if (IsLegalAtPos(GameData.Falling,GameData.Field))
                 {
                     GameData.Falling.x--;
                     GameData.Falling.Last = "move";
@@ -530,7 +530,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos())
+                if (IsLegalAtPos(GameData.Falling,GameData.Field))
                 {
                     GameData.Falling.x++;
                     GameData.Falling.Last = "move";
@@ -551,7 +551,61 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         public void FallEvent(int? value, float subFrameDiff)
         {
+            if(GameData.Falling.SafeLock>0)
+                GameData.Falling.SafeLock--;
 
+            if(GameData.Falling.Sleep||GameData.Falling.DeepSleep)
+                return;
+
+            var subframeGravity=GameData.Gravity*subFrameDiff;
+
+            if(GameData.SoftDrop)
+            {
+                if(GameData.Options.Version>=15&&GameData.Handling.SDF==41)
+                    subframeGravity=400*subFrameDiff;
+                else if(!(GameData.Options.Version>=15)&&GameData.Handling.SDF==21)
+                    subframeGravity=20*subFrameDiff;
+                else
+                {
+                    subframeGravity*=GameData.Handling.SDF;
+                    int tempvalue;
+                    if(GameData.Options.Version >= 13)
+                        tempvalue=1;
+                    else
+                        tempvalue=0;
+
+                    if(Math.Max(subframeGravity, tempvalue)>0)
+                                            subframeGravity=0.05*GameData.Handling.SDF;
+                    else
+                        subframeGravity=0.42;
+                }
+            }
+
+            if(value!=null)
+            {
+                subframeGravity=(int)value;
+
+            }
+
+            int templockresets;
+            if(GameData.Options.LockResets!=null)
+                templockresets=(int)GameData.Options.LockResets;
+            else
+            templockresets=15;
+
+
+            if(!GameData.Options.InfiniteMovement&&
+                GameData.Falling.LockResets>= templockresets&&
+                !IsLegalAtPos(GameData.Falling,GameData.Field))
+            {
+                subframeGravity=20;
+                GameData.Falling.ForceLock=true;
+            }
+
+
+            if()
+            if(!GameData.Options.InfiniteMovement&&
+                GameData.Falling.)
         }
 
         void SwapHold()

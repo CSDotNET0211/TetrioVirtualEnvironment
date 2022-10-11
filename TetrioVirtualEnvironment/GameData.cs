@@ -15,17 +15,18 @@ namespace TetrioVirtualEnvironment
 
         public int[] Field;
        public Options Options;
-      public  float SubFrame;
+      public double SubFrame;
         public bool LShift;
         public bool RShift;
         public int LastShift;
-       public float  LDas;
-       public float  RDas;
+       public double LDas;
+       public double RDas;
      public   PlayerOptions Handling;
-        public float LDasIter;
-        public float RDasIter;
+        public double LDasIter;
+        public double RDasIter;
         public bool SoftDrop;
         public Falling Falling;
         public bool HoldLocked;
+        public double Gravity;
     }
 }

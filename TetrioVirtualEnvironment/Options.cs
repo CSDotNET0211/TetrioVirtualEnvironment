@@ -21,6 +21,7 @@ namespace TetrioVirtualEnvironment
         public bool Allow180;
         public bool AllowHardDrop;
         public bool? DisplayHold;
+        public int? LockResets;
         public List<PlayerOptions> PlayerOptions;
     }
 

@@ -22,6 +22,7 @@ namespace TetrioVirtualEnvironment
         public float y;
         public int r;
         public int SafeLock;
+        public bool ForceLock;
         public bool Sleep;
         public bool DeepSleep;
         public string Last;

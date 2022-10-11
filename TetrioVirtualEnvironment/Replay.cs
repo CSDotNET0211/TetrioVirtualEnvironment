@@ -43,10 +43,12 @@ namespace TetrioVirtualEnvironment
                             break;
 
                         case "keydown":
-
-                            break;
-
                         case "keyup":
+                            var inputevent = (EventKeyInput)_replayData.data.events[CurrentIndex].data;
+
+                            _environment.KeyInput(_replayData.data.events[CurrentIndex].type,
+                            inputevent);
+
                             break;
 
                         case "ige":
@@ -55,15 +57,12 @@ namespace TetrioVirtualEnvironment
 
                     }
 
-                    var @event = (EventKeyInput)_replayData.data.events[CurrentIndex].data;
-
-                    _environment.KeyInput()
                     CurrentIndex++;
                 }
             }
             CurrentFrame++;
             _environment.ProcessShift(false, 1 - _environment.GameData.SubFrame);
-            _environment.FallEvent(null,1-_environment.GameData.SubFrame);
+            _environment.FallEvent(null, 1 - _environment.GameData.SubFrame);
 
 
         }
