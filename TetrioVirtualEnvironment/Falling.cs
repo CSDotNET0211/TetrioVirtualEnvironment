@@ -6,8 +6,18 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-    internal class Falling
+    public class Falling
     {
+        public Falling()
+        {
+            x=4;
+            y=17;
+            r=0;
+            // TODO: 色々初期化
+        }
+
+
+        public int type;
         public int x;
         public float y;
         public int r;

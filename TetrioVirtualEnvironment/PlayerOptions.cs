@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-    internal class PlayerOptions
+    public class PlayerOptions
     {
         public string Name;
         public float ARR;

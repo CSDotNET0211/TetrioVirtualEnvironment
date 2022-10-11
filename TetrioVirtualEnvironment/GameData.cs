@@ -13,8 +13,8 @@ namespace TetrioVirtualEnvironment
             SubFrame=0;
         }
 
+        public int[] Field;
        public Options Options;
-
       public  float SubFrame;
         public bool LShift;
         public bool RShift;

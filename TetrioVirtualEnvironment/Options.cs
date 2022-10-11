@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-    internal class Options
+    public class Options
     {
         public int Version;
         public int Seed;

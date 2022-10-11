@@ -49,9 +49,24 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_HEIGHT = 40;
         public const int FIELD_VIEW_HEIGHT = 20;
 
-
+        //minokind rotation vec
+        public readonly Vector2[][][] TETRIMINOS;
+        public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
+        public Vector2[] KICKSET;
         public GameData GameData;
 
+        public enum MinoKind
+        {
+            Z,
+            L,
+            O,
+            S,
+            I,
+            J,
+            T,
+            Ojama,
+            Empty
+        }
         /// <summary>
         /// 回転状態を表す構造体
         /// </summary>
@@ -112,7 +127,114 @@ namespace TetrioVirtualEnvironment
 
         public Environment()
         {
+            var temp = new Vector2[7][][];
+
+            for (int i = 0; i < 7; i++)
+            {
+                temp[i] = new Vector2[4][];
+            }
+
+            #region Z
+            temp[(int)MinoKind.Z][(int)Rotation.Zero] =
+                new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1) };
+
+            temp[(int)MinoKind.Z][(int)Rotation.Right] =
+                new Vector2[] { new Vector2(2, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
+
+            temp[(int)MinoKind.Z][(int)Rotation.Turn] =
+                new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
+
+            temp[(int)MinoKind.Z][(int)Rotation.Left] =
+                new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2) };
+            #endregion
+            #region L
+            temp[(int)MinoKind.L][(int)Rotation.Zero] =
+              new Vector2[] { new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
+
+            temp[(int)MinoKind.L][(int)Rotation.Right] =
+              new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
+
+            temp[(int)MinoKind.L][(int)Rotation.Turn] =
+              new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2) };
+
+            temp[(int)MinoKind.L][(int)Rotation.Left] =
+              new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2) };
+
+            #endregion
+            #region O
+            temp[(int)MinoKind.O][(int)Rotation.Zero] =
+              new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+
+            temp[(int)MinoKind.O][(int)Rotation.Right] =
+            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+
+            temp[(int)MinoKind.O][(int)Rotation.Turn] =
+            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+
+            temp[(int)MinoKind.O][(int)Rotation.Left] =
+            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+
+            #endregion
+            #region S
+            temp[(int)MinoKind.S][(int)Rotation.Zero] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1) };
+
+            temp[(int)MinoKind.S][(int)Rotation.Right] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
+
+            temp[(int)MinoKind.S][(int)Rotation.Turn] =
+            new Vector2[] { new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2), new Vector2(1, 2) };
+
+            temp[(int)MinoKind.S][(int)Rotation.Left] =
+            new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
+
+            #endregion
+            #region I
+            temp[(int)MinoKind.I][(int)Rotation.Zero] =
+            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(3, 1) };
+            temp[(int)MinoKind.I][(int)Rotation.Right] =
+new Vector2[] { new Vector2(2, 0), new Vector2(2, 1), new Vector2(2, 2), new Vector2(2, 3) };
+            temp[(int)MinoKind.I][(int)Rotation.Turn] =
+new Vector2[] { new Vector2(0, 2), new Vector2(1, 2), new Vector2(2, 2), new Vector2(3, 2) };
+            temp[(int)MinoKind.I][(int)Rotation.Left] =
+new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(1, 3) };
+
+            #endregion
+            #region J
+            temp[(int)MinoKind.J][(int)Rotation.Zero] =
+            new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
+
+            temp[(int)MinoKind.J][(int)Rotation.Right] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(1, 2) };
+
+            temp[(int)MinoKind.J][(int)Rotation.Turn] =
+            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
+
+            temp[(int)MinoKind.J][(int)Rotation.Left] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 2), new Vector2(1, 2) };
+
+            #endregion
+            #region T
+            temp[(int)MinoKind.T][(int)Rotation.Zero] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
+
+            temp[(int)MinoKind.T][(int)Rotation.Right] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
+
+            temp[(int)MinoKind.T][(int)Rotation.Turn] =
+            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
+
+            temp[(int)MinoKind.T][(int)Rotation.Left] =
+            new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
+
+            #endregion
+
+            TETRIMINOS = temp;
+
             GameData = new GameData();
+
+
+
         }
 
 
@@ -123,9 +245,19 @@ namespace TetrioVirtualEnvironment
 
 
 
-        bool IsLegalAtPos()
+        bool IsLegalAtPos(Falling current, int[] field)
         {
+            var positions = TETRIMINOS[current.type][current.r];
 
+            foreach(var position in positions)
+            {
+               if(!(position.x >= 0 && position.x < FIELD_WIDTH&&
+                    position.y>=0&&position.y<FIELD_HEIGHT&&
+                    field[position.x+position.y*10]==(int)MinoKind.Empty))
+                return false;
+            }
+
+            return true;
         }
 
 
@@ -289,7 +421,7 @@ namespace TetrioVirtualEnvironment
             if (rotation == 1 && nowmino_rotation == 3)
                 i = "horizontal";
 
-            if ()
+            if (IsLegalAtPos(GameData.Falling,GameData.))
 
         }
 
@@ -359,65 +491,65 @@ namespace TetrioVirtualEnvironment
             }
         }
 
-        void ProcessRShift(bool value, float subFrameDiff=1)
+        void ProcessRShift(bool value, float subFrameDiff = 1)
         {
-            if(!GameData.RShift||GameData.LShift&&GameData.LastShift!=1)
+            if (!GameData.RShift || GameData.LShift && GameData.LastShift != 1)
                 return;
 
-            var subFrameDiff2=subFrameDiff;
-            var o=Math.Max(0,GameData.Handling.DAS-GameData.RDas);
+            var subFrameDiff2 = subFrameDiff;
+            var o = Math.Max(0, GameData.Handling.DAS - GameData.RDas);
 
-            if(!value)
-                GameData.RDas+=subFrameDiff;
+            if (!value)
+                GameData.RDas += subFrameDiff;
 
-            if(GameData.RDas<GameData.Handling.DAS&&!value)
+            if (GameData.RDas < GameData.Handling.DAS && !value)
                 return;
 
-            subFrameDiff2=Math.Max(0,subFrameDiff2-o);
-            if(GameData.Falling.Sleep||GameData.Falling.DeepSleep)
+            subFrameDiff2 = Math.Max(0, subFrameDiff2 - o);
+            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
-            var aboutARRValue=1;
-            if(!value)
+            var aboutARRValue = 1;
+            if (!value)
             {
-                if(GameData.Options.Version>=15)
-                    GameData.RDasIter=subFrameDiff2;
+                if (GameData.Options.Version >= 15)
+                    GameData.RDasIter = subFrameDiff2;
                 else
-                    GameData.RDasIter=subFrameDiff;
+                    GameData.RDasIter = subFrameDiff;
 
-                if(GameData.RDasIter<GameData.Handling.ARR)
+                if (GameData.RDasIter < GameData.Handling.ARR)
                     return;
 
-                if(GameData.Handling.ARR==0)
-                    aboutARRValue=10;
+                if (GameData.Handling.ARR == 0)
+                    aboutARRValue = 10;
                 else
-                    aboutARRValue=(int)(GameData.RDasIter/GameData.Handling.ARR);
+                    aboutARRValue = (int)(GameData.RDasIter / GameData.Handling.ARR);
 
-                GameData.RDasIter-=GameData.Handling.ARR*aboutARRValue;
+                GameData.RDasIter -= GameData.Handling.ARR * aboutARRValue;
             }
 
-            for(var index=0;index<aboutARRValue;index++)
+            for (var index = 0; index < aboutARRValue; index++)
             {
-                if(IsLegalAtPos())
+                if (IsLegalAtPos())
                 {
                     GameData.Falling.x++;
-                    GameData.Falling.Last="move";
-                    GameData.Falling.Clamped=false;
+                    GameData.Falling.Last = "move";
+                    GameData.Falling.Clamped = false;
 
                     // TODO: フラグのやつ
 
-                    if(++GameData.Falling.LockResets<15||GameData.Options.InfiniteMovement)
-                        GameData.Falling.Locking=0;
+                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking = 0;
 
                 }
                 else
                 {
-                    GameData.Falling.Clamped=true;
+                    GameData.Falling.Clamped = true;
                 }
             }
         }
 
-   public     void FallEvent(int? value, float subFrameDiff)
+        public void FallEvent(int? value, float subFrameDiff)
         {
 
         }
