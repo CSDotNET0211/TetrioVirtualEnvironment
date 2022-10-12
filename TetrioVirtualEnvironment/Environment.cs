@@ -52,8 +52,8 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-        public readonly Vector2[][][] TETRIMINOS;
-        public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
+      static  public  Vector2[][][] TETRIMINOS;
+        static  public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
 
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
@@ -280,15 +280,15 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
 
 
-        bool IsLegalAtPos(Falling current, int[] field, Vector2 diff)
+       static public bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
         {
-            var positions = TETRIMINOS[current.type][current.r];
+            var positions = TETRIMINOS[type][rotation];
 
             foreach (var position in positions)
             {
-                if (!(position.x + diff.x >= 0 && position.x + diff.x < FIELD_WIDTH &&
-                     position.y + diff.y >= 0 && position.y + diff.y < FIELD_HEIGHT &&
-                     field[position.x + diff.x + (position.y + diff.y) * 10] == (int)MinoKind.Empty))
+                if (!(x >= 0 && x < FIELD_WIDTH &&
+                  y >= 0 && y < FIELD_HEIGHT &&
+                     field[x + (int)y * 10] == (int)MinoKind.Empty))
                     return false;
             }
 
@@ -456,7 +456,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (rotation == 1 && nowmino_rotation == 3)
                 i = "horizontal";
 
-            if (IsLegalAtPos(GameData.Falling, GameData.Field, new Vector2(-GameData.Falling.aox, -GameData.Falling.aoy)))
+            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - GameData.Falling.aox, GameData.Falling.y - GameData.Falling.aoy, GameData.Falling.r, GameData.Field))
             {
                 GameData.Falling.x -= GameData.Falling.aox;
                 GameData.Falling.y -= GameData.Falling.aoy;
@@ -512,30 +512,30 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
                 if (!GameData.Options.InfiniteMovement && GameData.TotalRotations > templockresets + 15)
                 {
-                    i2 = GameData.Falling.y + kicktableTest.y-GameData.Falling.aoy;
+                    i2 = GameData.Falling.y + kicktableTest.y - GameData.Falling.aoy;
                 }
 
-                if(IsLegalAtPos(GameData.Falling,GameData.Field,new Vector2(kicktableTest.x-GameData.Falling.aox,i2)))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x+(int)kicktableTest.x- GameData.Falling.aox,i2, GameData.Falling.r, GameData.Field))
                 {
-                    GameData.Falling.x+=(int)kicktableTest.x-GameData.Falling.aox; 
-                    GameData.Falling.aox=0;
-                    GameData.Falling.aoy=0;
-                    GameData.Falling.r=rotation;
+                    GameData.Falling.x += (int)kicktableTest.x - GameData.Falling.aox;
+                    GameData.Falling.aox = 0;
+                    GameData.Falling.aoy = 0;
+                    GameData.Falling.r = rotation;
                     GameData.FallingRotations++;
                     GameData.TotalRotations++;
 
-                    if(GameData.Falling.Clamped&&GameData.Handling.DCD>0)
+                    if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
                     {
-                        GameData.LDas=Math.Min(GameData.LDas,GameData.Handling.DAS-GameData.Handling.DCD);
-                        GameData.LDasIter=GameData.Handling.ARR;
-                        GameData.RDas=Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
-                        GameData.RDasIter=GameData.Handling.ARR;
+                        GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                        GameData.LDasIter = GameData.Handling.ARR;
+                        GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                        GameData.RDasIter = GameData.Handling.ARR;
                     }
 
-                    if(++GameData.Falling.LockResets<15||GameData.Options.InfiniteMovement)
-                        GameData.Falling.Locking=0;
+                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking = 0;
 
-                    if(IsTspin())
+                    if (IsTspin())
                     {
                         // DOTO: t.hm.H.holderstate.dr += o / 4 * t.lm.H.lastdT;
                     }
@@ -594,12 +594,12 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(-1,0)))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x-1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
                     GameData.Falling.x--;
                     GameData.Falling.Last = "move";
                     GameData.Falling.Clamped = false;
-                    
+
                     // TODO: 落下ミノの更新フラグ？の確認とフラグを立てる
 
                     if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
@@ -653,7 +653,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(1,0)))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x+1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
                     GameData.Falling.x++;
                     GameData.Falling.Last = "move";
@@ -720,38 +720,38 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             if (!GameData.Options.InfiniteMovement &&
                 GameData.Falling.LockResets >= templockresets &&
-                !IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(0,1)))
+                !IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y+1, GameData.Falling.r, GameData.Field))
             {
                 subframeGravity = 20;
                 GameData.Falling.ForceLock = true;
             }
 
-            
-            if (!GameData.Options.InfiniteMovement&&
-                GameData.FallingRotations> templockresets+15)
+
+            if (!GameData.Options.InfiniteMovement &&
+                GameData.FallingRotations > templockresets + 15)
             {
-                subframeGravity+=0.5*subFrameDiff*
-                    (GameData.FallingRotations-(templockresets+ 15));
+                subframeGravity += 0.5 * subFrameDiff *
+                    (GameData.FallingRotations - (templockresets + 15));
             }
 
-            var r=subframeGravity;
+            var r = subframeGravity;
 
-            for(;subframeGravity>0;)
+            for (; subframeGravity > 0;)
             {
-                var ceiledValue=Math.Ceiling(GameData.Falling.y);
-                if(!InstantDrop(Math.Min(1,subframeGravity),r))
+                var ceiledValue = Math.Ceiling(GameData.Falling.y);
+                if (!HardDrop(Math.Min(1, subframeGravity), r))
                 {
-                    if(value!=null)
-                        GameData.Falling.ForceLock=true;
-                    FunctionA(value!=0,subFrameDiff);
+                    if (value != null)
+                        GameData.Falling.ForceLock = true;
+                    FunctionA(value != 0, (int)subFrameDiff);
                     break;
                 }
 
-                subframeGravity-=Math.Min(1,subframeGravity);
-              if(  ceiledValue!=Math.Ceiling(GameData.Falling.y))
+                subframeGravity -= Math.Min(1, subframeGravity);
+                if (ceiledValue != Math.Ceiling(GameData.Falling.y))
                 {
-                    GameData.Falling.Last="fall";
-                    if(GameData.SoftDrop)
+                    GameData.Falling.Last = "fall";
+                    if (GameData.SoftDrop)
                     {
                         //ScoreAdd
 
@@ -760,20 +760,54 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
         }
 
-        bool InstantDrop(double value,double value2)
+        bool HardDrop(double value, double value2)
         {
-            var n=Math.Floor(Math.Pow(10*))
+            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / Math.Pow(10, 13) + value;
+
+            if (fallingy_kouho % 1 == 0)
+                fallingy_kouho += 0.00001;
+
+            var o = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / Math.Pow(10, 13) + 1;
+            if (o % 1 == 0)
+                o -= 0.00002;
+
+            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, fallingy_kouho, GameData.Falling.r, GameData.Field) &&
+                IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, o, GameData.Falling.r, GameData.Field))
+            {
+                var s = GameData.Falling.HighestY;
+                o = GameData.Falling.y;
+
+                GameData.Falling.y = fallingy_kouho;
+                GameData.Falling.HighestY = Math.Ceiling(Math.Max(GameData.Falling.HighestY, fallingy_kouho));
+                GameData.Falling.Floored = false;
+                if (Math.Ceiling(fallingy_kouho) != Math.Ceiling(o))
+                {
+                    // TODO: 更新フラグtrue
+
+                }
+
+                if (fallingy_kouho > value || GameData.Options.InfiniteMovement)
+                    GameData.Falling.LockResets = 0;
+                GameData.FallingRotations = 0;
+
+                if (value2 >= int.MaxValue)
+                {
+                    //スコア足す
+                }
+            }
+
+            return true;
         }
 
-        void FunctionA(bool value=false,int a=1)
+        void FunctionA(bool value = false, int a = 1)
         {
-            if(GameData.Options.Version>=15)
-            GameData.Falling.Locking+=a;
+            if (GameData.Options.Version >= 15)
+                GameData.Falling.Locking += a;
             else
-            GameData.Falling.Locking+=1;
+                GameData.Falling.Locking += 1;
 
-            if(!GameData.Falling.Floored)
-                GameData.Falling.Floored=true;
+            if (!GameData.Falling.Floored)
+                GameData.Falling.Floored = true;
 
         }
 
@@ -784,7 +818,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool IsTspin()
         {
-
+            return false;
         }
     }
 }

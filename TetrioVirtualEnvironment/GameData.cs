@@ -3,15 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrReplayLoaderLib;
 
 namespace TetrioVirtualEnvironment
 {
     public class GameData
     {
-        public GameData()
+        public GameData(object replaydata,bool isMulti)
         {
-            SubFrame=0;
+            if(isMulti)
+            {
+
+            }
+            else
+            {
+                ReplayDataSolo data=(ReplayDataSolo)replaydata;
+
+
+            }
+
+
+            Instance=this;
         }
+        static public GameData Instance;
 
         public int[] Field;
        public Options Options;
@@ -30,5 +44,6 @@ namespace TetrioVirtualEnvironment
         public double Gravity;
         public int FallingRotations;
         public int TotalRotations;
+       
     }
 }

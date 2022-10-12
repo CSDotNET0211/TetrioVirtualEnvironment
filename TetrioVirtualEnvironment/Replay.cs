@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using TetrReplayLoaderLib;
 
 namespace TetrioVirtualEnvironment
 {
-    internal class Replay
+    public class Replay
     {
-        Environment _environment;
+        public Environment Environment { get; private set; }
         ReplayDataSolo _replayData;
-        int CurrentFrame = 0;
+        public int CurrentFrame { get; private set; } = 0;
         int CurrentIndex = 0;
 
         public void Load(string jsondata)
         {
-            _environment = new Environment();
+            Environment = new Environment();
             _replayData = (ReplayDataSolo)LibClass.ParseReplay(jsondata, false);
         }
 
@@ -27,7 +28,7 @@ namespace TetrioVirtualEnvironment
 
         public bool Update()
         {
-            _environment.GameData.SubFrame = 0;
+            Environment.GameData.SubFrame = 0;
             //キー入力
             while (true)
             {
@@ -46,7 +47,7 @@ namespace TetrioVirtualEnvironment
                         case "keyup":
                             var inputevent = (EventKeyInput)_replayData.data.events[CurrentIndex].data;
 
-                            _environment.KeyInput(_replayData.data.events[CurrentIndex].type,
+                            Environment.KeyInput(_replayData.data.events[CurrentIndex].type,
                             inputevent);
 
                             break;
@@ -54,19 +55,26 @@ namespace TetrioVirtualEnvironment
                         case "ige":
                             break;
 
-
+                        case "end":
+                            return false;
+                        default:
+                            throw new Exception("invalid key:" + _replayData.data.events[CurrentIndex].type);
                     }
 
                     CurrentIndex++;
                 }
+                else break;
             }
+
+
+
             CurrentFrame++;
-            _environment.ProcessShift(false, 1 - _environment.GameData.SubFrame);
-            _environment.FallEvent(null, 1 - _environment.GameData.SubFrame);
+            Environment.ProcessShift(false, 1 - Environment.GameData.SubFrame);
+            Environment.FallEvent(null, 1 - Environment.GameData.SubFrame);
 
 
+            return true;
         }
-
 
 
     }
