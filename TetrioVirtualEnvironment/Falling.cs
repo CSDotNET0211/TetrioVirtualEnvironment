@@ -19,15 +19,21 @@ namespace TetrioVirtualEnvironment
 
         public int type;
         public int x;
-        public float y;
+        public int aox;
+        public double y;
+        public int aoy;
         public int r;
         public int SafeLock;
         public bool ForceLock;
         public bool Sleep;
         public bool DeepSleep;
         public string Last;
+        public string LastRotation;
+        public bool SpinType;
+        public int LastKick;
         public bool Clamped;
         public int LockResets;
         public int Locking;
+        public bool Floored;
     }
 }

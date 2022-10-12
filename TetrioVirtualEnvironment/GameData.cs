@@ -28,5 +28,7 @@ namespace TetrioVirtualEnvironment
         public Falling Falling;
         public bool HoldLocked;
         public double Gravity;
+        public int FallingRotations;
+        public int TotalRotations;
     }
 }

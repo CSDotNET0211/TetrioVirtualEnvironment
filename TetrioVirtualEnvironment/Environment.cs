@@ -1,19 +1,21 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using TetrReplayLoaderLib;
 
 namespace TetrioVirtualEnvironment
 {
     public struct Vector2
     {
-        public Vector2(int x, int y)
+        public Vector2(double x, double y)
         {
             this.x = x;
             this.y = y;
         }
 
-        public int x;
-        public int y;
+        public double x;
+        public double y;
 
         public static readonly Vector2 zero = new Vector2(0, 0);
         public static readonly Vector2 one = new Vector2(1, 1);
@@ -52,7 +54,9 @@ namespace TetrioVirtualEnvironment
         //minokind rotation vec
         public readonly Vector2[][][] TETRIMINOS;
         public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
-        public Vector2[] KICKSET;
+
+        public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
+        public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
         public GameData GameData;
 
         public enum MinoKind
@@ -127,110 +131,141 @@ namespace TetrioVirtualEnvironment
 
         public Environment()
         {
-            var temp = new Vector2[7][][];
+            var tempTetriminos = new Vector2[7][][];
 
             for (int i = 0; i < 7; i++)
             {
-                temp[i] = new Vector2[4][];
+                tempTetriminos[i] = new Vector2[4][];
             }
 
             #region Z
-            temp[(int)MinoKind.Z][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Zero] =
                 new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1) };
 
-            temp[(int)MinoKind.Z][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Right] =
                 new Vector2[] { new Vector2(2, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
 
-            temp[(int)MinoKind.Z][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Turn] =
                 new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
 
-            temp[(int)MinoKind.Z][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Left] =
                 new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2) };
             #endregion
             #region L
-            temp[(int)MinoKind.L][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.L][(int)Rotation.Zero] =
               new Vector2[] { new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
 
-            temp[(int)MinoKind.L][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.L][(int)Rotation.Right] =
               new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
 
-            temp[(int)MinoKind.L][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.L][(int)Rotation.Turn] =
               new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2) };
 
-            temp[(int)MinoKind.L][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.L][(int)Rotation.Left] =
               new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2) };
 
             #endregion
             #region O
-            temp[(int)MinoKind.O][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.O][(int)Rotation.Zero] =
               new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
 
-            temp[(int)MinoKind.O][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.O][(int)Rotation.Right] =
             new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
 
-            temp[(int)MinoKind.O][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.O][(int)Rotation.Turn] =
             new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
 
-            temp[(int)MinoKind.O][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.O][(int)Rotation.Left] =
             new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
 
             #endregion
             #region S
-            temp[(int)MinoKind.S][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.S][(int)Rotation.Zero] =
             new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1) };
 
-            temp[(int)MinoKind.S][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.S][(int)Rotation.Right] =
             new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
 
-            temp[(int)MinoKind.S][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.S][(int)Rotation.Turn] =
             new Vector2[] { new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2), new Vector2(1, 2) };
 
-            temp[(int)MinoKind.S][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.S][(int)Rotation.Left] =
             new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
 
             #endregion
             #region I
-            temp[(int)MinoKind.I][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.I][(int)Rotation.Zero] =
             new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(3, 1) };
-            temp[(int)MinoKind.I][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.I][(int)Rotation.Right] =
 new Vector2[] { new Vector2(2, 0), new Vector2(2, 1), new Vector2(2, 2), new Vector2(2, 3) };
-            temp[(int)MinoKind.I][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.I][(int)Rotation.Turn] =
 new Vector2[] { new Vector2(0, 2), new Vector2(1, 2), new Vector2(2, 2), new Vector2(3, 2) };
-            temp[(int)MinoKind.I][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.I][(int)Rotation.Left] =
 new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(1, 3) };
 
             #endregion
             #region J
-            temp[(int)MinoKind.J][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.J][(int)Rotation.Zero] =
             new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
 
-            temp[(int)MinoKind.J][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.J][(int)Rotation.Right] =
             new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(1, 2) };
 
-            temp[(int)MinoKind.J][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.J][(int)Rotation.Turn] =
             new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
 
-            temp[(int)MinoKind.J][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.J][(int)Rotation.Left] =
             new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 2), new Vector2(1, 2) };
 
             #endregion
             #region T
-            temp[(int)MinoKind.T][(int)Rotation.Zero] =
+            tempTetriminos[(int)MinoKind.T][(int)Rotation.Zero] =
             new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
 
-            temp[(int)MinoKind.T][(int)Rotation.Right] =
+            tempTetriminos[(int)MinoKind.T][(int)Rotation.Right] =
             new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
 
-            temp[(int)MinoKind.T][(int)Rotation.Turn] =
+            tempTetriminos[(int)MinoKind.T][(int)Rotation.Turn] =
             new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
 
-            temp[(int)MinoKind.T][(int)Rotation.Left] =
+            tempTetriminos[(int)MinoKind.T][(int)Rotation.Left] =
             new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
 
             #endregion
+            TETRIMINOS = tempTetriminos;
 
-            TETRIMINOS = temp;
+            var tempkickset = new Dictionary<string, Vector2[]>();
+            var tempkicksetI = new Dictionary<string, Vector2[]>();
 
+            #region KickSet Init
+            tempkickset.Add("01", new Vector2[] { new Vector2(-1, 0), new Vector2(-1, -1), new Vector2(0, 2), new Vector2(-1, 2), });
+            tempkickset.Add("10", new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, -2), new Vector2(1, -2), });
+            tempkickset.Add("12", new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, -2), new Vector2(1, -2), });
+            tempkickset.Add("21", new Vector2[] { new Vector2(-1, 0), new Vector2(-1, -1), new Vector2(0, 2), new Vector2(-1, 2), });
+            tempkickset.Add("23", new Vector2[] { new Vector2(1, 0), new Vector2(1, -1), new Vector2(0, 2), new Vector2(1, 2), });
+            tempkickset.Add("32", new Vector2[] { new Vector2(-1, 0), new Vector2(-1, 1), new Vector2(0, -2), new Vector2(-1, -2), });
+            tempkickset.Add("30", new Vector2[] { new Vector2(-1, 0), new Vector2(-1, 1), new Vector2(0, -2), new Vector2(-1, -2), });
+            tempkickset.Add("03", new Vector2[] { new Vector2(1, 0), new Vector2(1, -1), new Vector2(0, 2), new Vector2(1, 2), });
+            tempkickset.Add("02", new Vector2[] { new Vector2(0, -1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(1, 0), new Vector2(-1, 0), });
+            tempkickset.Add("13", new Vector2[] { new Vector2(1, 0), new Vector2(1, -2), new Vector2(1, -1), new Vector2(0, -2), new Vector2(0, -1), });
+            tempkickset.Add("20", new Vector2[] { new Vector2(0, 1), new Vector2(-1, 1), new Vector2(1, 1), new Vector2(-1, 0), new Vector2(1, 0), });
+            tempkickset.Add("31", new Vector2[] { new Vector2(-1, 0), new Vector2(-1, -2), new Vector2(-1, -1), new Vector2(0, -2), new Vector2(0, -1), });
+            KICKSET_SRSPLUS = tempkickset;
+
+            tempkicksetI.Add("01", new Vector2[] { new Vector2(1, 0), new Vector2(-2, 0), new Vector2(-2, 1), new Vector2(1, -2), });
+            tempkicksetI.Add("10", new Vector2[] { new Vector2(-1, 0), new Vector2(2, 0), new Vector2(-1, 2), new Vector2(2, -1), });
+            tempkicksetI.Add("12", new Vector2[] { new Vector2(-1, 0), new Vector2(2, 0), new Vector2(-1, -2), new Vector2(2, 1), });
+            tempkicksetI.Add("21", new Vector2[] { new Vector2(-2, 0), new Vector2(1, 0), new Vector2(-2, -1), new Vector2(1, 2), });
+            tempkicksetI.Add("23", new Vector2[] { new Vector2(2, 0), new Vector2(-1, 0), new Vector2(2, -1), new Vector2(-1, 2), });
+            tempkicksetI.Add("32", new Vector2[] { new Vector2(1, 0), new Vector2(-2, 0), new Vector2(1, -2), new Vector2(-2, 1), });
+            tempkicksetI.Add("30", new Vector2[] { new Vector2(1, 0), new Vector2(-2, 0), new Vector2(1, 2), new Vector2(-2, -1), });
+            tempkicksetI.Add("03", new Vector2[] { new Vector2(-1, 0), new Vector2(2, 0), new Vector2(2, 1), new Vector2(-1, -2), });
+            tempkicksetI.Add("02", new Vector2[] { new Vector2(0, -1) });
+            tempkicksetI.Add("13", new Vector2[] { new Vector2(1, 0) });
+            tempkicksetI.Add("20", new Vector2[] { new Vector2(0, 1) });
+            tempkicksetI.Add("31", new Vector2[] { new Vector2(-1, 0) });
+            KICKSET_SRSPLUSI = tempkicksetI;
+            #endregion
             GameData = new GameData();
 
 
@@ -245,16 +280,16 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
 
 
-        bool IsLegalAtPos(Falling current, int[] field)
+        bool IsLegalAtPos(Falling current, int[] field, Vector2 diff)
         {
             var positions = TETRIMINOS[current.type][current.r];
 
-            foreach(var position in positions)
+            foreach (var position in positions)
             {
-               if(!(position.x >= 0 && position.x < FIELD_WIDTH&&
-                    position.y>=0&&position.y<FIELD_HEIGHT&&
-                    field[position.x+position.y*10]==(int)MinoKind.Empty))
-                return false;
+                if (!(position.x + diff.x >= 0 && position.x + diff.x < FIELD_WIDTH &&
+                     position.y + diff.y >= 0 && position.y + diff.y < FIELD_HEIGHT &&
+                     field[position.x + diff.x + (position.y + diff.y) * 10] == (int)MinoKind.Empty))
+                    return false;
             }
 
             return true;
@@ -421,18 +456,106 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (rotation == 1 && nowmino_rotation == 3)
                 i = "horizontal";
 
-            if (IsLegalAtPos(GameData.Falling,GameData.))
+            if (IsLegalAtPos(GameData.Falling, GameData.Field, new Vector2(-GameData.Falling.aox, -GameData.Falling.aoy)))
+            {
+                GameData.Falling.x -= GameData.Falling.aox;
+                GameData.Falling.y -= GameData.Falling.aoy;
+                GameData.Falling.aox = 0;
+                GameData.Falling.aoy = 0;
+                GameData.Falling.r = rotation;
+                GameData.Falling.Last = "rotate";
+                GameData.Falling.LastRotation = i;
+                GameData.Falling.LastKick = 0;
+                GameData.Falling.SpinType = IsTspin();
+                GameData.FallingRotations++;
+                GameData.TotalRotations++;
+
+                if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
+                {
+                    GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                    GameData.LDasIter = GameData.Handling.ARR;
+                    GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                    GameData.RDasIter = GameData.Handling.ARR;
+                }
+
+                if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                    GameData.Falling.Locking = 0;
+
+                if (IsTspin())
+                {
+                    // DOTO: t.hm.H.holderstate.dr += o / 4 * t.lm.H.lastdT; これ何
+
+                }
+
+                //落下ミノ更新フラグ true
+                return;
+            }
+
+            if (GameData.Falling.type == (int)MinoKind.O)
+                return;
+
+            var kicktable = KICKSET_SRSPLUS[nowmino_newmino_rotation];
+
+            if (GameData.Falling.type == (int)MinoKind.I)
+                kicktable = KICKSET_SRSPLUSI[nowmino_newmino_rotation];
+
+            for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
+            {
+                var kicktableTest = kicktable[kicktableIndex];
+                var i2 = (int)(GameData.Falling.y) + 0.1 + kicktableTest.y - GameData.Falling.aoy;
+
+                int templockresets;
+                if (GameData.Options.LockResets != null)
+                    templockresets = (int)GameData.Options.LockResets;
+                else
+                    templockresets = 15;
+
+                if (!GameData.Options.InfiniteMovement && GameData.TotalRotations > templockresets + 15)
+                {
+                    i2 = GameData.Falling.y + kicktableTest.y-GameData.Falling.aoy;
+                }
+
+                if(IsLegalAtPos(GameData.Falling,GameData.Field,new Vector2(kicktableTest.x-GameData.Falling.aox,i2)))
+                {
+                    GameData.Falling.x+=(int)kicktableTest.x-GameData.Falling.aox; 
+                    GameData.Falling.aox=0;
+                    GameData.Falling.aoy=0;
+                    GameData.Falling.r=rotation;
+                    GameData.FallingRotations++;
+                    GameData.TotalRotations++;
+
+                    if(GameData.Falling.Clamped&&GameData.Handling.DCD>0)
+                    {
+                        GameData.LDas=Math.Min(GameData.LDas,GameData.Handling.DAS-GameData.Handling.DCD);
+                        GameData.LDasIter=GameData.Handling.ARR;
+                        GameData.RDas=Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                        GameData.RDasIter=GameData.Handling.ARR;
+                    }
+
+                    if(++GameData.Falling.LockResets<15||GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking=0;
+
+                    if(IsTspin())
+                    {
+                        // DOTO: t.hm.H.holderstate.dr += o / 4 * t.lm.H.lastdT;
+                    }
+
+                    // DOTO: 更新フラグ true
+                    return;
+                }
+            }
+
 
         }
 
-        public void ProcessShift(bool value, float subFrameDiff = 1)
+        public void ProcessShift(bool value, double subFrameDiff = 1)
         {
             ProcessLShift(value, subFrameDiff);
             ProcessRShift(value, subFrameDiff);
 
         }
 
-        void ProcessLShift(bool value, float subFrameDiff = 1)
+        void ProcessLShift(bool value, double subFrameDiff = 1)
         {
             if (!GameData.LShift || GameData.RShift && GameData.LastShift != -1)
                 return;
@@ -471,12 +594,12 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling,GameData.Field))
+                if (IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(-1,0)))
                 {
                     GameData.Falling.x--;
                     GameData.Falling.Last = "move";
                     GameData.Falling.Clamped = false;
-                    //if(index==0)
+                    
                     // TODO: 落下ミノの更新フラグ？の確認とフラグを立てる
 
                     if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
@@ -486,12 +609,12 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 else
                 {
                     GameData.Falling.Clamped = true;
-
+                    //TODO: holderstate.dxのやつ
                 }
             }
         }
 
-        void ProcessRShift(bool value, float subFrameDiff = 1)
+        void ProcessRShift(bool value, double subFrameDiff = 1)
         {
             if (!GameData.RShift || GameData.LShift && GameData.LastShift != 1)
                 return;
@@ -530,7 +653,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling,GameData.Field))
+                if (IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(1,0)))
                 {
                     GameData.Falling.x++;
                     GameData.Falling.Last = "move";
@@ -545,67 +668,113 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 else
                 {
                     GameData.Falling.Clamped = true;
+                    //TODO: holderstateのやつ
                 }
             }
         }
 
-        public void FallEvent(int? value, float subFrameDiff)
+        public void FallEvent(int? value, double subFrameDiff)
         {
-            if(GameData.Falling.SafeLock>0)
+            if (GameData.Falling.SafeLock > 0)
                 GameData.Falling.SafeLock--;
 
-            if(GameData.Falling.Sleep||GameData.Falling.DeepSleep)
+            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
-            var subframeGravity=GameData.Gravity*subFrameDiff;
+            var subframeGravity = GameData.Gravity * subFrameDiff;
 
-            if(GameData.SoftDrop)
+            if (GameData.SoftDrop)
             {
-                if(GameData.Options.Version>=15&&GameData.Handling.SDF==41)
-                    subframeGravity=400*subFrameDiff;
-                else if(!(GameData.Options.Version>=15)&&GameData.Handling.SDF==21)
-                    subframeGravity=20*subFrameDiff;
+                if (GameData.Options.Version >= 15 && GameData.Handling.SDF == 41)
+                    subframeGravity = 400 * subFrameDiff;
+                else if (!(GameData.Options.Version >= 15) && GameData.Handling.SDF == 21)
+                    subframeGravity = 20 * subFrameDiff;
                 else
                 {
-                    subframeGravity*=GameData.Handling.SDF;
+                    subframeGravity *= GameData.Handling.SDF;
                     int tempvalue;
-                    if(GameData.Options.Version >= 13)
-                        tempvalue=1;
+                    if (GameData.Options.Version >= 13)
+                        tempvalue = 1;
                     else
-                        tempvalue=0;
+                        tempvalue = 0;
 
-                    if(Math.Max(subframeGravity, tempvalue)>0)
-                                            subframeGravity=0.05*GameData.Handling.SDF;
+                    if (Math.Max(subframeGravity, tempvalue) > 0)
+                        subframeGravity = 0.05 * GameData.Handling.SDF;
                     else
-                        subframeGravity=0.42;
+                        subframeGravity = 0.42;
                 }
             }
 
-            if(value!=null)
+            if (value != null)
             {
-                subframeGravity=(int)value;
+                subframeGravity = (int)value;
 
             }
 
             int templockresets;
-            if(GameData.Options.LockResets!=null)
-                templockresets=(int)GameData.Options.LockResets;
+            if (GameData.Options.LockResets != null)
+                templockresets = (int)GameData.Options.LockResets;
             else
-            templockresets=15;
+                templockresets = 15;
 
 
-            if(!GameData.Options.InfiniteMovement&&
-                GameData.Falling.LockResets>= templockresets&&
-                !IsLegalAtPos(GameData.Falling,GameData.Field))
+            if (!GameData.Options.InfiniteMovement &&
+                GameData.Falling.LockResets >= templockresets &&
+                !IsLegalAtPos(GameData.Falling, GameData.Field,new Vector2(0,1)))
             {
-                subframeGravity=20;
-                GameData.Falling.ForceLock=true;
+                subframeGravity = 20;
+                GameData.Falling.ForceLock = true;
             }
 
+            
+            if (!GameData.Options.InfiniteMovement&&
+                GameData.FallingRotations> templockresets+15)
+            {
+                subframeGravity+=0.5*subFrameDiff*
+                    (GameData.FallingRotations-(templockresets+ 15));
+            }
 
-            if()
-            if(!GameData.Options.InfiniteMovement&&
-                GameData.Falling.)
+            var r=subframeGravity;
+
+            for(;subframeGravity>0;)
+            {
+                var ceiledValue=Math.Ceiling(GameData.Falling.y);
+                if(!InstantDrop(Math.Min(1,subframeGravity),r))
+                {
+                    if(value!=null)
+                        GameData.Falling.ForceLock=true;
+                    FunctionA(value!=0,subFrameDiff);
+                    break;
+                }
+
+                subframeGravity-=Math.Min(1,subframeGravity);
+              if(  ceiledValue!=Math.Ceiling(GameData.Falling.y))
+                {
+                    GameData.Falling.Last="fall";
+                    if(GameData.SoftDrop)
+                    {
+                        //ScoreAdd
+
+                    }
+                }
+            }
+        }
+
+        bool InstantDrop(double value,double value2)
+        {
+            var n=Math.Floor(Math.Pow(10*))
+        }
+
+        void FunctionA(bool value=false,int a=1)
+        {
+            if(GameData.Options.Version>=15)
+            GameData.Falling.Locking+=a;
+            else
+            GameData.Falling.Locking+=1;
+
+            if(!GameData.Falling.Floored)
+                GameData.Falling.Floored=true;
+
         }
 
         void SwapHold()
@@ -613,6 +782,9 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         }
 
+        bool IsTspin()
+        {
 
+        }
     }
 }
