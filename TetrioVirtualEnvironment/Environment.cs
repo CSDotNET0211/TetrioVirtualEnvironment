@@ -52,8 +52,8 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-      static  public  Vector2[][][] TETRIMINOS;
-        static  public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
+        static public Vector2[][][] TETRIMINOS;
+        static public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
 
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
@@ -280,7 +280,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
 
 
-       static public bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
+        static public bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
         {
             var positions = TETRIMINOS[type][rotation];
 
@@ -337,41 +337,55 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     return;
                 }
 
-                if (@event.key == "rotateCCW")
+                if (GameData.Falling.Sleep)
                 {
-                    var e = GameData.Falling.r - 1;
-                    if (e < 0)
-                        e = 3;
-                    RotatePiece(e);
+                    throw new Exception("未実装");
                 }
-
-                if (@event.key == "rotateCW")
+                else
                 {
-                    var e = GameData.Falling.r + 1;
-                    if (e > 3)
-                        e = 0;
-                    RotatePiece(e);
-                }
-
-                if (@event.key == "rotate180" && GameData.Options.Allow180)
-                {
-                    var e = GameData.Falling.r + 2;
-                    if (e > 3)
-                        e -= 4;
-                    RotatePiece(e);
-                }
-                if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop && GameData.Falling.SafeLock == 0)
-                {
-                    FallEvent(int.MaxValue, 1);
-                }
-
-                if (@event.key == "hold")
-                {
-                    if (!GameData.HoldLocked && (GameData.Options.DisplayHold == null || (bool)GameData.Options.DisplayHold))
+                    if (@event.key == "rotateCCW")
                     {
-                        SwapHold();
+                        var e = GameData.Falling.r - 1;
+                        if (e < 0)
+                            e = 3;
+                        RotatePiece(e);
+                    }
+
+                    if (@event.key == "rotateCW")
+                    {
+                        var e = GameData.Falling.r + 1;
+                        if (e > 3)
+                            e = 0;
+                        RotatePiece(e);
+                    }
+
+                    if (@event.key == "rotate180" && GameData.Options.Allow180)
+                    {
+                        var e = GameData.Falling.r + 2;
+                        if (e > 3)
+                            e -= 4;
+                        RotatePiece(e);
+                    }
+                    if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop &&
+                        GameData.Falling.SafeLock == 0)
+                    {
+                        FallEvent(int.MaxValue, 1);
+                    }
+
+                    if (@event.key == "hold")
+                    {
+                        if (!GameData.HoldLocked)
+                        {
+                            if ((GameData.Options.DisplayHold == null ||
+                            (bool)GameData.Options.DisplayHold))
+                            {
+                                SwapHold();
+                            }
+
+                        }
                     }
                 }
+
             }
             else if (type == "keyup")
             {
@@ -515,7 +529,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     i2 = GameData.Falling.y + kicktableTest.y - GameData.Falling.aoy;
                 }
 
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x+(int)kicktableTest.x- GameData.Falling.aox,i2, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + (int)kicktableTest.x - GameData.Falling.aox, i2, GameData.Falling.r, GameData.Field))
                 {
                     GameData.Falling.x += (int)kicktableTest.x - GameData.Falling.aox;
                     GameData.Falling.aox = 0;
@@ -548,7 +562,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         }
 
-        public void ProcessShift(bool value, double subFrameDiff = 1)
+        public void ProcessShift(bool value, double subFrameDiff)
         {
             ProcessLShift(value, subFrameDiff);
             ProcessRShift(value, subFrameDiff);
@@ -570,6 +584,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 return;
 
             subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
+
             if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
@@ -594,13 +609,11 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x-1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
                     GameData.Falling.x--;
                     GameData.Falling.Last = "move";
                     GameData.Falling.Clamped = false;
-
-                    // TODO: 落下ミノの更新フラグ？の確認とフラグを立てる
 
                     if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
                         GameData.Falling.Locking = 0;
@@ -609,7 +622,6 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 else
                 {
                     GameData.Falling.Clamped = true;
-                    //TODO: holderstate.dxのやつ
                 }
             }
         }
@@ -653,13 +665,11 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x+1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
                     GameData.Falling.x++;
                     GameData.Falling.Last = "move";
                     GameData.Falling.Clamped = false;
-
-                    // TODO: フラグのやつ
 
                     if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
                         GameData.Falling.Locking = 0;
@@ -667,8 +677,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 }
                 else
                 {
-                    GameData.Falling.Clamped = true;
-                    //TODO: holderstateのやつ
+                    GameData.Falling.Clamped = true
                 }
             }
         }
@@ -706,21 +715,11 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
 
             if (value != null)
-            {
                 subframeGravity = (int)value;
 
-            }
-
-            int templockresets;
-            if (GameData.Options.LockResets != null)
-                templockresets = (int)GameData.Options.LockResets;
-            else
-                templockresets = 15;
-
-
             if (!GameData.Options.InfiniteMovement &&
-                GameData.Falling.LockResets >= templockresets &&
-                !IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y+1, GameData.Falling.r, GameData.Field))
+                GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
+                !IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
             {
                 subframeGravity = 20;
                 GameData.Falling.ForceLock = true;
@@ -728,10 +727,10 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
 
             if (!GameData.Options.InfiniteMovement &&
-                GameData.FallingRotations > templockresets + 15)
+                GameData.FallingRotations > (int)GameData.Options.LockResets + 15)
             {
                 subframeGravity += 0.5 * subFrameDiff *
-                    (GameData.FallingRotations - (templockresets + 15));
+                    (GameData.FallingRotations - ((int)GameData.Options.LockResets + 15));
             }
 
             var r = subframeGravity;
@@ -762,7 +761,8 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool HardDrop(double value, double value2)
         {
-            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / Math.Pow(10, 13) + value;
+            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / 
+                Math.Pow(10, 13) + value;
 
             if (fallingy_kouho % 1 == 0)
                 fallingy_kouho += 0.00001;
@@ -799,6 +799,27 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             return true;
         }
 
+        void PiecePlace(bool sValue)
+        {
+            GameData.Falling.Sleep = true;
+            //ミノを盤面に適用
+            foreach (var pos in TETRIMINOS[GameData.Falling.type][GameData.Falling.r])
+            {
+                GameData.Field[(int)((pos.x + GameData.Falling.x) + (int)(pos.y + GameData.Falling.y) * 10)] = GameData.Falling.type;
+            }
+
+            if (!sValue && GameData.Handling.SafeLock > 0)
+                GameData.Falling.SafeLock = 7;
+
+            var clearedLineCount = ClearLine();
+
+        }
+
+        int ClearLine()
+        {
+            return 0;
+        }
+
         void FunctionA(bool value = false, int a = 1)
         {
             if (GameData.Options.Version >= 15)
@@ -809,6 +830,14 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (!GameData.Falling.Floored)
                 GameData.Falling.Floored = true;
 
+
+
+            if (GameData.Falling.Locking > GameData.Options.LockTime ||
+                GameData.Falling.ForceLock ||
+                GameData.Falling.LockResets > GameData.Options.LockResets && !GameData.Options.InfiniteMovement)
+            {
+                PiecePlace(value);
+            }
         }
 
         void SwapHold()

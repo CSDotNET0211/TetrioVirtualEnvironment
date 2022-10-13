@@ -12,7 +12,7 @@ while (true)
 {
     Print(replay);
     if(!replay.Update())
-        break;
+        break;  
     
 }
 

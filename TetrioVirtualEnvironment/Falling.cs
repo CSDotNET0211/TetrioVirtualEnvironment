@@ -63,6 +63,8 @@ namespace TetrioVirtualEnvironment
         public double y;
         public int aoy;
         public int r;
+        public int irs;
+        public int ihs;
         public int SafeLock;
         public bool ForceLock;
         public bool Sleep;
