@@ -8,12 +8,31 @@ namespace TetrioVirtualEnvironment
 {
     public class Falling
     {
-        public Falling()
+        public Falling(Environment environment, GameData gameData)
         {
+            Sleep = true;
+            DeepSleep = false;
+            Locking = 0;
+            LockResets = 0;
+            ForceLock = false;
+            Floored = false;
+            Clamped = false;
+            SafeLock = 0;
             x = 4;
-            y = 17;
+            y = 14;
             r = 0;
-            // TODO: 色々初期化
+            type = -1;
+            HighestY = 14;
+            Last = null;
+            LastKick = 0;
+            LastRotation = "none";
+            irs = 0;
+            ihs = 0;
+            aox = 0;
+            aoy = 0;
+
+            EnvironmentInstance = environment;
+            GameDataInstance = gameData;
         }
 
         public void Init(int? newtype)
@@ -23,6 +42,12 @@ namespace TetrioVirtualEnvironment
             LockResets = 0;
             Floored = false;
 
+            if (newtype == null)
+            {
+                type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
+            }
+            else
+                type = (int)newtype;
 
             aox = 0;
             aoy = 0;
@@ -33,30 +58,32 @@ namespace TetrioVirtualEnvironment
             SpinType = false;
             Sleep = false;
             Last = null;
-            GameData.Instance.FallingRotations = 0;
-            GameData.Instance.TotalRotations = 0;
+            GameDataInstance.FallingRotations = 0;
+            GameDataInstance.TotalRotations = 0;
 
             if (newtype != null)
-                GameData.Instance.HoldLocked = true;
+                GameDataInstance.HoldLocked = true;
             else
-                GameData.Instance.HoldLocked = false;
+                GameDataInstance.HoldLocked = false;
 
-            if (Clamped && GameData.Instance.Handling.DCD > 0)
+            if (Clamped && GameDataInstance.Handling.DCD > 0)
             {
-                GameData.Instance.LDas = Math.Min(GameData.Instance.LDas, GameData.Instance.Handling.DAS - GameData.Instance.Handling.DCD);
-                GameData.Instance.LDasIter = GameData.Instance.Handling.ARR;
-                GameData.Instance.RDas = Math.Min(GameData.Instance.RDas, GameData.Instance.Handling.DAS - GameData.Instance.Handling.DCD);
-                GameData.Instance.RDasIter = GameData.Instance.Handling.ARR;
+                GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
+                GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
             }
 
             Clamped = false;
 
-            if (Environment.IsLegalAtPos(type, x, y, r, GameData.Instance.Field))
+            if (Environment.IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
             {
 
             }
         }
 
+        public Environment EnvironmentInstance;
+        public GameData GameDataInstance;
         public int type;
         public int x;
         public int aox;
@@ -75,7 +102,7 @@ namespace TetrioVirtualEnvironment
         public int LastKick;
         public bool Clamped;
         public int LockResets;
-        public int Locking;
+        public double Locking;
         public bool Floored;
         public double HighestY;
     }

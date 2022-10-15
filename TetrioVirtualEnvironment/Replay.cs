@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TetrReplayLoaderLib;
 
@@ -10,45 +11,64 @@ namespace TetrioVirtualEnvironment
 {
     public class Replay
     {
-        public Environment Environment { get; private set; }
-        ReplayDataSolo _replayData;
+        public List<Environment> Environments=new List<Environment>();
+        //  public GameData GameData { get; private set; }
+        ReplayDataTTR _replayData;
         public int CurrentFrame { get; private set; } = 0;
         int CurrentIndex = 0;
 
-        public void Load(string jsondata)
+        public Replay(string jsondata)
         {
-            Environment = new Environment();
-            _replayData = (ReplayDataSolo)LibClass.ParseReplay(jsondata, false);
+
+
+            _replayData = (ReplayDataTTR)LibClass.ParseReplay(jsondata, true);
+
+
+            var full = _replayData.data.events.Where(x => x.type == "full").First().data;
+            var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
+            Environments.Add(new Environment(options));
+            //Environments[0].
         }
 
-        public void SetFrame()
-        {
 
+        public void SetFrame(int frame)
+        {
+            CurrentFrame = frame;
         }
 
         public bool Update()
         {
-            Environment.GameData.SubFrame = 0;
+            Environments[0].GameDataInstance.SubFrame = 0;
+
             //キー入力
             while (true)
             {
+
+
                 if (_replayData.data.events[CurrentIndex].frame == CurrentFrame)
                 {
+
                     switch (_replayData.data.events[CurrentIndex].type)
                     {
                         case "start":
-                            continue;
+                            break;
 
                         case "full":
-
+                            Environments[0].GameDataInstance.Falling.Init(null);
                             break;
 
                         case "keydown":
                         case "keyup":
-                            var inputevent = (EventKeyInput)_replayData.data.events[CurrentIndex].data;
+                            var inputevent = JsonSerializer.Deserialize<EventKeyInput>(_replayData.data.events[CurrentIndex].data.ToString());
 
-                            Environment.KeyInput(_replayData.data.events[CurrentIndex].type,
-                            inputevent);
+                            Console.CursorLeft = 55;
+                            Console.CursorTop = 10;
+                            Console.WriteLine(_replayData.data.events[CurrentIndex].frame + " " +
+                              _replayData.data.events[CurrentIndex].type + " " + inputevent.key);
+
+
+                            Environments[0].KeyInput(_replayData.data.events[CurrentIndex].type,
+                                                inputevent);
 
                             break;
 
@@ -67,13 +87,17 @@ namespace TetrioVirtualEnvironment
             }
 
 
-
             CurrentFrame++;
-            Environment.ProcessShift(false, 1 - Environment.GameData.SubFrame);
-            Environment.FallEvent(null, 1 - Environment.GameData.SubFrame);
+            Environments[0].ProcessShift(false, 1 - Environments[0].GameDataInstance.SubFrame);
+            Environments[0].FallEvent(null, 1 - Environments[0].GameDataInstance.SubFrame);
 
 
             return true;
+        }
+
+        public void InputEvent()
+        {
+
         }
 
 

@@ -1,8 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text.Json;
 using TetrReplayLoaderLib;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace TetrioVirtualEnvironment
 {
@@ -53,11 +56,12 @@ namespace TetrioVirtualEnvironment
 
         //minokind rotation vec
         static public Vector2[][][] TETRIMINOS;
-        static public readonly string[] MINOTYPES = new string[] { "z", "l", "o", "s", "i", "j", "t", };
+        static public Vector2[] TETRIMINO_DIFF;
+        static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
-        public GameData GameData;
+        public GameData GameDataInstance;
 
         public enum MinoKind
         {
@@ -129,8 +133,11 @@ namespace TetrioVirtualEnvironment
 
 
 
-        public Environment()
+        public Environment(EventFullOptions options)
         {
+            new GameData(options, false, this,ref GameDataInstance);
+            GameDataInstance.SubFrame = 0;
+
             var tempTetriminos = new Vector2[7][][];
 
             for (int i = 0; i < 7; i++)
@@ -234,6 +241,15 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             #endregion
             TETRIMINOS = tempTetriminos;
 
+            TETRIMINO_DIFF = new Vector2[7];
+            TETRIMINO_DIFF[0] = new Vector2(1, 1);
+            TETRIMINO_DIFF[1] = new Vector2(1, 1);
+            TETRIMINO_DIFF[2] = new Vector2(0, 1);
+            TETRIMINO_DIFF[3] = new Vector2(1, 1);
+            TETRIMINO_DIFF[4] = new Vector2(1, 1);
+            TETRIMINO_DIFF[5] = new Vector2(1, 1);
+            TETRIMINO_DIFF[6] = new Vector2(1, 1);
+
             var tempkickset = new Dictionary<string, Vector2[]>();
             var tempkicksetI = new Dictionary<string, Vector2[]>();
 
@@ -266,7 +282,9 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             tempkicksetI.Add("31", new Vector2[] { new Vector2(-1, 0) });
             KICKSET_SRSPLUSI = tempkicksetI;
             #endregion
-            GameData = new GameData();
+
+
+            //GameDataInstance=GameDataInstance;
 
 
 
@@ -283,12 +301,13 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
         static public bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
         {
             var positions = TETRIMINOS[type][rotation];
+            var diff = TETRIMINO_DIFF[type];
 
             foreach (var position in positions)
             {
-                if (!(x >= 0 && x < FIELD_WIDTH &&
-                  y >= 0 && y < FIELD_HEIGHT &&
-                     field[x + (int)y * 10] == (int)MinoKind.Empty))
+                if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < FIELD_WIDTH &&
+                  position.y + y - diff.y >= 0 && position.y + y - diff.y < FIELD_HEIGHT &&
+                     field[(int)position.x + x - (int)diff.x + (int)(position.y + y - (int)diff.y) * 10] == (int)MinoKind.Empty))
                     return false;
             }
 
@@ -300,44 +319,44 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
         {
             if (type == "keydown")
             {
-                if (@event.subframe > GameData.SubFrame)
+                if (@event.subframe > GameDataInstance.SubFrame)
                 {
-                    ProcessShift(false, @event.subframe - GameData.SubFrame);
-                    FallEvent(null, @event.subframe - GameData.SubFrame);
-                    GameData.SubFrame = @event.subframe;
+                    ProcessShift(false, @event.subframe - GameDataInstance.SubFrame);
+                    FallEvent(null, @event.subframe - GameDataInstance.SubFrame);
+                    GameDataInstance.SubFrame = @event.subframe;
                 }
 
                 if (@event.key == "moveLeft")
                 {
-                    GameData.LShift = true;
-                    GameData.LastShift = -1;
-                    GameData.LDas = @event.hoisted ? GameData.Handling.DAS - GameData.Handling.DCD : 0;
-                    if (GameData.Options.Version >= 12)
-                        GameData.LDasIter = GameData.Handling.ARR;
+                    GameDataInstance.LShift = true;
+                    GameDataInstance.LastShift = -1;
+                    GameDataInstance.LDas = @event.hoisted ? GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
+                    if (GameDataInstance.Options.Version >= 12)
+                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
 
-                    ProcessLShift(true, GameData.Options.Version >= 15 ? 0 : 1);
+                    ProcessLShift(true, GameDataInstance.Options.Version >= 15 ? 0 : 1);
                     return;
                 }
 
                 if (@event.key == "moveRight")
                 {
-                    GameData.RShift = true;
-                    GameData.LastShift = 1;
-                    GameData.RDas = @event.hoisted ? GameData.Handling.DAS - GameData.Handling.DCD : 0;
-                    if (GameData.Options.Version >= 12)
-                        GameData.RDasIter = GameData.Handling.ARR;
+                    GameDataInstance.RShift = true;
+                    GameDataInstance.LastShift = 1;
+                    GameDataInstance.RDas = @event.hoisted ? GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
+                    if (GameDataInstance.Options.Version >= 12)
+                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
 
-                    ProcessRShift(true, GameData.Options.Version >= 15 ? 0 : 1);
+                    ProcessRShift(true, GameDataInstance.Options.Version >= 15 ? 0 : 1);
                     return;
                 }
 
                 if (@event.key == "softDrop")
                 {
-                    GameData.SoftDrop = true;
+                    GameDataInstance.SoftDrop = true;
                     return;
                 }
 
-                if (GameData.Falling.Sleep)
+                if (GameDataInstance.Falling.Sleep)
                 {
                     throw new Exception("未実装");
                 }
@@ -345,7 +364,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 {
                     if (@event.key == "rotateCCW")
                     {
-                        var e = GameData.Falling.r - 1;
+                        var e = GameDataInstance.Falling.r - 1;
                         if (e < 0)
                             e = 3;
                         RotatePiece(e);
@@ -353,31 +372,31 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
                     if (@event.key == "rotateCW")
                     {
-                        var e = GameData.Falling.r + 1;
+                        var e = GameDataInstance.Falling.r + 1;
                         if (e > 3)
                             e = 0;
                         RotatePiece(e);
                     }
 
-                    if (@event.key == "rotate180" && GameData.Options.Allow180)
+                    if (@event.key == "rotate180" && GameDataInstance.Options.Allow180)
                     {
-                        var e = GameData.Falling.r + 2;
+                        var e = GameDataInstance.Falling.r + 2;
                         if (e > 3)
                             e -= 4;
                         RotatePiece(e);
                     }
-                    if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop &&
-                        GameData.Falling.SafeLock == 0)
+                    if (@event.key == "hardDrop" && GameDataInstance.Options.AllowHardDrop &&
+                        GameDataInstance.Falling.SafeLock == 0)
                     {
                         FallEvent(int.MaxValue, 1);
                     }
 
                     if (@event.key == "hold")
                     {
-                        if (!GameData.HoldLocked)
+                        if (!GameDataInstance.HoldLocked)
                         {
-                            if ((GameData.Options.DisplayHold == null ||
-                            (bool)GameData.Options.DisplayHold))
+                            if ((GameDataInstance.Options.DisplayHold == null ||
+                            (bool)GameDataInstance.Options.DisplayHold))
                             {
                                 SwapHold();
                             }
@@ -389,22 +408,22 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
             else if (type == "keyup")
             {
-                if (@event.subframe > GameData.SubFrame)
+                if (@event.subframe > GameDataInstance.SubFrame)
                 {
-                    ProcessShift(false, @event.subframe - GameData.SubFrame);
-                    FallEvent(null, @event.subframe - GameData.SubFrame);
-                    GameData.SubFrame = @event.subframe;
+                    ProcessShift(false, @event.subframe - GameDataInstance.SubFrame);
+                    FallEvent(null, @event.subframe - GameDataInstance.SubFrame);
+                    GameDataInstance.SubFrame = @event.subframe;
                 }
 
                 if (@event.key == "moveLeft")
                 {
-                    GameData.LShift = false;
-                    GameData.LDas = 0;
+                    GameDataInstance.LShift = false;
+                    GameDataInstance.LDas = 0;
 
-                    if (GameData.Handling.Cancel)
+                    if (GameDataInstance.Handling.Cancel)
                     {
-                        GameData.RDas = 0;
-                        GameData.RDasIter = GameData.Handling.ARR;
+                        GameDataInstance.RDas = 0;
+                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
                     }
 
                     return;
@@ -412,20 +431,20 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
                 if (@event.key == "moveRight")
                 {
-                    GameData.RShift = false;
-                    GameData.RDas = 0;
+                    GameDataInstance.RShift = false;
+                    GameDataInstance.RDas = 0;
 
-                    if (GameData.Handling.Cancel)
+                    if (GameDataInstance.Handling.Cancel)
                     {
-                        GameData.LDas = 0;
-                        GameData.LDasIter = GameData.Handling.ARR;
+                        GameDataInstance.LDas = 0;
+                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
                     }
 
                     return;
                 }
 
                 if (@event.key == "softDrop")
-                    GameData.SoftDrop = false;
+                    GameDataInstance.SoftDrop = false;
 
 
             }
@@ -433,7 +452,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         void RotatePiece(int rotation)
         {
-            var nowmino_rotation = GameData.Falling.r;
+            var nowmino_rotation = GameDataInstance.Falling.r;
             var nowmino_newmino_rotation = nowmino_rotation.ToString() + rotation.ToString();
             var o = 0;
             var i = "none";
@@ -470,30 +489,33 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (rotation == 1 && nowmino_rotation == 3)
                 i = "horizontal";
 
-            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - GameData.Falling.aox, GameData.Falling.y - GameData.Falling.aoy, GameData.Falling.r, GameData.Field))
+            if (IsLegalAtPos(GameDataInstance.Falling.type,
+                GameDataInstance.Falling.x - GameDataInstance.Falling.aox,
+                GameDataInstance.Falling.y - GameDataInstance.Falling.aoy, rotation,
+                GameDataInstance.Field))
             {
-                GameData.Falling.x -= GameData.Falling.aox;
-                GameData.Falling.y -= GameData.Falling.aoy;
-                GameData.Falling.aox = 0;
-                GameData.Falling.aoy = 0;
-                GameData.Falling.r = rotation;
-                GameData.Falling.Last = "rotate";
-                GameData.Falling.LastRotation = i;
-                GameData.Falling.LastKick = 0;
-                GameData.Falling.SpinType = IsTspin();
-                GameData.FallingRotations++;
-                GameData.TotalRotations++;
+                GameDataInstance.Falling.x -= GameDataInstance.Falling.aox;
+                GameDataInstance.Falling.y -= GameDataInstance.Falling.aoy;
+                GameDataInstance.Falling.aox = 0;
+                GameDataInstance.Falling.aoy = 0;
+                GameDataInstance.Falling.r = rotation;
+                GameDataInstance.Falling.Last = "rotate";
+                GameDataInstance.Falling.LastRotation = i;
+                GameDataInstance.Falling.LastKick = 0;
+                GameDataInstance.Falling.SpinType = IsTspin();
+                GameDataInstance.FallingRotations++;
+                GameDataInstance.TotalRotations++;
 
-                if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
+                if (GameDataInstance.Falling.Clamped && GameDataInstance.Handling.DCD > 0)
                 {
-                    GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
-                    GameData.LDasIter = GameData.Handling.ARR;
-                    GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
-                    GameData.RDasIter = GameData.Handling.ARR;
+                    GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                    GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
+                    GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                    GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
                 }
 
-                if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
-                    GameData.Falling.Locking = 0;
+                if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
+                    GameDataInstance.Falling.Locking = 0;
 
                 if (IsTspin())
                 {
@@ -505,49 +527,53 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 return;
             }
 
-            if (GameData.Falling.type == (int)MinoKind.O)
+            if (GameDataInstance.Falling.type == (int)MinoKind.O)
                 return;
 
             var kicktable = KICKSET_SRSPLUS[nowmino_newmino_rotation];
 
-            if (GameData.Falling.type == (int)MinoKind.I)
+            if (GameDataInstance.Falling.type == (int)MinoKind.I)
                 kicktable = KICKSET_SRSPLUSI[nowmino_newmino_rotation];
 
             for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
             {
                 var kicktableTest = kicktable[kicktableIndex];
-                var i2 = (int)(GameData.Falling.y) + 0.1 + kicktableTest.y - GameData.Falling.aoy;
+                var i2 = (int)(GameDataInstance.Falling.y) + 0.1 +
+                    kicktableTest.y - GameDataInstance.Falling.aoy;
 
-                int templockresets;
-                if (GameData.Options.LockResets != null)
-                    templockresets = (int)GameData.Options.LockResets;
-                else
-                    templockresets = 15;
 
-                if (!GameData.Options.InfiniteMovement && GameData.TotalRotations > templockresets + 15)
+                if (!GameDataInstance.Options.InfiniteMovement &&
+                    GameDataInstance.TotalRotations > (int)GameDataInstance.Options.LockResets + 15)
                 {
-                    i2 = GameData.Falling.y + kicktableTest.y - GameData.Falling.aoy;
+                    i2 = GameDataInstance.Falling.y + kicktableTest.y - GameDataInstance.Falling.aoy;
                 }
 
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + (int)kicktableTest.x - GameData.Falling.aox, i2, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameDataInstance.Falling.type,
+                    GameDataInstance.Falling.x + (int)kicktableTest.x - GameDataInstance.Falling.aox,
+                    i2, rotation, GameDataInstance.Field))
                 {
-                    GameData.Falling.x += (int)kicktableTest.x - GameData.Falling.aox;
-                    GameData.Falling.aox = 0;
-                    GameData.Falling.aoy = 0;
-                    GameData.Falling.r = rotation;
-                    GameData.FallingRotations++;
-                    GameData.TotalRotations++;
 
-                    if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
+                    GameDataInstance.Falling.x += (int)kicktableTest.x - GameDataInstance.Falling.aox;
+                    GameDataInstance.Falling.y = i2;
+                    GameDataInstance.Falling.aox = 0;
+                    GameDataInstance.Falling.aoy = 0;
+                    GameDataInstance.Falling.r = rotation;
+                    GameDataInstance.Falling.SpinType = IsTspin();
+                    GameDataInstance.Falling.LastKick = kicktableIndex + 1;
+                    GameDataInstance.Falling.Last = "rotate";
+                    GameDataInstance.FallingRotations++;
+                    GameDataInstance.TotalRotations++;
+
+                    if (GameDataInstance.Falling.Clamped && GameDataInstance.Handling.DCD > 0)
                     {
-                        GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
-                        GameData.LDasIter = GameData.Handling.ARR;
-                        GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
-                        GameData.RDasIter = GameData.Handling.ARR;
+                        GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
+                        GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
                     }
 
-                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
-                        GameData.Falling.Locking = 0;
+                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
+                        GameDataInstance.Falling.Locking = 0;
 
                     if (IsTspin())
                     {
@@ -571,144 +597,144 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         void ProcessLShift(bool value, double subFrameDiff = 1)
         {
-            if (!GameData.LShift || GameData.RShift && GameData.LastShift != -1)
+            if (!GameDataInstance.LShift || GameDataInstance.RShift && GameDataInstance.LastShift != -1)
                 return;
 
             var subFrameDiff2 = subFrameDiff;
-            var dasSomething = Math.Max(0, GameData.Handling.DAS - GameData.LDas);
+            var dasSomething = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.LDas);
 
             if (!value)
-                GameData.LDas += subFrameDiff;
+                GameDataInstance.LDas += subFrameDiff;
 
-            if (GameData.LDas < GameData.Handling.DAS && !value)
+            if (GameDataInstance.LDas < GameDataInstance.Handling.DAS && !value)
                 return;
 
             subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
 
-            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
+            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
                 return;
 
             var aboutARRValue = 1;
             if (!value)
             {
-                if (GameData.Options.Version >= 15)
-                    GameData.LDasIter = subFrameDiff2;
+                if (GameDataInstance.Options.Version >= 15)
+                    GameDataInstance.LDasIter = subFrameDiff2;
                 else
-                    GameData.LDasIter = subFrameDiff;
+                    GameDataInstance.LDasIter = subFrameDiff;
 
-                if (GameData.LDasIter < GameData.Handling.ARR)
+                if (GameDataInstance.LDasIter < GameDataInstance.Handling.ARR)
                     return;
 
-                if (GameData.Handling.ARR == 0)
+                if (GameDataInstance.Handling.ARR == 0)
                     aboutARRValue = 10;
                 else
-                    aboutARRValue = (int)(GameData.LDasIter / GameData.Handling.ARR);
+                    aboutARRValue = (int)(GameDataInstance.LDasIter / GameDataInstance.Handling.ARR);
 
-                GameData.LDasIter -= GameData.Handling.ARR * aboutARRValue;
+                GameDataInstance.LDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
             }
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x - 1, GameDataInstance.Falling.y, GameDataInstance.Falling.r, GameDataInstance.Field))
                 {
-                    GameData.Falling.x--;
-                    GameData.Falling.Last = "move";
-                    GameData.Falling.Clamped = false;
+                    GameDataInstance.Falling.x--;
+                    GameDataInstance.Falling.Last = "move";
+                    GameDataInstance.Falling.Clamped = false;
 
-                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
-                        GameData.Falling.Locking = 0;
+                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
+                        GameDataInstance.Falling.Locking = 0;
 
                 }
                 else
                 {
-                    GameData.Falling.Clamped = true;
+                    GameDataInstance.Falling.Clamped = true;
                 }
             }
         }
 
         void ProcessRShift(bool value, double subFrameDiff = 1)
         {
-            if (!GameData.RShift || GameData.LShift && GameData.LastShift != 1)
+            if (!GameDataInstance.RShift || GameDataInstance.LShift && GameDataInstance.LastShift != 1)
                 return;
 
             var subFrameDiff2 = subFrameDiff;
-            var o = Math.Max(0, GameData.Handling.DAS - GameData.RDas);
+            var o = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.RDas);
 
             if (!value)
-                GameData.RDas += subFrameDiff;
+                GameDataInstance.RDas += subFrameDiff;
 
-            if (GameData.RDas < GameData.Handling.DAS && !value)
+            if (GameDataInstance.RDas < GameDataInstance.Handling.DAS && !value)
                 return;
 
             subFrameDiff2 = Math.Max(0, subFrameDiff2 - o);
-            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
+            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
                 return;
 
             var aboutARRValue = 1;
             if (!value)
             {
-                if (GameData.Options.Version >= 15)
-                    GameData.RDasIter = subFrameDiff2;
+                if (GameDataInstance.Options.Version >= 15)
+                    GameDataInstance.RDasIter = subFrameDiff2;
                 else
-                    GameData.RDasIter = subFrameDiff;
+                    GameDataInstance.RDasIter = subFrameDiff;
 
-                if (GameData.RDasIter < GameData.Handling.ARR)
+                if (GameDataInstance.RDasIter < GameDataInstance.Handling.ARR)
                     return;
 
-                if (GameData.Handling.ARR == 0)
+                if (GameDataInstance.Handling.ARR == 0)
                     aboutARRValue = 10;
                 else
-                    aboutARRValue = (int)(GameData.RDasIter / GameData.Handling.ARR);
+                    aboutARRValue = (int)(GameDataInstance.RDasIter / GameDataInstance.Handling.ARR);
 
-                GameData.RDasIter -= GameData.Handling.ARR * aboutARRValue;
+                GameDataInstance.RDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
             }
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x + 1, GameDataInstance.Falling.y, GameDataInstance.Falling.r, GameDataInstance.Field))
                 {
-                    GameData.Falling.x++;
-                    GameData.Falling.Last = "move";
-                    GameData.Falling.Clamped = false;
+                    GameDataInstance.Falling.x++;
+                    GameDataInstance.Falling.Last = "move";
+                    GameDataInstance.Falling.Clamped = false;
 
-                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
-                        GameData.Falling.Locking = 0;
+                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
+                        GameDataInstance.Falling.Locking = 0;
 
                 }
                 else
                 {
-                    GameData.Falling.Clamped = true
+                    GameDataInstance.Falling.Clamped = true;
                 }
             }
         }
 
         public void FallEvent(int? value, double subFrameDiff)
         {
-            if (GameData.Falling.SafeLock > 0)
-                GameData.Falling.SafeLock--;
+            if (GameDataInstance.Falling.SafeLock > 0)
+                GameDataInstance.Falling.SafeLock--;
 
-            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
+            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
                 return;
 
-            var subframeGravity = GameData.Gravity * subFrameDiff;
+            var subframeGravity = GameDataInstance.Gravity * subFrameDiff;
 
-            if (GameData.SoftDrop)
+            if (GameDataInstance.SoftDrop)
             {
-                if (GameData.Options.Version >= 15 && GameData.Handling.SDF == 41)
+                if (GameDataInstance.Options.Version >= 15 && GameDataInstance.Handling.SDF == 41)
                     subframeGravity = 400 * subFrameDiff;
-                else if (!(GameData.Options.Version >= 15) && GameData.Handling.SDF == 21)
+                else if (!(GameDataInstance.Options.Version >= 15) && GameDataInstance.Handling.SDF == 21)
                     subframeGravity = 20 * subFrameDiff;
                 else
                 {
-                    subframeGravity *= GameData.Handling.SDF;
+                    subframeGravity *= GameDataInstance.Handling.SDF;
                     int tempvalue;
-                    if (GameData.Options.Version >= 13)
+                    if (GameDataInstance.Options.Version >= 13)
                         tempvalue = 1;
                     else
                         tempvalue = 0;
 
                     if (Math.Max(subframeGravity, tempvalue) > 0)
-                        subframeGravity = 0.05 * GameData.Handling.SDF;
+                        subframeGravity = 0.05 * GameDataInstance.Handling.SDF;
                     else
                         subframeGravity = 0.42;
                 }
@@ -717,40 +743,41 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (value != null)
                 subframeGravity = (int)value;
 
-            if (!GameData.Options.InfiniteMovement &&
-                GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
-                !IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
+            if (!GameDataInstance.Options.InfiniteMovement &&
+                GameDataInstance.Falling.LockResets >= (int)GameDataInstance.Options.LockResets &&
+                !IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x,
+                GameDataInstance.Falling.y + 1, GameDataInstance.Falling.r, GameDataInstance.Field))
             {
                 subframeGravity = 20;
-                GameData.Falling.ForceLock = true;
+                GameDataInstance.Falling.ForceLock = true;
             }
 
 
-            if (!GameData.Options.InfiniteMovement &&
-                GameData.FallingRotations > (int)GameData.Options.LockResets + 15)
+            if (!GameDataInstance.Options.InfiniteMovement &&
+                GameDataInstance.FallingRotations > (int)GameDataInstance.Options.LockResets + 15)
             {
                 subframeGravity += 0.5 * subFrameDiff *
-                    (GameData.FallingRotations - ((int)GameData.Options.LockResets + 15));
+                    (GameDataInstance.FallingRotations - ((int)GameDataInstance.Options.LockResets + 15));
             }
 
             var r = subframeGravity;
 
             for (; subframeGravity > 0;)
             {
-                var ceiledValue = Math.Ceiling(GameData.Falling.y);
+                var ceiledValue = Math.Ceiling(GameDataInstance.Falling.y);
                 if (!HardDrop(Math.Min(1, subframeGravity), r))
                 {
                     if (value != null)
-                        GameData.Falling.ForceLock = true;
-                    FunctionA(value != 0, (int)subFrameDiff);
+                        GameDataInstance.Falling.ForceLock = true;
+                    FunctionA(value != 0, subFrameDiff);
                     break;
                 }
 
                 subframeGravity -= Math.Min(1, subframeGravity);
-                if (ceiledValue != Math.Ceiling(GameData.Falling.y))
+                if (ceiledValue != Math.Ceiling(GameDataInstance.Falling.y))
                 {
-                    GameData.Falling.Last = "fall";
-                    if (GameData.SoftDrop)
+                    GameDataInstance.Falling.Last = "fall";
+                    if (GameDataInstance.SoftDrop)
                     {
                         //ScoreAdd
 
@@ -761,88 +788,182 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool HardDrop(double value, double value2)
         {
-            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / 
+            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameDataInstance.Falling.y) /
                 Math.Pow(10, 13) + value;
 
             if (fallingy_kouho % 1 == 0)
                 fallingy_kouho += 0.00001;
 
-            var o = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / Math.Pow(10, 13) + 1;
+            var o = Math.Floor(Math.Pow(10, 13) * GameDataInstance.Falling.y) / Math.Pow(10, 13) + 1;
             if (o % 1 == 0)
                 o -= 0.00002;
 
-            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, fallingy_kouho, GameData.Falling.r, GameData.Field) &&
-                IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, o, GameData.Falling.r, GameData.Field))
+            if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, fallingy_kouho, GameDataInstance.Falling.r, GameDataInstance.Field) &&
+                IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, o, GameDataInstance.Falling.r, GameDataInstance.Field))
             {
-                var s = GameData.Falling.HighestY;
-                o = GameData.Falling.y;
+                var s = GameDataInstance.Falling.HighestY;
+                o = GameDataInstance.Falling.y;
 
-                GameData.Falling.y = fallingy_kouho;
-                GameData.Falling.HighestY = Math.Ceiling(Math.Max(GameData.Falling.HighestY, fallingy_kouho));
-                GameData.Falling.Floored = false;
+                GameDataInstance.Falling.y = fallingy_kouho;
+                GameDataInstance.Falling.HighestY = Math.Ceiling(Math.Max(GameDataInstance.Falling.HighestY, fallingy_kouho));
+                GameDataInstance.Falling.Floored = false;
                 if (Math.Ceiling(fallingy_kouho) != Math.Ceiling(o))
                 {
                     // TODO: 更新フラグtrue
 
                 }
 
-                if (fallingy_kouho > value || GameData.Options.InfiniteMovement)
-                    GameData.Falling.LockResets = 0;
-                GameData.FallingRotations = 0;
+                if (fallingy_kouho > s || GameDataInstance.Options.InfiniteMovement)
+                    GameDataInstance.Falling.LockResets = 0;
+                GameDataInstance.FallingRotations = 0;
 
                 if (value2 >= int.MaxValue)
                 {
                     //スコア足す
                 }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         void PiecePlace(bool sValue)
         {
-            GameData.Falling.Sleep = true;
+            GameDataInstance.Falling.Sleep = true;
             //ミノを盤面に適用
-            foreach (var pos in TETRIMINOS[GameData.Falling.type][GameData.Falling.r])
+            foreach (var pos in TETRIMINOS[GameDataInstance.Falling.type][GameDataInstance.Falling.r])
             {
-                GameData.Field[(int)((pos.x + GameData.Falling.x) + (int)(pos.y + GameData.Falling.y) * 10)] = GameData.Falling.type;
+                GameDataInstance.Field[(int)((pos.x + GameDataInstance.Falling.x - TETRIMINO_DIFF[GameDataInstance.Falling.type].x) +
+                    (int)(pos.y + GameDataInstance.Falling.y - TETRIMINO_DIFF[GameDataInstance.Falling.type].y) * 10)] = GameDataInstance.Falling.type;
             }
 
-            if (!sValue && GameData.Handling.SafeLock > 0)
-                GameData.Falling.SafeLock = 7;
+            if (!sValue && GameDataInstance.Handling.SafeLock > 0)
+                GameDataInstance.Falling.SafeLock = 7;
 
             var clearedLineCount = ClearLine();
 
+            GameDataInstance.Falling.Init(null);
         }
 
         int ClearLine()
         {
-            return 0;
+            List<int> list = new List<int>();
+            bool flag = true;
+
+            for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+            {
+                flag = true;
+                for (int x = 0; x < FIELD_WIDTH; x++)
+                {
+                    if (GameDataInstance.Field[x + y * 10] == (int)MinoKind.Empty)
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                    list.Add(y);
+            }
+
+            list.Reverse();
+            foreach (var value in list)
+            {
+                DownLine(value, GameDataInstance.Field);
+            }
+
+            return list.Count;
+
         }
 
-        void FunctionA(bool value = false, int a = 1)
+        /// <summary>
+        /// 消去したラインを下げる
+        /// </summary>
+        /// <param name="value">y座標</param>
+        /// <param name="field">盤面</param>
+        private void DownLine(int value, int[] field)
         {
-            if (GameData.Options.Version >= 15)
-                GameData.Falling.Locking += a;
+            for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < FIELD_WIDTH; x++)
+                {
+                    if (y - 1 == -1)
+                        field[x + y * 10] = (int)(MinoKind.Empty);
+                    else
+                        field[x + y * 10] = field[x + (y - 1) * 10];
+                }
+            }
+        }
+
+        void FunctionA(bool value = false, double subframe = 1)
+        {
+            if (GameDataInstance.Options.Version >= 15)
+                GameDataInstance.Falling.Locking += subframe;
             else
-                GameData.Falling.Locking += 1;
+                GameDataInstance.Falling.Locking += 1;
 
-            if (!GameData.Falling.Floored)
-                GameData.Falling.Floored = true;
+            if (!GameDataInstance.Falling.Floored)
+                GameDataInstance.Falling.Floored = true;
 
 
 
-            if (GameData.Falling.Locking > GameData.Options.LockTime ||
-                GameData.Falling.ForceLock ||
-                GameData.Falling.LockResets > GameData.Options.LockResets && !GameData.Options.InfiniteMovement)
+            if (GameDataInstance.Falling.Locking > GameDataInstance.Options.LockTime ||
+                GameDataInstance.Falling.ForceLock ||
+                GameDataInstance.Falling.LockResets > GameDataInstance.Options.LockResets &&
+                !GameDataInstance.Options.InfiniteMovement)
             {
                 PiecePlace(value);
             }
         }
 
+        public int RefreshNext(int[] next, bool noszo)
+        {
+            var value = next[0];
+
+            for (int i = 0; i < next.Length - 1; i++)
+            {
+                next[i] = next[i + 1];
+            }
+
+            if (GameDataInstance.Bag.Count == 0)
+            {
+                var array = (int[])MINOTYPES.Clone();
+                RNG.ShuffleArray(array);
+                GameDataInstance.Bag.AddRange(array);
+            }
+
+            if (noszo)
+            {
+                while (true)
+                {
+                    if (GameDataInstance.Bag[0] == (int)MinoKind.S ||
+                         GameDataInstance.Bag[0] == (int)MinoKind.Z ||
+                        GameDataInstance.Bag[0] == (int)MinoKind.O)
+                    {
+                        var temp = GameDataInstance.Bag[0];
+                        for (int i = 0; i < GameDataInstance.Bag.Count - 1; i++)
+                        {
+                            GameDataInstance.Bag[i] = GameDataInstance.Bag[i + 1];
+                        }
+                        GameDataInstance.Bag[GameDataInstance.Bag.Count - 1] = temp;
+                    }
+                    else
+                        break;
+                }
+
+            }
+
+
+            next[next.Length - 1] = GameDataInstance.Bag[0];
+            GameDataInstance.Bag.RemoveAt(0);
+            return value;
+        }
+
         void SwapHold()
         {
-
+            var s = GameDataInstance.Falling.type;
+            GameDataInstance.Falling.Init(GameDataInstance.Hold);
+            GameDataInstance.Hold = s;
         }
 
         bool IsTspin()
