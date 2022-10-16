@@ -48,6 +48,21 @@ namespace TetrioVirtualEnvironment
 
     }
 
+    public class Garbage
+    {
+        public Garbage(int frame, int posX, int power)
+        {
+            this.frame = frame;
+            this.posX = posX;
+            this.power = power;
+        }
+
+        public int frame;
+        public int posX;
+        public int power;
+
+    }
+
     public class Environment
     {
         public const int FIELD_WIDTH = 10;
@@ -55,13 +70,16 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-        static public Vector2[][][] TETRIMINOS;
-        static public Vector2[] TETRIMINO_DIFF;
+        static public Vector2[][][] TETRIMINOS = null;
+        static public Vector2[] TETRIMINO_DIFF = null;
         static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
+        public List<Garbage> Garbages = new List<Garbage>();
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
         public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
         public GameData GameDataInstance;
+        public RNG RNG = new RNG();
+        public int CurrentFrame = 0;
 
         public enum MinoKind
         {
@@ -135,8 +153,8 @@ namespace TetrioVirtualEnvironment
 
         public Environment(EventFullOptions options)
         {
-            new GameData(options, false, this,ref GameDataInstance);
-            GameDataInstance.SubFrame = 0;
+            new GameData(options, false, this, ref GameDataInstance);
+
 
             var tempTetriminos = new Vector2[7][][];
 
@@ -239,16 +257,21 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
 
             #endregion
-            TETRIMINOS = tempTetriminos;
 
-            TETRIMINO_DIFF = new Vector2[7];
-            TETRIMINO_DIFF[0] = new Vector2(1, 1);
-            TETRIMINO_DIFF[1] = new Vector2(1, 1);
-            TETRIMINO_DIFF[2] = new Vector2(0, 1);
-            TETRIMINO_DIFF[3] = new Vector2(1, 1);
-            TETRIMINO_DIFF[4] = new Vector2(1, 1);
-            TETRIMINO_DIFF[5] = new Vector2(1, 1);
-            TETRIMINO_DIFF[6] = new Vector2(1, 1);
+            if (TETRIMINOS == null)
+            {
+                TETRIMINOS = tempTetriminos;
+
+                TETRIMINO_DIFF = new Vector2[7];
+                TETRIMINO_DIFF[0] = new Vector2(1, 1);
+                TETRIMINO_DIFF[1] = new Vector2(1, 1);
+                TETRIMINO_DIFF[2] = new Vector2(0, 1);
+                TETRIMINO_DIFF[3] = new Vector2(1, 1);
+                TETRIMINO_DIFF[4] = new Vector2(1, 1);
+                TETRIMINO_DIFF[5] = new Vector2(1, 1);
+                TETRIMINO_DIFF[6] = new Vector2(1, 1);
+
+            }
 
             var tempkickset = new Dictionary<string, Vector2[]>();
             var tempkicksetI = new Dictionary<string, Vector2[]>();
@@ -843,7 +866,45 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             var clearedLineCount = ClearLine();
 
+
+            int tempGargabeCount = 0;
+
+            while (Garbages.Count != 0 || tempGargabeCount == GameDataInstance.Options.GarbageCap)
+            {
+                //足しても大丈夫なら全部取得
+                //ダメならCAPになるまで
+                if (Garbages.Count != 0 &&
+                    Garbages[0].frame + GameDataInstance.Options.GarbageSpeed - 1 <= CurrentFrame)
+                {
+                    if (tempGargabeCount + Garbages[0].power <= GameDataInstance.Options.GarbageCap)
+                    {
+                        ReceiveGarbage(Garbages[0].posX, Garbages[0].power);
+                        tempGargabeCount += Garbages[0].power;
+                        Garbages.RemoveAt(0);
+                    }
+                    else if (GameDataInstance.Options.GarbageCap - tempGargabeCount > 0)
+                    {
+                        ReceiveGarbage(Garbages[0].posX, GameDataInstance.Options.GarbageCap - tempGargabeCount);
+                        Garbages[0].power -= GameDataInstance.Options.GarbageCap - tempGargabeCount;
+
+                        tempGargabeCount += GameDataInstance.Options.GarbageCap - tempGargabeCount;
+                        break;
+                    }
+                    else
+                        break;
+
+                }
+                else
+                    break;
+            }
+
+
+
             GameDataInstance.Falling.Init(null);
+
+
+
+
         }
 
         int ClearLine()
@@ -862,6 +923,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                         break;
                     }
                 }
+
                 if (flag)
                     list.Add(y);
             }
@@ -883,7 +945,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
         /// <param name="field">盤面</param>
         private void DownLine(int value, int[] field)
         {
-            for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+            for (int y = value; y >= 0; y--)
             {
                 for (int x = 0; x < FIELD_WIDTH; x++)
                 {
@@ -913,6 +975,10 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 !GameDataInstance.Options.InfiniteMovement)
             {
                 PiecePlace(value);
+
+
+               
+
             }
         }
 
@@ -968,7 +1034,37 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool IsTspin()
         {
-            return false;
+            switch(GameDataInstance.Options.bou)
+
+        }
+
+        public void ReceiveGarbage(int garbageX, int power)
+        {
+            //power分上に上げる
+            //下をループでx以外
+
+            for (int y = 0; y < FIELD_HEIGHT; y++)
+            {
+                for (int x = 0; x < FIELD_WIDTH; x++)
+                {
+                    if (y + power >= FIELD_HEIGHT)
+                        break;
+                    else
+                        GameDataInstance.Field[x + (y) * 10] = GameDataInstance.Field[x + (y + power) * 10];
+                }
+            }
+
+
+            for (int y = FIELD_HEIGHT - 1; y > FIELD_HEIGHT - 1 - power; y--)
+            {
+                for (int x = 0; x < FIELD_WIDTH; x++)
+                {
+                    if (x == garbageX)
+                        GameDataInstance.Field[x + (y ) * 10] = (int)MinoKind.Empty;
+                    else
+                        GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Ojama;
+                }
+            }
         }
     }
 }

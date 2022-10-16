@@ -22,11 +22,12 @@ namespace TetrioVirtualEnvironment
             GarbageMargin = 0;
             GarbageIncrease = 0;
             Allow180 = (bool)options.allow180;
-            AllowHardDrop = options.allow_harddrop==null?true:(bool)options.allow_harddrop;
+            AllowHardDrop = options.allow_harddrop == null ? true : (bool)options.allow_harddrop;
             DisplayHold = options.display_hold;
             LockResets = options.lockresets == null ? 15 : (int)options.lockresets;
             LockTime = options.locktime == null ? 30 : (int)options.locktime;
             GarbageCap = options.garbagecap == null ? 8 : (int)options.garbagecap;
+            GarbageSpeed = options.garbagespeed == null ? 0 : (int)options.garbagespeed;
         }
 
         public int Version;
@@ -36,6 +37,7 @@ namespace TetrioVirtualEnvironment
         public double GravityIncrease;
         public int GarbageMultiplier;
         public int GarbageMargin;
+        public int GarbageSpeed;
         public double GarbageIncrease;
         public bool InfiniteMovement;
         public int GarbageCap;

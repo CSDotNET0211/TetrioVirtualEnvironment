@@ -27,13 +27,13 @@ namespace TetrioVirtualEnvironment
                 }
             }
 
-            RNG.Init(optionsdata.seed);
+            environment.RNG.Init(optionsdata.seed);
             Next = new int[(int)optionsdata.nextcount];
             Bag = new List<int>();
 
 
 
-            environment.RefreshNext(Next, true);
+            environment.RefreshNext(Next,optionsdata.no_szo==null?false:(bool)optionsdata.no_szo);
             for (int i = 0; i < Next.Length - 1; i++)
                 environment.RefreshNext(Next, false);
 
@@ -53,6 +53,7 @@ namespace TetrioVirtualEnvironment
             Hold = null;
 
             Gravity = (double)optionsdata.g;
+            SpinBonuses= optionsdata.spinbonuses;
 
             if (is_ttrm)
             {
@@ -69,7 +70,7 @@ namespace TetrioVirtualEnvironment
 
         }
 
-
+        public string SpinBonuses;
         public int[] Field;
         public int[] Next;
         public List<int> Bag;

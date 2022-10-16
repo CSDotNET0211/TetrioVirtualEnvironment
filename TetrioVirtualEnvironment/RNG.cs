@@ -8,8 +8,8 @@ namespace TetrioVirtualEnvironment
 {
     public class RNG
     {
-     static   long t;
-     static   public void Init(int seed)
+        long t;
+        public void Init(int seed)
         {
             t = seed % 2147483647;
             if (t <= 0)
@@ -19,7 +19,7 @@ namespace TetrioVirtualEnvironment
 
         }
 
-    static    public void ShuffleArray(int[] array)
+        public void ShuffleArray(int[] array)
         {
             for (var i = array.Length - 1; i != 0; i--)
             {
@@ -30,13 +30,13 @@ namespace TetrioVirtualEnvironment
             }
         }
 
-    static    long Next()
+        long Next()
         {
             t = 16807 * t % 2147483647;
             return t;
         }
 
-   static     float NextFloat()
+        float NextFloat()
         {
             return (Next() - 1) / 2147483646f;
         }

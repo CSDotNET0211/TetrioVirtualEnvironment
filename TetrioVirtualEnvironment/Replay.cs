@@ -11,93 +11,141 @@ namespace TetrioVirtualEnvironment
 {
     public class Replay
     {
-        public List<Environment> Environments=new List<Environment>();
+        public List<Environment> Environments = new List<Environment>();
         //  public GameData GameData { get; private set; }
-        ReplayDataTTR _replayData;
-        public int CurrentFrame { get; private set; } = 0;
-        int CurrentIndex = 0;
+        ReplayDataTTR _replayDataTTR;
+        ReplayDataTTRM _replayDataTTRM;
+        //   public List<int> CurrentFrames { get; private set; } = new List<int>();
+        List<int> CurrentIndex = new List<int>();
 
-        public Replay(string jsondata)
+        bool is_ttr;
+        public int PlayerCount { get; private set; }
+
+        public Replay(string jsondata, bool is_ttr)
         {
+            this.is_ttr = is_ttr;
+
+            if (is_ttr)
+            {
+                _replayDataTTR = (ReplayDataTTR)LibClass.ParseReplay(jsondata, is_ttr);
 
 
-            _replayData = (ReplayDataTTR)LibClass.ParseReplay(jsondata, true);
+                var full = _replayDataTTR.data.events.Where(x => x.type == "full").First().data;
+                var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
+                Environments.Add(new Environment(options));
+                CurrentIndex.Add(0);
+                PlayerCount++;
+            }
+            else
+            {
+                _replayDataTTRM = (ReplayDataTTRM)LibClass.ParseReplay(jsondata, is_ttr);
 
 
-            var full = _replayData.data.events.Where(x => x.type == "full").First().data;
-            var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
-            Environments.Add(new Environment(options));
-            //Environments[0].
+                for (int i = 0; i < _replayDataTTRM.data[0].board.Count; i++)
+                {
+                    var full = _replayDataTTRM.data[0].replays[i].events.Where(x => x.type == "full").First().data;
+                    var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
+                    Environments.Add(new Environment(options));
+                    CurrentIndex.Add(0);
+                    //    Environments[i].Add(new List<(int frame, int posX, int power)>());
+                    PlayerCount++;
+
+                }
+            }
+
         }
 
 
         public void SetFrame(int frame)
         {
-            CurrentFrame = frame;
+            for (int i = 0; i < PlayerCount; i++)
+                Environments[i].CurrentFrame = frame;
+
         }
 
         public bool Update()
         {
-            Environments[0].GameDataInstance.SubFrame = 0;
+            for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
+            {
+                Environments[playerIndex].GameDataInstance.SubFrame = 0;
 
-            //キー入力
+                if (is_ttr)
+                {
+                    if (!Event(playerIndex, _replayDataTTR.data.events))
+                        return false;
+                }
+                else
+                {
+                    if (!Event(playerIndex, _replayDataTTRM.data[0].replays[playerIndex].events))
+                        return false;
+                }
+
+                Environments[playerIndex].CurrentFrame++;
+                Environments[playerIndex].ProcessShift(false, 1 - Environments[playerIndex].GameDataInstance.SubFrame);
+                Environments[playerIndex].FallEvent(null, 1 - Environments[playerIndex].GameDataInstance.SubFrame);
+
+
+
+
+
+            }
+
+            return true;
+
+        }
+
+        public bool Event(int playerIndex, List<Event> events)
+        {
             while (true)
             {
 
 
-                if (_replayData.data.events[CurrentIndex].frame == CurrentFrame)
+                if (events[CurrentIndex[playerIndex]].frame == Environments[playerIndex].CurrentFrame)
                 {
 
-                    switch (_replayData.data.events[CurrentIndex].type)
+                    switch (events[CurrentIndex[playerIndex]].type)
                     {
                         case "start":
                             break;
 
                         case "full":
-                            Environments[0].GameDataInstance.Falling.Init(null);
+                            Environments[playerIndex].GameDataInstance.Falling.Init(null);
                             break;
 
                         case "keydown":
                         case "keyup":
-                            var inputevent = JsonSerializer.Deserialize<EventKeyInput>(_replayData.data.events[CurrentIndex].data.ToString());
+                            var inputEvent = JsonSerializer.Deserialize<EventKeyInput>(events[CurrentIndex[playerIndex]].data.ToString());
 
-                            Console.CursorLeft = 55;
-                            Console.CursorTop = 10;
-                            Console.WriteLine(_replayData.data.events[CurrentIndex].frame + " " +
-                              _replayData.data.events[CurrentIndex].type + " " + inputevent.key);
-
-
-                            Environments[0].KeyInput(_replayData.data.events[CurrentIndex].type,
-                                                inputevent);
+                            Environments[playerIndex].KeyInput(events[CurrentIndex[playerIndex]].type,
+                                                inputEvent);
 
                             break;
 
+                        case "targets":
+                            break;
+
                         case "ige":
+                            var data = JsonSerializer.Deserialize<EventIge>(events[CurrentIndex[playerIndex]].data.ToString());
+
+                            if (data.data.type == "interaction_confirm")
+                            {
+                                Environments[playerIndex].Garbages.Add(new Garbage((int)events[CurrentIndex[playerIndex]].frame, data.data.data.x, data.data.data.amt));
+                            }
                             break;
 
                         case "end":
                             return false;
                         default:
-                            throw new Exception("invalid key:" + _replayData.data.events[CurrentIndex].type);
+                            throw new Exception("invalid key:" + events[CurrentIndex[playerIndex]].type);
                     }
 
-                    CurrentIndex++;
+                    CurrentIndex[playerIndex]++;
                 }
                 else break;
             }
 
 
-            CurrentFrame++;
-            Environments[0].ProcessShift(false, 1 - Environments[0].GameDataInstance.SubFrame);
-            Environments[0].FallEvent(null, 1 - Environments[0].GameDataInstance.SubFrame);
-
-
             return true;
-        }
-
-        public void InputEvent()
-        {
-
         }
 
 

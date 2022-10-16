@@ -7,16 +7,14 @@ using static System.Net.Mime.MediaTypeNames;
 using static TetrioVirtualEnvironment.Environment;
 using Environment = TetrioVirtualEnvironment.Environment;
 
-StreamReader reader = new StreamReader(@"C:\Users\mrapp\Downloads\fast.ttr", Encoding.UTF8);
 
 
 Console.WriteLine("読み込むファイルを選択してください。");
 string filePath = Console.ReadLine();
-Console.ReadKey();
+StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 
 
 
-Replay replay = new Replay(reader.ReadToEnd());
 if (Path.GetExtension(filePath) == ".ttr")
 {
     Console.WriteLine("ttmファイルを検出しました。");
@@ -30,6 +28,10 @@ else
     Console.WriteLine("ttrmファイルを検出しました。");
     Console.WriteLine("Spaceキーを押してリプレイを再生します。");
 }
+
+Console.ReadKey();
+Console.Clear();
+Replay replay = new Replay(reader.ReadToEnd(), Path.GetExtension(filePath) == ".ttr");
 
 double nextFrame = (double)System.Environment.TickCount;
 float period = 1000f / 60f;
@@ -61,7 +63,7 @@ while (true)
     }
 
     Print(replay);
-
+    Console.ReadKey();
 
     nextFrame += period;
 }
@@ -80,31 +82,36 @@ void Print(Replay replay)
 
     string output = "";
 
-
-    output += "Player1\r\n";
-
-    var tempfield = (int[])replay.Environments[0].GameDataInstance.Field.Clone();
-    if (replay.Environments[0].GameDataInstance.Falling.type != -1)
-        foreach (var pos in TETRIMINOS[replay.Environments[0].GameDataInstance.Falling.type][replay.Environments[0].GameDataInstance.Falling.r])
-        {
-            tempfield[(int)((pos.x + replay.Environments[0].GameDataInstance.Falling.x - TETRIMINO_DIFF[replay.Environments[0].GameDataInstance.Falling.type].x) +
-                (int)(pos.y + replay.Environments[0].GameDataInstance.Falling.y - TETRIMINO_DIFF[replay.Environments[0].GameDataInstance.Falling.type].y) * 10)] = (int)MinoKind.Z;
-        }
-
-    for (int y = 15; y < 40; y++)
+    for (int playerIndex = 0; playerIndex < replay.PlayerCount; playerIndex++)
     {
-        for (int x = 0; x < 10; x++)
+        output += "Player" + (playerIndex + 1) + "\r\n";
+        var tempfield = (int[])replay.Environments[playerIndex].GameDataInstance.Field.Clone();
+
+        if (replay.Environments[playerIndex].GameDataInstance.Falling.type != -1)
+            foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameDataInstance.Falling.type][replay.Environments[playerIndex].GameDataInstance.Falling.r])
+            {
+                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameDataInstance.Falling.x - TETRIMINO_DIFF[replay.Environments[playerIndex].GameDataInstance.Falling.type].x) +
+                    (int)(pos.y + replay.Environments[playerIndex].GameDataInstance.Falling.y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameDataInstance.Falling.type].y) * 10)] = (int)MinoKind.Z;
+            }
+
+
+        for (int y = 15; y < 40; y++)
         {
-            if (tempfield[x + y * 10] == (int)MinoKind.Empty)
-                output += "□";
-            else
-                output += "■";
+            for (int x = 0; x < 10; x++)
+            {
+                if (tempfield[x + y * 10] == (int)MinoKind.Empty)
+                    output += "□";
+                else
+                    output += "■";
 
 
+            }
+
+            output += "\r\n";
         }
-
         output += "\r\n";
     }
+    /*
 
     output += "\r\n";
     output += "Current Frame:" + replay.CurrentFrame + "\r\n";
@@ -138,6 +145,8 @@ void Print(Replay replay)
     foreach (var next in replay.Environments[0].GameDataInstance.Next)
         Console.Write((MinoKind)next + " ");
     Console.Write("\r\n");
+  
+    Console.CursorLeft = 30;  */
 
-    Console.CursorLeft = 30;
+    Console.WriteLine(output);
 }
