@@ -1034,7 +1034,8 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool IsTspin()
         {
-            switch(GameDataInstance.Options.bou)
+return false;
+//switch(GameDataInstance.Options.bou)
 
         }
 
