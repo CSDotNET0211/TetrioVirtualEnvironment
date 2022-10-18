@@ -1001,27 +1001,27 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 next[i] = next[i + 1];
             }
 
-            if (GameDataInstance.Bag.Count == 0)
+            if (GameDataInstance.NextBag.Count == 0)
             {
                 var array = (int[])MINOTYPES.Clone();
                 RNG.ShuffleArray(array);
-                GameDataInstance.Bag.AddRange(array);
+                GameDataInstance.NextBag.AddRange(array);
             }
 
             if (noszo)
             {
                 while (true)
                 {
-                    if (GameDataInstance.Bag[0] == (int)MinoKind.S ||
-                         GameDataInstance.Bag[0] == (int)MinoKind.Z ||
-                        GameDataInstance.Bag[0] == (int)MinoKind.O)
+                    if (GameDataInstance.NextBag[0] == (int)MinoKind.S ||
+                         GameDataInstance.NextBag[0] == (int)MinoKind.Z ||
+                        GameDataInstance.NextBag[0] == (int)MinoKind.O)
                     {
-                        var temp = GameDataInstance.Bag[0];
-                        for (int i = 0; i < GameDataInstance.Bag.Count - 1; i++)
+                        var temp = GameDataInstance.NextBag[0];
+                        for (int i = 0; i < GameDataInstance.NextBag.Count - 1; i++)
                         {
-                            GameDataInstance.Bag[i] = GameDataInstance.Bag[i + 1];
+                            GameDataInstance.NextBag[i] = GameDataInstance.NextBag[i + 1];
                         }
-                        GameDataInstance.Bag[GameDataInstance.Bag.Count - 1] = temp;
+                        GameDataInstance.NextBag[GameDataInstance.NextBag.Count - 1] = temp;
                     }
                     else
                         break;
@@ -1030,8 +1030,8 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
 
 
-            next[next.Length - 1] = GameDataInstance.Bag[0];
-            GameDataInstance.Bag.RemoveAt(0);
+            next[next.Length - 1] = GameDataInstance.NextBag[0];
+            GameDataInstance.NextBag.RemoveAt(0);
             return value;
         }
 

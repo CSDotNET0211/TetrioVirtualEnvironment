@@ -28,7 +28,7 @@ namespace TetrioVirtualEnvironment
 
             environment.RNG.Init(optionsdata.seed);
             Next = new int[(int)optionsdata.nextcount];
-            Bag = new List<int>();
+            NextBag = new List<int>();
 
 
 
@@ -59,7 +59,7 @@ namespace TetrioVirtualEnvironment
         public string SpinBonuses;
         public int[] Field;
         public int[] Next;
-        public List<int> Bag;
+        public List<int> NextBag;
         public Options Options;
         public double SubFrame;
         public bool LShift;
