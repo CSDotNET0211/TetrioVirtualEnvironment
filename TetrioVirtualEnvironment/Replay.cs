@@ -12,10 +12,10 @@ namespace TetrioVirtualEnvironment
     public class Replay
     {
         public List<Environment> Environments = new List<Environment>();
-        //  public GameData GameData { get; private set; }
+        
         ReplayDataTTR _replayDataTTR;
         ReplayDataTTRM _replayDataTTRM;
-        //   public List<int> CurrentFrames { get; private set; } = new List<int>();
+
         List<int> CurrentIndex = new List<int>();
 
         bool is_ttr;
@@ -94,12 +94,66 @@ namespace TetrioVirtualEnvironment
 
         }
 
+        void KeyDown(Environment.Action action)
+        { 
+            var @event=new EventKeyInput();
+            @event.hoisted= false;
+            @event.subframe=0;
+
+            switch (action)
+            {
+                case Environment.Action.MoveRight:
+            @event.key="moveRight";
+                    break;
+
+                case Environment.Action.MoveLeft:
+                    @event.key = "moveLeft";
+                    break;
+
+                case Environment.Action.Softdrop:
+                    @event.key = "softDrop";
+                    break;
+
+                case Environment.Action.RotateLeft:
+                    @event.key = "rotateCCW";
+                    break;
+
+                case Environment.Action.RotateRight:
+                    @event.key = "rotateCW";
+                    break;
+
+                case Environment.Action.Rotate180:
+                    @event.key = "rotate180";
+                    break;
+
+                case Environment.Action.Harddrop:
+                    @event.key = "hardDrop";
+                    break;
+
+                case Environment.Action.Hold:
+                    @event.key = "hold";
+                    break;
+
+
+
+
+
+            }
+
+
+
+            Environments[0].KeyInput("keydown",@event);
+        }
+
+
+
+
+
+
         public bool Event(int playerIndex, List<Event> events)
         {
             while (true)
             {
-
-
                 if (events[CurrentIndex[playerIndex]].frame == Environments[playerIndex].CurrentFrame)
                 {
 

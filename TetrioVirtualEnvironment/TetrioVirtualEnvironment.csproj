@@ -8,8 +8,7 @@
 
   <ItemGroup>
     <Reference Include="TetrReplayLoaderLib">
-      <HintPath>..\..\TetrReplayLoader\TetrReplayLoaderLib\bin\Debug\net6.0\TetrReplayLoaderLib.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\..\..\Downloads\TetrReplayLoaderLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 

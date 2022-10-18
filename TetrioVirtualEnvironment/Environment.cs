@@ -70,13 +70,13 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-        static public Vector2[][][] TETRIMINOS = null;
-        static public Vector2[] TETRIMINO_DIFF = null;
+        static public Vector2[][][] TETRIMINOS;
+        static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[7];
         static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
         public List<Garbage> Garbages = new List<Garbage>();
-        public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUS;
-        public readonly Dictionary<string, Vector2[]> KICKSET_SRSPLUSI;
+        public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; private set; }
+        public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; private set; }
         public GameData GameDataInstance;
         public RNG RNG = new RNG();
         public int CurrentFrame = 0;
@@ -113,6 +113,7 @@ namespace TetrioVirtualEnvironment
             MoveLeft,
             RotateRight,
             RotateLeft,
+            Rotate180,
             Harddrop,
             QuickSoftdrop,
             Softdrop,
@@ -149,7 +150,11 @@ namespace TetrioVirtualEnvironment
             public Vector2[] Positions;
         }
 
-
+        public enum KeyEvent
+        {
+            KeyDown,
+            KeyUp
+        }
 
         public Environment(EventFullOptions options)
         {
@@ -258,20 +263,15 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             #endregion
 
-            if (TETRIMINOS == null)
-            {
-                TETRIMINOS = tempTetriminos;
+            TETRIMINOS = tempTetriminos;
 
-                TETRIMINO_DIFF = new Vector2[7];
-                TETRIMINO_DIFF[0] = new Vector2(1, 1);
-                TETRIMINO_DIFF[1] = new Vector2(1, 1);
-                TETRIMINO_DIFF[2] = new Vector2(0, 1);
-                TETRIMINO_DIFF[3] = new Vector2(1, 1);
-                TETRIMINO_DIFF[4] = new Vector2(1, 1);
-                TETRIMINO_DIFF[5] = new Vector2(1, 1);
-                TETRIMINO_DIFF[6] = new Vector2(1, 1);
-
-            }
+            TETRIMINO_DIFF[0] = new Vector2(1, 1);
+            TETRIMINO_DIFF[1] = new Vector2(1, 1);
+            TETRIMINO_DIFF[2] = new Vector2(0, 1);
+            TETRIMINO_DIFF[3] = new Vector2(1, 1);
+            TETRIMINO_DIFF[4] = new Vector2(1, 1);
+            TETRIMINO_DIFF[5] = new Vector2(1, 1);
+            TETRIMINO_DIFF[6] = new Vector2(1, 1);
 
             var tempkickset = new Dictionary<string, Vector2[]>();
             var tempkicksetI = new Dictionary<string, Vector2[]>();
@@ -313,7 +313,17 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         }
 
+        public void InputKeyEvent(KeyEvent keyEvent,Action keyKind)
+        {
+            if (keyEvent == KeyEvent.KeyUp)
+            {
 
+            }
+            else if (keyEvent == KeyEvent.KeyDown)
+            {
+
+            }
+        }
 
 
 
@@ -977,7 +987,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 PiecePlace(value);
 
 
-               
+
 
             }
         }
@@ -1034,8 +1044,8 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         bool IsTspin()
         {
-return false;
-//switch(GameDataInstance.Options.bou)
+            return false;
+            //switch(GameDataInstance.Options.bou)
 
         }
 
@@ -1061,7 +1071,7 @@ return false;
                 for (int x = 0; x < FIELD_WIDTH; x++)
                 {
                     if (x == garbageX)
-                        GameDataInstance.Field[x + (y ) * 10] = (int)MinoKind.Empty;
+                        GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Empty;
                     else
                         GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Ojama;
                 }

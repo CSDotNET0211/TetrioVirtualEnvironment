@@ -15,7 +15,6 @@ namespace TetrioVirtualEnvironment
     {
         public GameData(EventFullOptions optionsdata, bool is_ttrm,Environment environment,ref GameData gameData)
         {
-            //environment = new Environment(this);
             gameData =this;
 
             Field = new int[FIELD_WIDTH * FIELD_HEIGHT];
@@ -54,19 +53,6 @@ namespace TetrioVirtualEnvironment
 
             Gravity = (double)optionsdata.g;
             SpinBonuses= optionsdata.spinbonuses;
-
-            if (is_ttrm)
-            {
-
-            }
-            else
-            {
-
-
-
-
-            }
-
 
         }
 

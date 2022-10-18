@@ -55,6 +55,7 @@ namespace TetrioVirtualEnvironment
             y = 20 - 2.04;
             HighestY = 20 - 2;
             r = 0;
+
             SpinType = false;
             Sleep = false;
             Last = null;
@@ -78,7 +79,7 @@ namespace TetrioVirtualEnvironment
 
             if (Environment.IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
             {
-
+                Console.WriteLine("You are dead");
             }
         }
 
