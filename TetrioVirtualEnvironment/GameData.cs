@@ -58,6 +58,7 @@ namespace TetrioVirtualEnvironment
 
         public string SpinBonuses;
         public int[] Field;
+        public int CurrentBTBChainPower;
         public int[] Next;
         public List<int> NextBag;
         public Options Options;

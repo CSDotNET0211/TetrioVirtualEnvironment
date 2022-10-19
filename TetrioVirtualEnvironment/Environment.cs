@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TetrReplayLoaderLib;
 using static System.Net.Mime.MediaTypeNames;
@@ -65,6 +66,8 @@ namespace TetrioVirtualEnvironment
 
     public class Environment
     {
+
+
         public const int FIELD_WIDTH = 10;
         public const int FIELD_HEIGHT = 40;
         public const int FIELD_VIEW_HEIGHT = 20;
@@ -78,6 +81,7 @@ namespace TetrioVirtualEnvironment
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; private set; }
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; private set; }
         public GameData GameDataInstance;
+        public Stats StatsInstance;
         public RNG RNG = new RNG();
         public int CurrentFrame = 0;
 
@@ -159,7 +163,7 @@ namespace TetrioVirtualEnvironment
         public Environment(EventFullOptions options)
         {
             new GameData(options, false, this, ref GameDataInstance);
-
+            StatsInstance = new Stats();
 
             var tempTetriminos = new Vector2[7][][];
 
@@ -313,7 +317,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         }
 
-        public void InputKeyEvent(KeyEvent keyEvent,Action keyKind)
+        public void InputKeyEvent(KeyEvent keyEvent, Action keyKind)
         {
             if (keyEvent == KeyEvent.KeyUp)
             {
@@ -1076,6 +1080,62 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                         GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Ojama;
                 }
             }
+        }
+
+        public void GetAttackPower(int clearLineCount, string? isTspin)
+        {
+            var isBTB = false;
+
+            if (clearLineCount > 0)
+            {
+                StatsInstance.Combo++;
+                StatsInstance.TopCombo = Math.Max(StatsInstance.Combo, StatsInstance.TopCombo);
+
+                if (clearLineCount == 4)
+                    isBTB = true;
+                else
+                {
+                    if (isTspin != null)
+                        isBTB = true;
+                }
+
+                if (isBTB)
+                {
+                    StatsInstance.BTB++;
+                    StatsInstance.TopBTB = Math.Max(StatsInstance.BTB, StatsInstance.TopBTB);
+                }
+                else
+                {
+                    //btb updateの中身何
+                    StatsInstance.BTB = 0;
+
+                }
+
+            }
+            else
+            {
+                StatsInstance.Combo = 0;
+                StatsInstance.CurrentComboPower = 0;
+            }
+
+
+            var garbageValue = 0;
+            switch (clearLineCount)
+            {
+                case 0:
+                    if (isTspin == "mini")
+                    {
+                        garbageValue=
+                    }
+                    break;
+
+            }
+
+
+
+
+
+
         }
     }
 }
