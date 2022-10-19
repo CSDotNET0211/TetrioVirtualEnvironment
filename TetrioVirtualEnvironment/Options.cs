@@ -31,6 +31,7 @@ namespace TetrioVirtualEnvironment
         }
 
         public int Version;
+        public bool BTBChaining;
         public int Seed;
         public bool HasGarbage;
         public int GravityMargin;

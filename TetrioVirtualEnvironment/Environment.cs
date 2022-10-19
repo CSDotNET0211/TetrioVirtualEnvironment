@@ -1125,15 +1125,117 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 case 0:
                     if (isTspin == "mini")
                     {
-                        garbageValue=
+                        garbageValue = DataGarbage.TSPIN_MINI;
+                    }
+                    else if (isTspin == "normal")
+                    {
+                        garbageValue = DataGarbage.TSPIN;
                     }
                     break;
 
+                case 1:
+                    if (isTspin == "mini")
+                    {
+                        garbageValue = DataGarbage.TSPIN_MINI_SINGLE;
+                    }
+                    else if (isTspin == "normal")
+                    {
+                        garbageValue = DataGarbage.TSPIN_SINGLE;
+                    }
+                    else
+                    {
+                        garbageValue = DataGarbage.SINGLE;
+                    }
+                    break;
+
+                case 2:
+                    if (isTspin == "mini")
+                    {
+                        garbageValue = DataGarbage.TSPIN_MINI_DOUBLE;
+                    }
+                    else if (isTspin == "normal")
+                    {
+                        garbageValue = DataGarbage.TSPIN_DOUBLE;
+                    }
+                    else
+                    {
+                        garbageValue = DataGarbage.DOUBLE;
+                    }
+                    break;
+
+                case 3:
+                    if (isTspin != null)
+                    {
+                        garbageValue = DataGarbage.TSPIN_TRIPLE;
+                    }
+                    else
+                    {
+                        garbageValue = DataGarbage.TRIPLE;
+                    }
+                    break;
+
+                case 4:
+                    if (isTspin != null)
+                    {
+                        garbageValue = DataGarbage.TSPIN_QUAD;
+                    }
+                    else
+                    {
+                        garbageValue = DataGarbage.QUAD;
+                    }
+                    break;
             }
 
+            if (clearLineCount > 0 && StatsInstance.BTB > 1)
+            {
+                if (GameDataInstance.Options.BTBChaining)
+                {
+                    double tempValue;
+                    if (StatsInstance.BTB - 1 == 1)
+                        tempValue = 0;
+                    else
+                        tempValue = 1 + (Math.Log((StatsInstance.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+
+                    var btb_bonus = DataGarbage.BACKTOBACK_BONUS *
+                        (Math.Floor(1 + Math.Log((StatsInstance.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+
+                    garbageValue += btb_bonus;
+
+                    if ((int)btb_bonus >= 2)
+                    {
+                        //AddFire
+                    }
+
+                    if ((int)btb_bonus > GameDataInstance.CurrentBTBChainPower)
+                    {
+                        GameDataInstance.CurrentBTBChainPower = (int)btb_bonus;
+                    }
 
 
 
+                }
+                else
+                    garbageValue += DataGarbage.BACKTOBACK_BONUS;
+            }
+            else
+            {
+                if (clearLineCount > 0 & StatsInstance.BTB <= 1)
+                    GameDataInstance.CurrentBTBChainPower = 0;
+            }
+
+            if(StatsInstance.Combo>1)
+            {
+                garbageValue+=1+DataGarbage.COMBO_BONUS*(StatsInstance.Combo-1);
+            }
+
+            if(StatsInstance.Combo>2)
+            {
+                garbageValue=Math.Max(Math.Log(DataGarbage.COMBO_MINIFIER*
+                    (StatsInstance.Combo-1)*
+                    DataGarbage.COMBO_MINIFIER_LOG+1),garbageValue);
+            }
+
+            var l=Math.Floor(garbageValue*GameDataInstance.Options.GarbageMultiplier);
 
 
         }
