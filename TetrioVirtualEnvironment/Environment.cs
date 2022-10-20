@@ -1223,21 +1223,83 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     GameDataInstance.CurrentBTBChainPower = 0;
             }
 
-            if(StatsInstance.Combo>1)
+            if (StatsInstance.Combo > 1)
             {
-                garbageValue+=1+DataGarbage.COMBO_BONUS*(StatsInstance.Combo-1);
+                garbageValue *= 1 + DataGarbage.COMBO_BONUS * (StatsInstance.Combo - 1);
             }
 
-            if(StatsInstance.Combo>2)
+            if (StatsInstance.Combo > 2)
             {
-                garbageValue=Math.Max(Math.Log(DataGarbage.COMBO_MINIFIER*
-                    (StatsInstance.Combo-1)*
-                    DataGarbage.COMBO_MINIFIER_LOG+1),garbageValue);
+                garbageValue = Math.Max(Math.Log(DataGarbage.COMBO_MINIFIER *
+                    (StatsInstance.Combo - 1) *
+                    DataGarbage.COMBO_MINIFIER_LOG + 1), garbageValue);
             }
 
-            var l=Math.Floor(garbageValue*GameDataInstance.Options.GarbageMultiplier);
+            var l = Math.Floor(garbageValue * GameDataInstance.Options.GarbageMultiplier);
+            if (StatsInstance.Combo > 2)
+                StatsInstance.CurrentComboPower = Math.Max(StatsInstance.CurrentComboPower, l);
+
+            if (clearLineCount > 0 && StatsInstance.Combo > 1 && StatsInstance.CurrentComboPower >= 7)
+            {
+                //そもそもAddFireって？
+                //AddFire
+            }
+
+            //火力の相殺をする
+            SousaiAttacks(l);
+
+            //リプレイだと火力送信する必要なし、相殺のみ
+            if (clearLineCount > 0)
+            {
+                //FightLines
+            }
+            else
+            {
+                //TakeAllDamage
+            }
+
+        }
+
+        void IsBoardEmpty()
+        {
+            int emptyLineCount = 0;
+            for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+            {
+                if (emptyLineCount >= 2)
+                    break;
+
+                for (int x = 0; x < FIELD_WIDTH; x++)
+                {
+                    if (GameDataInstance.Field[x + y * 10] != (int)MinoKind.Empty)
+                        return;
+
+                }
+
+                emptyLineCount++;
+            }
+
+            //PC
+
+            SousaiAttacks(DataGarbage.ALL_CLEAR*GameDataInstance.Options.GarbageMultiplier);
 
 
+
+        }
+
+        void SousaiAttacks(int lines)
+        {
+            while (Garbages.Count > 0)
+            {
+                if (lines > 0)
+                {
+                    if (Garbages[0].power - lines <= 0)
+                    {
+                        lines -= Garbages[0].power;
+                        Garbages.RemoveAt(0);
+                    }
+
+                }
+            }
         }
     }
 }
