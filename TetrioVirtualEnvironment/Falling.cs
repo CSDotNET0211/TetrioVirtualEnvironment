@@ -56,7 +56,7 @@ namespace TetrioVirtualEnvironment
             HighestY = 20 - 2;
             r = 0;
 
-            SpinType = false;
+            SpinType = null;
             Sleep = false;
             Last = null;
             GameDataInstance.FallingRotations = 0;
@@ -99,7 +99,7 @@ namespace TetrioVirtualEnvironment
         public bool DeepSleep;
         public string Last;
         public string LastRotation;
-        public bool SpinType;
+        public string? SpinType;
         public int LastKick;
         public bool Clamped;
         public int LockResets;

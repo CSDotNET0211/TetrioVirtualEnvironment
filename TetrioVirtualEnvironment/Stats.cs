@@ -12,7 +12,7 @@ namespace TetrioVirtualEnvironment
         public int TopCombo;
         public int BTB;
         public int TopBTB;
-        public int CurrentComboPower;
+        public double CurrentComboPower;
 
     }
 }

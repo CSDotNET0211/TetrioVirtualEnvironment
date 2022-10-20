@@ -554,11 +554,6 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
                     GameDataInstance.Falling.Locking = 0;
 
-                if (IsTspin())
-                {
-                    // DOTO: t.hm.H.holderstate.dr += o / 4 * t.lm.H.lastdT; これ何
-
-                }
 
                 //落下ミノ更新フラグ true
                 return;
@@ -612,12 +607,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
                         GameDataInstance.Falling.Locking = 0;
 
-                    if (IsTspin())
-                    {
-                        // DOTO: t.hm.H.holderstate.dr += o / 4 * t.lm.H.lastdT;
-                    }
 
-                    // DOTO: 更新フラグ true
                     return;
                 }
             }
@@ -878,11 +868,16 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (!sValue && GameDataInstance.Handling.SafeLock > 0)
                 GameDataInstance.Falling.SafeLock = 7;
 
+            var istspin=IsTspin();
             var clearedLineCount = ClearLine();
 
 
             int tempGargabeCount = 0;
 
+
+            GetAttackPower(clearedLineCount,istspin);
+            IsBoardEmpty();
+            /*
             while (Garbages.Count != 0 || tempGargabeCount == GameDataInstance.Options.GarbageCap)
             {
                 //足しても大丈夫なら全部取得
@@ -910,7 +905,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 }
                 else
                     break;
-            }
+            }*/
 
 
 
@@ -1046,8 +1041,9 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             GameDataInstance.Hold = s;
         }
 
-        bool IsTspin()
+        string? IsTspin(int clearedLine)
         {
+
             return false;
             //switch(GameDataInstance.Options.bou)
 
@@ -1119,7 +1115,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
 
 
-            var garbageValue = 0;
+            var garbageValue = 0.0;
             switch (clearLineCount)
             {
                 case 0:
@@ -1235,7 +1231,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     DataGarbage.COMBO_MINIFIER_LOG + 1), garbageValue);
             }
 
-            var l = Math.Floor(garbageValue * GameDataInstance.Options.GarbageMultiplier);
+            int l = (int)(garbageValue * GameDataInstance.Options.GarbageMultiplier);
             if (StatsInstance.Combo > 2)
                 StatsInstance.CurrentComboPower = Math.Max(StatsInstance.CurrentComboPower, l);
 
@@ -1255,6 +1251,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
             else
             {
+                // TODO: もらった火力を受ける
                 //TakeAllDamage
             }
 
@@ -1280,7 +1277,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             //PC
 
-            SousaiAttacks(DataGarbage.ALL_CLEAR*GameDataInstance.Options.GarbageMultiplier);
+            SousaiAttacks(DataGarbage.ALL_CLEAR * GameDataInstance.Options.GarbageMultiplier);
 
 
 
@@ -1296,6 +1293,10 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     {
                         lines -= Garbages[0].power;
                         Garbages.RemoveAt(0);
+                    }
+                    else
+                    {
+                        Garbages[0].power -= lines;
                     }
 
                 }
