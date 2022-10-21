@@ -63,7 +63,7 @@ while (true)
     }
 
     Print(replay);
-   // Console.ReadKey();
+    Console.ReadKey();
 
     nextFrame += period;
 }

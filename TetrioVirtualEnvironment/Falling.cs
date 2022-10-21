@@ -77,7 +77,7 @@ namespace TetrioVirtualEnvironment
 
             Clamped = false;
 
-            if (Environment.IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
+            if (!Environment.IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
             {
                 Console.WriteLine("You are dead");
             }

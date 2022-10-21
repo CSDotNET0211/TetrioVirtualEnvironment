@@ -329,7 +329,13 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             }
         }
 
-
+        static public bool IsEmptyPos(int x, int y, int[] field)
+        {
+            if (!(x >= 0 && x < FIELD_WIDTH &&
+                y >= 0 && y < FIELD_HEIGHT))
+                return false;
+            return field[x + y * 10] == (int)MinoKind.Empty;
+        }
 
 
 
@@ -868,14 +874,14 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             if (!sValue && GameDataInstance.Handling.SafeLock > 0)
                 GameDataInstance.Falling.SafeLock = 7;
 
-            var istspin=IsTspin();
+            var istspin = IsTspin();
             var clearedLineCount = ClearLine();
 
 
             int tempGargabeCount = 0;
 
 
-            GetAttackPower(clearedLineCount,istspin);
+            GetAttackPower(clearedLineCount, istspin);
             IsBoardEmpty();
             /*
             while (Garbages.Count != 0 || tempGargabeCount == GameDataInstance.Options.GarbageCap)
@@ -1041,10 +1047,54 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             GameDataInstance.Hold = s;
         }
 
-        string? IsTspin(int clearedLine)
+        string? IsTspin()
         {
+            if (GameDataInstance.Falling.Last != "rotate")
+                return null;
 
-            return false;
+            var s = 0;
+            var a = 0;
+
+            if (!IsEmptyPos(GameDataInstance.Falling.x - 1, (int)GameDataInstance.Falling.y - 1, GameDataInstance.Field))
+            {
+                s++;
+                if (!(GameDataInstance.Falling.r != 3 && GameDataInstance.Falling.r != 0))
+                    a++;
+            }
+
+            if (!IsEmptyPos(GameDataInstance.Falling.x + 1, (int)GameDataInstance.Falling.y - 1, GameDataInstance.Field))
+            {
+                s++;
+                if (!(GameDataInstance.Falling.r != 0 && GameDataInstance.Falling.r != 1))
+                    a++;
+            }
+
+            if (!IsEmptyPos(GameDataInstance.Falling.x + 1, (int)GameDataInstance.Falling.y + 1, GameDataInstance.Field))
+            {
+                s++;
+                if (!(GameDataInstance.Falling.r != 1 && GameDataInstance.Falling.r != 2))
+                    a++;
+            }
+
+            if (!IsEmptyPos(GameDataInstance.Falling.x - 1, (int)GameDataInstance.Falling.y + 1, GameDataInstance.Field))
+            {
+                s++;
+                if (!(GameDataInstance.Falling.r != 2 && GameDataInstance.Falling.r != 3))
+                    a++;
+            }
+
+            if (s < 3)
+                return null;
+
+            var spintype = "normal";
+
+            if (a != 2)
+                spintype = "mini";
+            if (GameDataInstance.Falling.LastKick == 4)
+                spintype = "normal";
+
+
+            return spintype;
             //switch(GameDataInstance.Options.bou)
 
         }
