@@ -93,22 +93,6 @@ namespace TetrioVirtualEnvironment
 
                 //L
               new Vector2[][]{
-                  new Vector2[] { 
-                      new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) 
-                  },
-                  new Vector2[] {
-                      new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) 
-                  },
-                  new Vector2[] {
-                      new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2)
-                  },
-                  new Vector2[] { 
-                      new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2) 
-                  },
-              },
-
-                //O
-              new Vector2[][]{
                   new Vector2[] {
                       new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1)
                   },
@@ -122,6 +106,67 @@ namespace TetrioVirtualEnvironment
                       new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2)
                   },
               },
+
+                //O
+              new Vector2[][]{
+                     new Vector2[] {
+                         new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
+                     },
+                    new Vector2[] {
+                        new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
+                    },
+                     new Vector2[]
+                     { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
+                     },
+                   new Vector2[] {
+                       new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
+                   },
+              },
+              
+              //S
+              new Vector2[][]{
+                    new Vector2[] {
+                          new Vector2(1, 0), new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1)
+                    },
+                    new Vector2[] {
+                           new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2)
+                    },
+                    new Vector2[] {
+                         new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2), new Vector2(1, 2)
+                    },
+                   new Vector2[] {
+                    new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2)
+                    },
+              },
+              
+              //I
+              new Vector2[][]{
+                    new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(3, 1) },
+                    new Vector2[] { new Vector2(2, 0), new Vector2(2, 1), new Vector2(2, 2), new Vector2(2, 3) },
+                    new Vector2[] { new Vector2(0, 2), new Vector2(1, 2), new Vector2(2, 2), new Vector2(3, 2) },
+                    new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(1, 3) },
+              },
+              
+              
+              //J
+              new Vector2[][]{
+                    new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) },
+                    new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(1, 2) },
+                    new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) },
+                    new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 2), new Vector2(1, 2) },
+              },
+              
+              //T
+              new Vector2[][]{
+                   new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) },
+                   new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) },
+                   new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) },
+                   new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) },
+              },
+
+
+
+
 
         };
         static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[7];
@@ -222,108 +267,6 @@ namespace TetrioVirtualEnvironment
             {
                 tempTetriminos[i] = new Vector2[4][];
             }
-
-            #region Z
-            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Zero] =
-                new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1) };
-
-            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Right] =
-                new Vector2[] { new Vector2(2, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
-
-            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Turn] =
-                new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
-
-            tempTetriminos[(int)MinoKind.Z][(int)Rotation.Left] =
-                new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2) };
-            #endregion
-         /*   #region L
-            tempTetriminos[(int)MinoKind.L][(int)Rotation.Zero] =
-             
-
-            tempTetriminos[(int)MinoKind.L][(int)Rotation.Right] =
-            
-
-            tempTetriminos[(int)MinoKind.L][(int)Rotation.Turn] =
-             
-
-            tempTetriminos[(int)MinoKind.L][(int)Rotation.Left] =
-            
-            
-        
-        
-        
-
-
-            #endregion*/
-            #region O
-            tempTetriminos[(int)MinoKind.O][(int)Rotation.Zero] =
-              new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
-
-            tempTetriminos[(int)MinoKind.O][(int)Rotation.Right] =
-            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
-
-            tempTetriminos[(int)MinoKind.O][(int)Rotation.Turn] =
-            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
-
-            tempTetriminos[(int)MinoKind.O][(int)Rotation.Left] =
-            new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
-            
-            #endregion
-            #region S
-            tempTetriminos[(int)MinoKind.S][(int)Rotation.Zero] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1) };
-
-            tempTetriminos[(int)MinoKind.S][(int)Rotation.Right] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
-
-            tempTetriminos[(int)MinoKind.S][(int)Rotation.Turn] =
-            new Vector2[] { new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2), new Vector2(1, 2) };
-
-            tempTetriminos[(int)MinoKind.S][(int)Rotation.Left] =
-            new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
-
-            #endregion
-            #region I
-            tempTetriminos[(int)MinoKind.I][(int)Rotation.Zero] =
-            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(3, 1) };
-            tempTetriminos[(int)MinoKind.I][(int)Rotation.Right] =
-new Vector2[] { new Vector2(2, 0), new Vector2(2, 1), new Vector2(2, 2), new Vector2(2, 3) };
-            tempTetriminos[(int)MinoKind.I][(int)Rotation.Turn] =
-new Vector2[] { new Vector2(0, 2), new Vector2(1, 2), new Vector2(2, 2), new Vector2(3, 2) };
-            tempTetriminos[(int)MinoKind.I][(int)Rotation.Left] =
-new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(1, 3) };
-
-            #endregion
-            #region J
-            tempTetriminos[(int)MinoKind.J][(int)Rotation.Zero] =
-            new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
-
-            tempTetriminos[(int)MinoKind.J][(int)Rotation.Right] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(1, 2) };
-
-            tempTetriminos[(int)MinoKind.J][(int)Rotation.Turn] =
-            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) };
-
-            tempTetriminos[(int)MinoKind.J][(int)Rotation.Left] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 2), new Vector2(1, 2) };
-
-            #endregion
-            #region T
-            tempTetriminos[(int)MinoKind.T][(int)Rotation.Zero] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
-
-            tempTetriminos[(int)MinoKind.T][(int)Rotation.Right] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
-
-            tempTetriminos[(int)MinoKind.T][(int)Rotation.Turn] =
-            new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) };
-
-            tempTetriminos[(int)MinoKind.T][(int)Rotation.Left] =
-            new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) };
-
-            #endregion
-
-            TETRIMINOS = tempTetriminos;
 
             TETRIMINO_DIFF[0] = new Vector2(1, 1);
             TETRIMINO_DIFF[1] = new Vector2(1, 1);
