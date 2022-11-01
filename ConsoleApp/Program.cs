@@ -63,7 +63,7 @@ while (true)
     }
 
     Print(replay);
-    Console.ReadKey();
+   // Console.ReadKey();
 
     nextFrame += period;
 }
@@ -85,6 +85,8 @@ void Print(Replay replay)
     for (int playerIndex = 0; playerIndex < replay.PlayerCount; playerIndex++)
     {
         output += "Player" + (playerIndex + 1) + "\r\n";
+        output+="CurrentFrame:";
+        output += replay.Environments[playerIndex].CurrentFrame+"\r\n";
         var tempfield = (int[])replay.Environments[playerIndex].GameDataInstance.Field.Clone();
 
         if (replay.Environments[playerIndex].GameDataInstance.Falling.type != -1)
@@ -110,7 +112,27 @@ void Print(Replay replay)
             output += "\r\n";
         }
         output += "\r\n";
+
+        int cursorTop = 10 + (playerIndex * 30);
+
+        for (int i = 0; i < 5; i++)
+        {
+            Console.CursorLeft = 30;
+            Console.CursorTop = cursorTop;
+
+            if (i >= replay.Environments[playerIndex].DownKeys.Count)
+                Console.Write("                      ");
+            else
+                Console.Write(replay.Environments[playerIndex].DownKeys[i]);
+
+            cursorTop++;
+        }
     }
+
+    Console.WriteLine(output);
+
+  
+   
     /*
 
     output += "\r\n";
@@ -148,5 +170,5 @@ void Print(Replay replay)
   
     Console.CursorLeft = 30;  */
 
-    Console.WriteLine(output);
+
 }

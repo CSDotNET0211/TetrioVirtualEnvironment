@@ -12,7 +12,9 @@ namespace TetrioVirtualEnvironment
     public class Replay
     {
         public List<Environment> Environments = new List<Environment>();
-        
+
+
+
         ReplayDataTTR _replayDataTTR;
         ReplayDataTTRM _replayDataTTRM;
 
@@ -95,15 +97,15 @@ namespace TetrioVirtualEnvironment
         }
 
         void KeyDown(Environment.Action action)
-        { 
-            var @event=new EventKeyInput();
-            @event.hoisted= false;
-            @event.subframe=0;
+        {
+            var @event = new EventKeyInput();
+            @event.hoisted = false;
+            @event.subframe = 0;
 
             switch (action)
             {
                 case Environment.Action.MoveRight:
-            @event.key="moveRight";
+                    @event.key = "moveRight";
                     break;
 
                 case Environment.Action.MoveLeft:
@@ -142,7 +144,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-            Environments[0].KeyInput("keydown",@event);
+            Environments[0].KeyInput("keydown", @event);
         }
 
 
@@ -170,6 +172,15 @@ namespace TetrioVirtualEnvironment
                         case "keyup":
                             var inputEvent = JsonSerializer.Deserialize<EventKeyInput>(events[CurrentIndex[playerIndex]].data.ToString());
 
+                            if (events[CurrentIndex[playerIndex]].type == "keydown")
+                            {
+                                Environments[playerIndex].DownKeys.Add(inputEvent.key);
+                            }
+                            else
+                            {
+                                Environments[playerIndex].DownKeys.Remove(inputEvent.key);
+                            }
+
                             Environments[playerIndex].KeyInput(events[CurrentIndex[playerIndex]].type,
                                                 inputEvent);
 
@@ -183,8 +194,13 @@ namespace TetrioVirtualEnvironment
 
                             if (data.data.type == "interaction_confirm")
                             {
-                                Environments[playerIndex].Garbages.Add(new Garbage((int)events[CurrentIndex[playerIndex]].frame, data.data.data.x, data.data.data.amt));
+                                Environments[playerIndex].Garbages.Add(new Garbage((int)events[CurrentIndex[playerIndex]].frame, data.data.data.column, data.data.data.amt));
                             }
+                            else if(data.data.type == "interaction")
+                            {
+
+                            }
+
                             break;
 
                         case "end":

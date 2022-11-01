@@ -35,6 +35,11 @@ namespace TetrioVirtualEnvironment
             GameDataInstance = gameData;
         }
 
+        public Falling()
+        {
+
+        }
+
         public void Init(int? newtype)
         {
             Locking = 0;

@@ -67,17 +67,68 @@ namespace TetrioVirtualEnvironment
     public class Environment
     {
 
-
+        public List<string> DownKeys = new List<string>();
         public const int FIELD_WIDTH = 10;
         public const int FIELD_HEIGHT = 40;
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-        static public Vector2[][][] TETRIMINOS;
+        static public Vector2[][][] TETRIMINOS { get; private set; } =
+          new Vector2[][][]{
+              //Z
+              new Vector2[][]{
+                new Vector2[]{
+                    new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1)
+                },
+                  new Vector2[] {
+                    new Vector2(2, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2)
+                },
+                  new Vector2[] {
+                    new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2)
+                },
+                  new Vector2[] {
+                    new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2)
+                },
+              },
+
+                //L
+              new Vector2[][]{
+                  new Vector2[] { 
+                      new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) 
+                  },
+                  new Vector2[] {
+                      new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) 
+                  },
+                  new Vector2[] {
+                      new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2)
+                  },
+                  new Vector2[] { 
+                      new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2) 
+                  },
+              },
+
+                //O
+              new Vector2[][]{
+                  new Vector2[] {
+                      new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1)
+                  },
+                  new Vector2[] {
+                      new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2)
+                  },
+                  new Vector2[] {
+                      new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2)
+                  },
+                  new Vector2[] {
+                      new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2)
+                  },
+              },
+
+        };
         static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[7];
         static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
         public List<Garbage> Garbages = new List<Garbage>();
+        public List<Garbage> PreGarbages = new List<Garbage>();
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; private set; }
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; private set; }
         public GameData GameDataInstance;
@@ -185,20 +236,25 @@ namespace TetrioVirtualEnvironment
             tempTetriminos[(int)MinoKind.Z][(int)Rotation.Left] =
                 new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2) };
             #endregion
-            #region L
+         /*   #region L
             tempTetriminos[(int)MinoKind.L][(int)Rotation.Zero] =
-              new Vector2[] { new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) };
+             
 
             tempTetriminos[(int)MinoKind.L][(int)Rotation.Right] =
-              new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2) };
+            
 
             tempTetriminos[(int)MinoKind.L][(int)Rotation.Turn] =
-              new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2) };
+             
 
             tempTetriminos[(int)MinoKind.L][(int)Rotation.Left] =
-              new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2) };
+            
+            
+        
+        
+        
 
-            #endregion
+
+            #endregion*/
             #region O
             tempTetriminos[(int)MinoKind.O][(int)Rotation.Zero] =
               new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
@@ -211,7 +267,7 @@ namespace TetrioVirtualEnvironment
 
             tempTetriminos[(int)MinoKind.O][(int)Rotation.Left] =
             new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
-
+            
             #endregion
             #region S
             tempTetriminos[(int)MinoKind.S][(int)Rotation.Zero] =
@@ -337,7 +393,20 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
             return field[x + y * 10] == (int)MinoKind.Empty;
         }
 
+        static public bool IsLegalField(int type, int x, double y, int rotation)
+        {
+            var positions = TETRIMINOS[type][rotation];
+            var diff = TETRIMINO_DIFF[type];
 
+            foreach (var position in positions)
+            {
+                if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < FIELD_WIDTH &&
+                  position.y + y - diff.y >= 0 && position.y + y - diff.y < FIELD_HEIGHT))
+                    return false;
+            }
+
+            return true;
+        }
 
 
 
@@ -883,7 +952,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
             GetAttackPower(clearedLineCount, istspin);
             IsBoardEmpty();
-            /*
+
             while (Garbages.Count != 0 || tempGargabeCount == GameDataInstance.Options.GarbageCap)
             {
                 //足しても大丈夫なら全部取得
@@ -911,7 +980,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                 }
                 else
                     break;
-            }*/
+            }
 
 
 
@@ -1335,6 +1404,7 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
 
         void SousaiAttacks(int lines)
         {
+
             while (Garbages.Count > 0)
             {
                 if (lines > 0)
@@ -1347,9 +1417,12 @@ new Vector2[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vec
                     else
                     {
                         Garbages[0].power -= lines;
+                        break;
                     }
 
                 }
+                else
+                    break;
             }
         }
     }
