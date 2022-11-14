@@ -4,9 +4,11 @@ using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using TetrReplayLoaderLib;
 using static System.Net.Mime.MediaTypeNames;
+using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -73,7 +75,7 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_VIEW_HEIGHT = 20;
 
         //minokind rotation vec
-        static public Vector2[][][] TETRIMINOS { get; private set; } =
+        static public Vector2[][][] TETRIMINOS =
           new Vector2[][][]{
               //Z
               new Vector2[][]{
@@ -169,7 +171,7 @@ namespace TetrioVirtualEnvironment
 
 
         };
-        static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[7];
+        static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[] { new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1) };
         static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
         public List<Garbage> Garbages = new List<Garbage>();
@@ -180,7 +182,14 @@ namespace TetrioVirtualEnvironment
         public Stats StatsInstance;
         public RNG RNG = new RNG();
         public int CurrentFrame = 0;
+         public EnvironmentModeEnum EnvironmentMode;
+        public int CurrentIndex { get;private set;}
 
+            public enum EnvironmentModeEnum 
+        {
+            Limited,
+            Seed
+        }
         public enum MinoKind
         {
             Z,
@@ -256,8 +265,10 @@ namespace TetrioVirtualEnvironment
             KeyUp
         }
 
-        public Environment(EventFullOptions options)
+        public Environment(EventFullOptions options,EnvironmentModeEnum environmentMode)
         {
+            EnvironmentMode=environmentMode;
+
             new GameData(options, false, this, ref GameDataInstance);
             StatsInstance = new Stats();
 
@@ -268,13 +279,6 @@ namespace TetrioVirtualEnvironment
                 tempTetriminos[i] = new Vector2[4][];
             }
 
-            TETRIMINO_DIFF[0] = new Vector2(1, 1);
-            TETRIMINO_DIFF[1] = new Vector2(1, 1);
-            TETRIMINO_DIFF[2] = new Vector2(0, 1);
-            TETRIMINO_DIFF[3] = new Vector2(1, 1);
-            TETRIMINO_DIFF[4] = new Vector2(1, 1);
-            TETRIMINO_DIFF[5] = new Vector2(1, 1);
-            TETRIMINO_DIFF[6] = new Vector2(1, 1);
 
             var tempkickset = new Dictionary<string, Vector2[]>();
             var tempkicksetI = new Dictionary<string, Vector2[]>();
@@ -318,6 +322,13 @@ namespace TetrioVirtualEnvironment
 
         public void InputKeyEvent(KeyEvent keyEvent, Action keyKind)
         {
+            if(EnvironmentMode==EnvironmentModeEnum.Limited)
+                if(keyKind == Action.Hold)
+                {
+
+                }else
+                return;
+
             if (keyEvent == KeyEvent.KeyUp)
             {
 
@@ -351,7 +362,15 @@ namespace TetrioVirtualEnvironment
             return true;
         }
 
+        static public bool IsLegalField(int x, double y)
+        {
+            if (!(x >= 0 && x < FIELD_WIDTH &&
+            y >= 0 && y < FIELD_HEIGHT))
+                return false;
 
+
+            return true;
+        }
 
         static public bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
         {
@@ -385,7 +404,8 @@ namespace TetrioVirtualEnvironment
                 {
                     GameDataInstance.LShift = true;
                     GameDataInstance.LastShift = -1;
-                    GameDataInstance.LDas = @event.hoisted ? GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
+                    GameDataInstance.LDas = @event.hoisted ?
+                        GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
                     if (GameDataInstance.Options.Version >= 12)
                         GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
 
@@ -640,6 +660,103 @@ namespace TetrioVirtualEnvironment
 
         }
 
+        public void Update()
+        {
+            GameDataInstance.SubFrame = 0;
+        //    CurrentFrame++;
+            ProcessShift(false, 1 - GameDataInstance.SubFrame);
+            FallEvent(null, 1 - GameDataInstance.SubFrame);
+        }
+            //TODO: いつか上ので結合したい
+        public bool Update(bool is_ttr, List<Event>  events)
+        {
+            GameDataInstance.SubFrame = 0;
+
+            if (is_ttr)
+            {
+                if (!Event(events))
+                    return false;
+            }
+            else
+            {
+                if (!Event(events))
+                    return false;
+            }
+
+          CurrentFrame++;
+          ProcessShift(false, 1 - GameDataInstance.SubFrame);
+          FallEvent(null, 1 - GameDataInstance.SubFrame);
+
+            return true;
+        }
+
+        public bool Event( List<Event> events)
+        {
+            while (true)
+            {
+                if (events[CurrentIndex].frame ==CurrentFrame)
+                {
+
+                    switch (events[CurrentIndex].type)
+                    {
+                        case "start":
+                            break;
+
+                        case "full": 
+                          GameDataInstance.Falling.Init(null,EnvironmentMode);
+                            break;
+
+                        case "keydown":
+                        case "keyup":
+                            var inputEvent = JsonSerializer.Deserialize<EventKeyInput>(events[CurrentIndex].data.ToString());
+
+                            if (events[CurrentIndex].type == "keydown")
+                            {
+                                DownKeys.Add(inputEvent.key);
+                            }
+                            else
+                            {
+                              DownKeys.Remove(inputEvent.key);
+                            }
+
+                        KeyInput(events[CurrentIndex].type,
+                                                inputEvent);
+
+                            break;
+
+                        case "targets":
+                            break;
+
+                        case "ige":
+                            var data = JsonSerializer.Deserialize<EventIge>(events[CurrentIndex].data.ToString());
+
+                            if (data.data.type == "interaction_confirm")
+                            {
+                               Garbages.Add(new Garbage((int)events[CurrentIndex].frame, data.data.data.column, data.data.data.amt));
+                            }
+                            else if (data.data.type == "interaction")
+                            {
+
+                            }
+
+                            break;
+
+                        case "end":
+                            return false;
+                        default:
+                            throw new Exception("invalid key:" + events[CurrentIndex].type);
+                    }
+
+                    CurrentIndex++;
+                }
+                else break;
+            }
+
+
+            return true;
+        }
+
+
         void ProcessLShift(bool value, double subFrameDiff = 1)
         {
             if (!GameDataInstance.LShift || GameDataInstance.RShift && GameDataInstance.LastShift != -1)
@@ -648,8 +765,7 @@ namespace TetrioVirtualEnvironment
             var subFrameDiff2 = subFrameDiff;
             var dasSomething = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.LDas);
 
-            if (!value)
-                GameDataInstance.LDas += subFrameDiff;
+            GameDataInstance.LDas +=value?0:subFrameDiff;
 
             if (GameDataInstance.LDas < GameDataInstance.Handling.DAS && !value)
                 return;
@@ -662,18 +778,12 @@ namespace TetrioVirtualEnvironment
             var aboutARRValue = 1;
             if (!value)
             {
-                if (GameDataInstance.Options.Version >= 15)
-                    GameDataInstance.LDasIter = subFrameDiff2;
-                else
-                    GameDataInstance.LDasIter = subFrameDiff;
-
+                GameDataInstance.LDasIter+= GameDataInstance.Options.Version >= 15? subFrameDiff2: subFrameDiff;
+                
                 if (GameDataInstance.LDasIter < GameDataInstance.Handling.ARR)
                     return;
 
-                if (GameDataInstance.Handling.ARR == 0)
-                    aboutARRValue = 10;
-                else
-                    aboutARRValue = (int)(GameDataInstance.LDasIter / GameDataInstance.Handling.ARR);
+                aboutARRValue= GameDataInstance.Handling.ARR==0?10:(int)(GameDataInstance.LDasIter / GameDataInstance.Handling.ARR);
 
                 GameDataInstance.LDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
             }
@@ -703,34 +813,27 @@ namespace TetrioVirtualEnvironment
                 return;
 
             var subFrameDiff2 = subFrameDiff;
-            var o = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.RDas);
+            var dasSomething = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.RDas);
 
-            if (!value)
-                GameDataInstance.RDas += subFrameDiff;
+            GameDataInstance.RDas+=value?0:subFrameDiff;
 
             if (GameDataInstance.RDas < GameDataInstance.Handling.DAS && !value)
                 return;
 
-            subFrameDiff2 = Math.Max(0, subFrameDiff2 - o);
+            subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
             if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
                 return;
 
             var aboutARRValue = 1;
             if (!value)
             {
-                if (GameDataInstance.Options.Version >= 15)
-                    GameDataInstance.RDasIter = subFrameDiff2;
-                else
-                    GameDataInstance.RDasIter = subFrameDiff;
+                GameDataInstance.RDasIter+= GameDataInstance.Options.Version >= 15?subFrameDiff2:subFrameDiff;
 
                 if (GameDataInstance.RDasIter < GameDataInstance.Handling.ARR)
                     return;
 
-                if (GameDataInstance.Handling.ARR == 0)
-                    aboutARRValue = 10;
-                else
-                    aboutARRValue = (int)(GameDataInstance.RDasIter / GameDataInstance.Handling.ARR);
-
+                aboutARRValue= GameDataInstance.Handling.ARR == 0?10: (int)(GameDataInstance.RDasIter / GameDataInstance.Handling.ARR);
+            
                 GameDataInstance.RDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
             }
 
@@ -927,7 +1030,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-            GameDataInstance.Falling.Init(null);
+            GameDataInstance.Falling.Init(null, EnvironmentMode);
 
 
 
@@ -965,6 +1068,37 @@ namespace TetrioVirtualEnvironment
 
         }
 
+        static public Vector2[] GetMinoPos(int type, int x, int y, int r)
+        {
+            var positions = (Vector2[])TETRIMINOS[type][r].Clone();
+            var diff = TETRIMINO_DIFF[type];
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                positions[i].x += x - diff.x;
+                positions[i].y += y - diff.y;
+            }
+
+            return positions;
+        }
+
+        public int GetFallestPosDiff()
+        {
+            int testy = 1;
+            while (true)
+            {
+                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, GameDataInstance.Falling.y + testy,
+                    GameDataInstance.Falling.r, GameDataInstance.Field))
+                    testy++;
+                else
+                {
+                    testy--;
+                    break;
+                }
+            }
+
+            return testy;
+        }
         /// <summary>
         /// 消去したラインを下げる
         /// </summary>
@@ -1009,11 +1143,11 @@ namespace TetrioVirtualEnvironment
             }
         }
 
-        public int RefreshNext(int[] next, bool noszo)
+        public int RefreshNext(List< int> next, bool noszo)
         {
             var value = next[0];
 
-            for (int i = 0; i < next.Length - 1; i++)
+            for (int i = 0; i < next.Count - 1; i++)
             {
                 next[i] = next[i + 1];
             }
@@ -1047,7 +1181,7 @@ namespace TetrioVirtualEnvironment
             }
 
 
-            next[next.Length - 1] = GameDataInstance.NextBag[0];
+            next[next.Count - 1] = GameDataInstance.NextBag[0];
             GameDataInstance.NextBag.RemoveAt(0);
             return value;
         }
@@ -1055,7 +1189,7 @@ namespace TetrioVirtualEnvironment
         void SwapHold()
         {
             var s = GameDataInstance.Falling.type;
-            GameDataInstance.Falling.Init(GameDataInstance.Hold);
+            GameDataInstance.Falling.Init(GameDataInstance.Hold,EnvironmentMode);
             GameDataInstance.Hold = s;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -35,12 +36,16 @@ namespace TetrioVirtualEnvironment
             GameDataInstance = gameData;
         }
 
-        public Falling()
+        public Falling(int type,int x,int y, int r)
         {
+            this.type = type;
+            this.x = x;
+            this.y = y;
+            this.r = r;
 
         }
 
-        public void Init(int? newtype)
+        public void Init(int? newtype,EnvironmentModeEnum environmentMode)
         {
             Locking = 0;
             ForceLock = false;
@@ -49,6 +54,21 @@ namespace TetrioVirtualEnvironment
 
             if (newtype == null)
             {
+                if(environmentMode==EnvironmentModeEnum.Limited)
+                {
+                    if (EnvironmentInstance.GameDataInstance.Next.Count != 0)
+                    {
+                        type = EnvironmentInstance.GameDataInstance.Next[0];
+                        EnvironmentInstance.GameDataInstance.Next.RemoveAt(0);
+                    }else
+                    {
+                        type=(int)MinoKind.Empty;
+                        return;
+                    }
+
+
+                }
+                else
                 type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
             }
             else
@@ -82,7 +102,7 @@ namespace TetrioVirtualEnvironment
 
             Clamped = false;
 
-            if (!Environment.IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
+            if (!IsLegalAtPos(type, x, y, r, GameDataInstance.Field))
             {
                 Console.WriteLine("You are dead");
             }
