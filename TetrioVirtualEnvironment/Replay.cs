@@ -6,65 +6,85 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using TetrReplayLoaderLib;
+using static TetrReplayLoaderLib.TetrLoader;
 
 namespace TetrioVirtualEnvironment
 {
     public class Replay
     {
         public List<Environment> Environments = new List<Environment>();
+        public ReplayKind ReplayKind { get; private set; }
+        public int ReplayIndex = -1;
+        public bool IsLoaded = false;
+        public bool IsPlaying = false;
+        public int GameFrames { get; private set; }
 
 
+        public object ReplayData { get; private set; }
 
-        ReplayDataTTR _replayDataTTR;
-        ReplayDataTTRM _replayDataTTRM;
-
-        //   List<int> CurrentIndex = new List<int>();
-
-        bool is_ttr;
-     public   readonly int PlayerCount;
-
-        public Replay(string jsondata, bool is_ttr)
+        public Replay(string jsondata)
         {
-            this.is_ttr = is_ttr;
+            var ismulti = IsMulti(jsondata);
+            ReplayKind = ismulti ? ReplayKind.TTRM : ReplayKind.TTR;
 
-            if (is_ttr)
+            ReplayData = ParseReplay(jsondata, ReplayKind);
+        }
+
+        public void LoadGame(int replayIndex)
+        {
+            ReplayIndex = replayIndex;
+
+            for (int playerIndex = 0; playerIndex < GetPlayerCount(ReplayData, ReplayKind); playerIndex++)
             {
-                _replayDataTTR = (ReplayDataTTR)LibClass.ParseReplay(jsondata, is_ttr);
+                var full = GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex).Where(x => x.type == "full").First().data;
+                var fullevent = JsonSerializer.Deserialize<EventFull>(full.ToString());
+                Environments.Add(new Environment(fullevent, Environment.EnvironmentModeEnum.Seed));
+
+            }
+
+            IsLoaded = true;
+            IsPlaying = true;
+            GameFrames = GetGameFrames(ReplayData, ReplayKind, replayIndex);
+        }
 
 
-                var full = _replayDataTTR.data.events.Where(x => x.type == "full").First().data;
-                var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
-                Environments.Add(new Environment(options,Environment.EnvironmentModeEnum.Seed));
+        public void SkipFrame(int newframe)
+        {
+            if (Environments[0].CurrentFrame <= newframe)
+            {
+                var frameDiff = newframe - Environments[0].CurrentFrame;
+                for (int i = 0; i < frameDiff; i++)
+                {
+                    Update();
+                }
             }
             else
             {
-                _replayDataTTRM = (ReplayDataTTRM)LibClass.ParseReplay(jsondata, is_ttr);
+                for (int i = 0; i < Environments.Count; i++)
+                    Environments[i].ResetGame(Environments[i].EventFull, Environments[i].EnvironmentMode, Environments[i].InitData, Environments[i].NextSkipCount);
 
-
-                for (int i = 0; i < _replayDataTTRM.data[0].board.Count; i++)
+                //TODO: 終わりより大きかったら終わりまで、
+                for (int i = 0; i < newframe; i++)
                 {
-                    var full = _replayDataTTRM.data[0].replays[i].events.Where(x => x.type == "full").First().data;
-                    var options = JsonSerializer.Deserialize<EventFull>(full.ToString()).options;
-                    Environments.Add(new Environment(options,Environment.EnvironmentModeEnum.Seed));
-
+                    Update();
                 }
             }
-
-            PlayerCount=Environments.Count;
         }
 
         public bool Update()
         {
+            if (!IsPlaying)
+                return true; //https://dev.classmethod.jp/articles/litedb-on-net-core2/
+
             for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
             {
-                if (is_ttr)
+                var result = Environments[playerIndex].Update(ReplayKind, GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex));
+                if (!result)
                 {
-                    Environments[playerIndex].Update(is_ttr, _replayDataTTR.data.events);
+                    IsPlaying = false;
+                    return false;
                 }
-                else
-                {
-                    Environments[playerIndex].Update(is_ttr, _replayDataTTRM.data[0].replays[playerIndex].events);
-                }
+
             }
 
             return true;

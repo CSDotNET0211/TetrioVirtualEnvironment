@@ -5,6 +5,7 @@ using System.Text;
 using TetrioVirtualEnvironment;
 using static System.Net.Mime.MediaTypeNames;
 using static TetrioVirtualEnvironment.Environment;
+using static TetrReplayLoaderLib.TetrLoader;
 using Environment = TetrioVirtualEnvironment.Environment;
 
 
@@ -12,29 +13,51 @@ using Environment = TetrioVirtualEnvironment.Environment;
 Console.WriteLine("読み込むファイルを選択してください。");
 string filePath = Console.ReadLine();
 StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
+var rawjson = reader.ReadToEnd();
+Replay replay;
 
+Select:;
+replay = new Replay(rawjson);
+
+int replayIndex;
+int playerIndex;
 
 
 if (Path.GetExtension(filePath) == ".ttr")
 {
     Console.WriteLine("ttmファイルを検出しました。");
-    Console.WriteLine("Spaceキーを押してリプレイを再生します。");
 
-
+    replayIndex = 0;
+    playerIndex = 0;
 
 }
 else
 {
     Console.WriteLine("ttrmファイルを検出しました。");
-    Console.WriteLine("Spaceキーを押してリプレイを再生します。");
+
+    var replayCount = GetReplayCount(replay.ReplayData, replay.ReplayKind);
+    Console.WriteLine(replayCount + "個のゲームを検出しました。");
+    for (int i = 0; i < replayCount; i++)
+    {
+        var stats1 = GetReplayStats(replay.ReplayData, replay.ReplayKind, 0, i);
+        var stats2 = GetReplayStats(replay.ReplayData, replay.ReplayKind, 0, i);
+
+        Console.WriteLine($"{i}/    {stats1.PPS.ToString("F")}PPS {stats1.APM.ToString("F")}APM {stats1.VS.ToString("F")}VS\r\n" +
+            $"           {stats2.PPS.ToString("F")}PPS {stats2.APM.ToString("F")}APM {stats2.VS.ToString("F")}VS");
+    }
+
+    replayIndex = int.Parse(Console.ReadLine());
+
 }
 
-Console.ReadKey();
+
+replay.LoadGame(replayIndex);
+
 Console.Clear();
-Replay replay = new Replay(reader.ReadToEnd(), Path.GetExtension(filePath) == ".ttr");
 
 double nextFrame = (double)System.Environment.TickCount;
 float period = 1000f / 60f;
+
 
 while (true)
 {
@@ -59,11 +82,19 @@ while (true)
     if (!replay.Update())
     {
         Print(replay);
+        goto Select;
         break;
     }
 
+
+
     Print(replay);
-    Console.ReadKey();
+    var input = Console.ReadLine();
+    if (input != "")
+    {
+        Console.Clear();
+        replay.SkipFrame(int.Parse(input));
+    }
 
     nextFrame += period;
 }
@@ -77,23 +108,25 @@ Console.ReadKey();
 
 void Print(Replay replay)
 {
-    Console.CursorLeft = 0;
-    Console.CursorTop = 0;
+    // Console.Clear();
 
-    string output = "";
-
-    for (int playerIndex = 0; playerIndex < replay.PlayerCount; playerIndex++)
+    for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
     {
-        output += "Player" + (playerIndex + 1) + "\r\n";
-        output+="CurrentFrame:";
-        output += replay.Environments[playerIndex].CurrentFrame+"\r\n";
-        var tempfield = (int[])replay.Environments[playerIndex].GameDataInstance.Field.Clone();
+        string output = "";
+        Console.CursorLeft = 0;
+        Console.CursorTop = playerIndex * 30;
 
-        if (replay.Environments[playerIndex].GameDataInstance.Falling.type != -1)
-            foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameDataInstance.Falling.type][replay.Environments[playerIndex].GameDataInstance.Falling.r])
+
+        output += "Player" + (playerIndex + 1) + "\r\n";
+        output += "CurrentFrame:";
+        output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
+        var tempfield = (int[])replay.Environments[playerIndex].GameData.Field.Clone();
+
+        if (replay.Environments[playerIndex].GameData.Falling.type != -1)
+            foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameData.Falling.type][replay.Environments[playerIndex].GameData.Falling.r])
             {
-                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameDataInstance.Falling.x - TETRIMINO_DIFF[replay.Environments[playerIndex].GameDataInstance.Falling.type].x) +
-                    (int)(pos.y + replay.Environments[playerIndex].GameDataInstance.Falling.y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameDataInstance.Falling.type].y) * 10)] = (int)MinoKind.Z;
+                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.x - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.type].x) +
+                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.type].y) * 10)] = (int)MinoKind.Z;
             }
 
 
@@ -113,26 +146,43 @@ void Print(Replay replay)
         }
         output += "\r\n";
 
-        int cursorTop = 10 + (playerIndex * 30);
+        // int cursorTop = 10 + (playerIndex * 30);
+        Console.WriteLine(output);
 
-        for (int i = 0; i < 5; i++)
-        {
-            Console.CursorLeft = 30;
-            Console.CursorTop = cursorTop;
-
-            if (i >= replay.Environments[playerIndex].DownKeys.Count)
-                Console.Write("                      ");
-            else
-                Console.Write(replay.Environments[playerIndex].DownKeys[i]);
-
-            cursorTop++;
-        }
     }
 
-    Console.WriteLine(output);
+    for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
+    {
+        Console.CursorLeft = 12;
+        Console.CursorTop = playerIndex * 30;
 
-  
-   
+        var garbage = replay.Environments[playerIndex].Garbages.GarbageCount();
+        Console.WriteLine("予告:" + garbage.NotConfirmed + " / 準備:" + garbage.Confirmed + " / 確定:" + garbage.Ready);
+        Console.WriteLine("SafeLock:" + replay.Environments[playerIndex].GetData("safelock"));
+    }
+
+
+    /*
+            Console.CursorLeft = 0;
+            Console.CursorTop = 30;
+            for (int i = 0; i < 5; i++)
+                Console.WriteLine("                                  ");
+
+            Console.CursorLeft = 0;
+            Console.CursorTop = 30;
+            for (int i = 0; i < replay.Environments[playerIndex].DownKeys.Count; i++)
+            {
+
+
+
+                Console.WriteLine(replay.Environments[playerIndex].DownKeys[i]);
+
+                cursorTop++;
+            }*/
+
+
+
+
     /*
 
     output += "\r\n";

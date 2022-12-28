@@ -56,10 +56,10 @@ namespace TetrioVirtualEnvironment
             {
                 if(environmentMode==EnvironmentModeEnum.Limited)
                 {
-                    if (EnvironmentInstance.GameDataInstance.Next.Count != 0)
+                    if (EnvironmentInstance.GameData.Next.Count != 0)
                     {
-                        type = EnvironmentInstance.GameDataInstance.Next[0];
-                        EnvironmentInstance.GameDataInstance.Next.RemoveAt(0);
+                        type = EnvironmentInstance.GameData.Next[0];
+                        EnvironmentInstance.GameData.Next.RemoveAt(0);
                     }else
                     {
                         type=(int)MinoKind.Empty;
@@ -77,7 +77,7 @@ namespace TetrioVirtualEnvironment
             aox = 0;
             aoy = 0;
             x = 4;
-            y = 20 - 2.04;
+            y = 20 - 2.04+1;
             HighestY = 20 - 2;
             r = 0;
 

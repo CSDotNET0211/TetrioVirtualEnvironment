@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
@@ -9,9 +10,13 @@ using System.Text.Json;
 using TetrReplayLoaderLib;
 using static System.Net.Mime.MediaTypeNames;
 using static TetrioVirtualEnvironment.Environment;
+using static TetrReplayLoaderLib.TetrLoader;
 
 namespace TetrioVirtualEnvironment
 {
+    /// <summary>
+    /// Simple Structure having x,y Data.
+    /// </summary>
     public struct Vector2
     {
         public Vector2(double x, double y)
@@ -51,30 +56,159 @@ namespace TetrioVirtualEnvironment
 
     }
 
+    /// <summary>
+    /// TETR.IO Garbage Structure
+    /// </summary>
     public class Garbage
     {
-        public Garbage(int frame, int posX, int power)
+        public enum State
         {
-            this.frame = frame;
-            this.posX = posX;
-            this.power = power;
+            Interaction,
+            Interaction_Confirm,
+            Ready,
+            Attack
         }
 
-        public int frame;
+        public Garbage(int interaction_frame, int confirmed_frame, int sent_frame, int posX, int power, State state)
+        {
+            this.interaction_frame = interaction_frame;
+            this.confirmed_frame = confirmed_frame;
+            this.sent_frame = sent_frame;
+            this.posX = posX;
+            this.power = power;
+            this.state = state;
+        }
+
+        public int confirmed_frame;
+        public int interaction_frame;
+        public int sent_frame;
         public int posX;
         public int power;
+        public State state;
 
     }
 
+
+    public class InitData
+    {
+        public InitData()
+        {
+            Field = null;
+            Hold = null;
+            Next = null;
+            Now = null;
+        }
+
+        public InitData(int[] field, int hold, int now, int[] next)
+        {
+            Field = field;
+            Hold = hold;
+            Now = now;
+            Next = next;
+        }
+
+        public int[]? Field;
+        public int? Hold;
+        public int? Now;
+        public int[]? Next;
+
+    }
     public class Environment
     {
-
+        //DOTO: これとかapmに関する情報は関数でも作る
         public List<string> DownKeys = new List<string>();
         public const int FIELD_WIDTH = 10;
         public const int FIELD_HEIGHT = 40;
-        public const int FIELD_VIEW_HEIGHT = 20;
+        //  public const int FIELD_VIEW_HEIGHT = 20;
+        public event EventHandler OnPiecePlaced = null;
 
-        //minokind rotation vec
+
+        static public readonly Vector2[][][] CORNERTABLE =
+          new Vector2[][][]{
+              //Z
+              new Vector2[][]{
+                new Vector2[]{
+                    new Vector2(-2, -1), new Vector2(1, -1), new Vector2(2, 0), new Vector2(-1, 0)
+                },
+                  new Vector2[] {
+                    new Vector2(0, -1), new Vector2(1, -2), new Vector2(0, 2), new Vector2(1, 2)
+                },
+                  new Vector2[] {
+                    new Vector2(-2, 0), new Vector2(1, 0), new Vector2(2, 1), new Vector2(-1, 1)
+                },
+                  new Vector2[] {
+                    new Vector2(-1, -1), new Vector2(0, -2), new Vector2(0, 1), new Vector2(-1, 2)
+                },
+              },
+
+                //L
+              new Vector2[][]{
+                  new Vector2[] {
+                      new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, 1), new Vector2(-1, 1)
+                  },
+                  new Vector2[] {
+                      new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 0), new Vector2(-1, 1)
+                  },
+                  new Vector2[] {
+                      new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(0, 1)
+                  },
+                  new Vector2[] {
+                      new Vector2(-1, 0), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1)
+                  },
+              },
+
+              
+              //S
+              new Vector2[][]{
+                    new Vector2[] {
+                          new Vector2(-1, -1), new Vector2(2, -1), new Vector2(1,0), new Vector2(-2, 0)
+                    },
+                    new Vector2[] {
+                           new Vector2(0, -2), new Vector2(1, -1), new Vector2(1, 2), new Vector2(0, 1)
+                    },
+                    new Vector2[] {
+                         new Vector2(-1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(-2,1)
+                    },
+                   new Vector2[] {
+                    new Vector2(-1,-2), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 2)
+                    },
+              },
+              
+              //J
+              new Vector2[][]{
+                    new Vector2[] { new Vector2(0, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
+                    new Vector2[] { new Vector2(-1, -1), new Vector2(1, 0), new Vector2(1, 1), new Vector2(-1, 1) },
+                    new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(0, 1), new Vector2(-1, 1) },
+                    new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 0) },
+              },
+              
+              //T
+              new Vector2[][]{
+                   new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
+                   new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
+                   new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
+                   new Vector2[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
+                   },
+
+
+
+
+
+        };
+
+        static public Vector2[][] CORNERADDITIONALTTABLE =
+               new Vector2[][]{
+                   new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
+                   new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
+                   new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
+                   new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
+                   };
+
+
+
+        /// <summary>
+        /// Tetrimino Array
+        /// </summary>
         static public Vector2[][][] TETRIMINOS =
           new Vector2[][][]{
               //Z
@@ -171,21 +305,35 @@ namespace TetrioVirtualEnvironment
 
 
         };
+        /// <summary>
+        /// Diff Position for Fix Tetrimino Position
+        /// </summary>
         static public readonly Vector2[] TETRIMINO_DIFF = new Vector2[] { new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1) };
+
         static public readonly int[] MINOTYPES = new int[] { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
-        public List<Garbage> Garbages = new List<Garbage>();
-        public List<Garbage> PreGarbages = new List<Garbage>();
+        /// <summary>
+        /// GarbageList
+        /// </summary>
+        public List<Garbage> Garbages;
+        /// <summary>
+        /// GarbageList for Garbage.State.Attack
+        /// </summary>
+        public List<Garbage> GarbagesImmediatery;
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; private set; }
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; private set; }
-        public GameData GameDataInstance;
-        public Stats StatsInstance;
-        public RNG RNG = new RNG();
-        public int CurrentFrame = 0;
-         public EnvironmentModeEnum EnvironmentMode;
-        public int CurrentIndex { get;private set;}
 
-            public enum EnvironmentModeEnum 
+        public GameData GameData;
+        public Stats Stats;
+        public RNG RNG = new RNG();
+        public EnvironmentModeEnum EnvironmentMode;
+        public EventFull EventFull;
+        public InitData InitData;
+        public int NextSkipCount;
+        public int CurrentIndex { get; private set; }
+        public int CurrentFrame { get; private set; }
+
+        public enum EnvironmentModeEnum
         {
             Limited,
             Seed
@@ -218,6 +366,8 @@ namespace TetrioVirtualEnvironment
         public enum Action : byte
         {
             Null,
+            MoveUp,
+            MoveDown,
             MoveRight,
             MoveLeft,
             RotateRight,
@@ -265,20 +415,22 @@ namespace TetrioVirtualEnvironment
             KeyUp
         }
 
-        public Environment(EventFullOptions options,EnvironmentModeEnum environmentMode)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="envData"></param>
+        /// <param name="envMode"></param>
+        public Environment(EventFull envData, EnvironmentModeEnum envMode, InitData initData = null, int nextSkipCount = 0)
         {
-            EnvironmentMode=environmentMode;
+            if (initData == null)
+                initData = new InitData();
 
-            new GameData(options, false, this, ref GameDataInstance);
-            StatsInstance = new Stats();
+            EnvironmentMode = envMode;
+            EventFull = envData;
+            InitData = initData;
+            NextSkipCount = nextSkipCount;
 
-            var tempTetriminos = new Vector2[7][][];
-
-            for (int i = 0; i < 7; i++)
-            {
-                tempTetriminos[i] = new Vector2[4][];
-            }
-
+            ResetGame(envData, envMode, initData, nextSkipCount);
 
             var tempkickset = new Dictionary<string, Vector2[]>();
             var tempkicksetI = new Dictionary<string, Vector2[]>();
@@ -313,21 +465,42 @@ namespace TetrioVirtualEnvironment
             KICKSET_SRSPLUSI = tempkicksetI;
             #endregion
 
-
-            //GameDataInstance=GameDataInstance;
-
-
-
         }
 
+        /// <summary>
+        /// ResetGame for Rewind
+        /// </summary>
+        /// <param name="envData"></param>
+        public void ResetGame(EventFull envData, EnvironmentModeEnum envMode, InitData initData, int nextSkipCount = 0)
+        {
+
+
+            Garbages = new List<Garbage>();
+            GarbagesImmediatery = new List<Garbage>();
+            CurrentFrame = 0;
+            CurrentIndex = 0;
+            Stats = new Stats();
+
+            if (envMode == EnvironmentModeEnum.Seed)
+                new GameData(envData, this, ref GameData, nextSkipCount, initData);
+            else
+                new GameData(envData.options, this, ref GameData, initData);
+        }
+
+        /// <summary>
+        /// KeyInput for Self Control
+        /// </summary>
+        /// <param name="keyEvent"></param>
+        /// <param name="keyKind"></param>
         public void InputKeyEvent(KeyEvent keyEvent, Action keyKind)
         {
-            if(EnvironmentMode==EnvironmentModeEnum.Limited)
-                if(keyKind == Action.Hold)
+            if (EnvironmentMode == EnvironmentModeEnum.Limited)
+                if (keyKind == Action.Hold)
                 {
 
-                }else
-                return;
+                }
+                else
+                    return;
 
             if (keyEvent == KeyEvent.KeyUp)
             {
@@ -338,6 +511,7 @@ namespace TetrioVirtualEnvironment
 
             }
         }
+
 
         static public bool IsEmptyPos(int x, int y, int[] field)
         {
@@ -362,6 +536,12 @@ namespace TetrioVirtualEnvironment
             return true;
         }
 
+        /// <summary>
+        /// Check Is Valid Position or Not
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         static public bool IsLegalField(int x, double y)
         {
             if (!(x >= 0 && x < FIELD_WIDTH &&
@@ -389,49 +569,50 @@ namespace TetrioVirtualEnvironment
         }
 
 
+
         public void KeyInput(string type, EventKeyInput @event)
         {
             if (type == "keydown")
             {
-                if (@event.subframe > GameDataInstance.SubFrame)
+                if (@event.subframe > GameData.SubFrame)
                 {
-                    ProcessShift(false, @event.subframe - GameDataInstance.SubFrame);
-                    FallEvent(null, @event.subframe - GameDataInstance.SubFrame);
-                    GameDataInstance.SubFrame = @event.subframe;
+                    ProcessShift(false, @event.subframe - GameData.SubFrame);
+                    FallEvent(null, @event.subframe - GameData.SubFrame);
+                    GameData.SubFrame = @event.subframe;
                 }
 
                 if (@event.key == "moveLeft")
                 {
-                    GameDataInstance.LShift = true;
-                    GameDataInstance.LastShift = -1;
-                    GameDataInstance.LDas = @event.hoisted ?
-                        GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
-                    if (GameDataInstance.Options.Version >= 12)
-                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
+                    GameData.LShift = true;
+                    GameData.LastShift = -1;
+                    GameData.LDas = @event.hoisted ?
+                        GameData.Handling.DAS - GameData.Handling.DCD : 0;
+                    if (GameData.Options.Version >= 12)
+                        GameData.LDasIter = GameData.Handling.ARR;
 
-                    ProcessLShift(true, GameDataInstance.Options.Version >= 15 ? 0 : 1);
+                    ProcessLShift(true, GameData.Options.Version >= 15 ? 0 : 1);
                     return;
                 }
 
                 if (@event.key == "moveRight")
                 {
-                    GameDataInstance.RShift = true;
-                    GameDataInstance.LastShift = 1;
-                    GameDataInstance.RDas = @event.hoisted ? GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD : 0;
-                    if (GameDataInstance.Options.Version >= 12)
-                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
+                    GameData.RShift = true;
+                    GameData.LastShift = 1;
+                    GameData.RDas = @event.hoisted ? GameData.Handling.DAS - GameData.Handling.DCD : 0;
+                    if (GameData.Options.Version >= 12)
+                        GameData.RDasIter = GameData.Handling.ARR;
 
-                    ProcessRShift(true, GameDataInstance.Options.Version >= 15 ? 0 : 1);
+                    ProcessRShift(true, GameData.Options.Version >= 15 ? 0 : 1);
                     return;
                 }
 
                 if (@event.key == "softDrop")
                 {
-                    GameDataInstance.SoftDrop = true;
+                    GameData.SoftDrop = true;
                     return;
                 }
 
-                if (GameDataInstance.Falling.Sleep)
+                if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 {
                     throw new Exception("未実装");
                 }
@@ -439,7 +620,7 @@ namespace TetrioVirtualEnvironment
                 {
                     if (@event.key == "rotateCCW")
                     {
-                        var e = GameDataInstance.Falling.r - 1;
+                        var e = GameData.Falling.r - 1;
                         if (e < 0)
                             e = 3;
                         RotatePiece(e);
@@ -447,31 +628,31 @@ namespace TetrioVirtualEnvironment
 
                     if (@event.key == "rotateCW")
                     {
-                        var e = GameDataInstance.Falling.r + 1;
+                        var e = GameData.Falling.r + 1;
                         if (e > 3)
                             e = 0;
                         RotatePiece(e);
                     }
 
-                    if (@event.key == "rotate180" && GameDataInstance.Options.Allow180)
+                    if (@event.key == "rotate180" && GameData.Options.Allow180)
                     {
-                        var e = GameDataInstance.Falling.r + 2;
+                        var e = GameData.Falling.r + 2;
                         if (e > 3)
                             e -= 4;
                         RotatePiece(e);
                     }
-                    if (@event.key == "hardDrop" && GameDataInstance.Options.AllowHardDrop &&
-                        GameDataInstance.Falling.SafeLock == 0)
+                    if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop &&
+                        GameData.Falling.SafeLock == 0)
                     {
                         FallEvent(int.MaxValue, 1);
                     }
 
                     if (@event.key == "hold")
                     {
-                        if (!GameDataInstance.HoldLocked)
+                        if (!GameData.HoldLocked)
                         {
-                            if ((GameDataInstance.Options.DisplayHold == null ||
-                            (bool)GameDataInstance.Options.DisplayHold))
+                            if ((GameData.Options.DisplayHold == null ||
+                            (bool)GameData.Options.DisplayHold))
                             {
                                 SwapHold();
                             }
@@ -483,22 +664,22 @@ namespace TetrioVirtualEnvironment
             }
             else if (type == "keyup")
             {
-                if (@event.subframe > GameDataInstance.SubFrame)
+                if (@event.subframe > GameData.SubFrame)
                 {
-                    ProcessShift(false, @event.subframe - GameDataInstance.SubFrame);
-                    FallEvent(null, @event.subframe - GameDataInstance.SubFrame);
-                    GameDataInstance.SubFrame = @event.subframe;
+                    ProcessShift(false, @event.subframe - GameData.SubFrame);
+                    FallEvent(null, @event.subframe - GameData.SubFrame);
+                    GameData.SubFrame = @event.subframe;
                 }
 
                 if (@event.key == "moveLeft")
                 {
-                    GameDataInstance.LShift = false;
-                    GameDataInstance.LDas = 0;
+                    GameData.LShift = false;
+                    GameData.LDas = 0;
 
-                    if (GameDataInstance.Handling.Cancel)
+                    if (GameData.Handling.Cancel)
                     {
-                        GameDataInstance.RDas = 0;
-                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
+                        GameData.RDas = 0;
+                        GameData.RDasIter = GameData.Handling.ARR;
                     }
 
                     return;
@@ -506,20 +687,20 @@ namespace TetrioVirtualEnvironment
 
                 if (@event.key == "moveRight")
                 {
-                    GameDataInstance.RShift = false;
-                    GameDataInstance.RDas = 0;
+                    GameData.RShift = false;
+                    GameData.RDas = 0;
 
-                    if (GameDataInstance.Handling.Cancel)
+                    if (GameData.Handling.Cancel)
                     {
-                        GameDataInstance.LDas = 0;
-                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
+                        GameData.LDas = 0;
+                        GameData.LDasIter = GameData.Handling.ARR;
                     }
 
                     return;
                 }
 
                 if (@event.key == "softDrop")
-                    GameDataInstance.SoftDrop = false;
+                    GameData.SoftDrop = false;
 
 
             }
@@ -527,7 +708,7 @@ namespace TetrioVirtualEnvironment
 
         void RotatePiece(int rotation)
         {
-            var nowmino_rotation = GameDataInstance.Falling.r;
+            var nowmino_rotation = GameData.Falling.r;
             var nowmino_newmino_rotation = nowmino_rotation.ToString() + rotation.ToString();
             var o = 0;
             var i = "none";
@@ -564,86 +745,86 @@ namespace TetrioVirtualEnvironment
             if (rotation == 1 && nowmino_rotation == 3)
                 i = "horizontal";
 
-            if (IsLegalAtPos(GameDataInstance.Falling.type,
-                GameDataInstance.Falling.x - GameDataInstance.Falling.aox,
-                GameDataInstance.Falling.y - GameDataInstance.Falling.aoy, rotation,
-                GameDataInstance.Field))
+            if (IsLegalAtPos(GameData.Falling.type,
+                GameData.Falling.x - GameData.Falling.aox,
+                GameData.Falling.y - GameData.Falling.aoy, rotation,
+                GameData.Field))
             {
-                GameDataInstance.Falling.x -= GameDataInstance.Falling.aox;
-                GameDataInstance.Falling.y -= GameDataInstance.Falling.aoy;
-                GameDataInstance.Falling.aox = 0;
-                GameDataInstance.Falling.aoy = 0;
-                GameDataInstance.Falling.r = rotation;
-                GameDataInstance.Falling.Last = "rotate";
-                GameDataInstance.Falling.LastRotation = i;
-                GameDataInstance.Falling.LastKick = 0;
-                GameDataInstance.Falling.SpinType = IsTspin();
-                GameDataInstance.FallingRotations++;
-                GameDataInstance.TotalRotations++;
+                GameData.Falling.x -= GameData.Falling.aox;
+                GameData.Falling.y -= GameData.Falling.aoy;
+                GameData.Falling.aox = 0;
+                GameData.Falling.aoy = 0;
+                GameData.Falling.r = rotation;
+                GameData.Falling.Last = "rotate";
+                GameData.Falling.LastRotation = i;
+                GameData.Falling.LastKick = 0;
+                GameData.Falling.SpinType = IsTspin();
+                GameData.FallingRotations++;
+                GameData.TotalRotations++;
 
-                if (GameDataInstance.Falling.Clamped && GameDataInstance.Handling.DCD > 0)
+                if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
                 {
-                    GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-                    GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
-                    GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-                    GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
+                    GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                    GameData.LDasIter = GameData.Handling.ARR;
+                    GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                    GameData.RDasIter = GameData.Handling.ARR;
                 }
 
-                if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
-                    GameDataInstance.Falling.Locking = 0;
+                if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                    GameData.Falling.Locking = 0;
 
 
                 //落下ミノ更新フラグ true
                 return;
             }
 
-            if (GameDataInstance.Falling.type == (int)MinoKind.O)
+            if (GameData.Falling.type == (int)MinoKind.O)
                 return;
 
             var kicktable = KICKSET_SRSPLUS[nowmino_newmino_rotation];
 
-            if (GameDataInstance.Falling.type == (int)MinoKind.I)
+            if (GameData.Falling.type == (int)MinoKind.I)
                 kicktable = KICKSET_SRSPLUSI[nowmino_newmino_rotation];
 
             for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
             {
                 var kicktableTest = kicktable[kicktableIndex];
-                var i2 = (int)(GameDataInstance.Falling.y) + 0.1 +
-                    kicktableTest.y - GameDataInstance.Falling.aoy;
+                var i2 = (int)(GameData.Falling.y) + 0.1 +
+                    kicktableTest.y - GameData.Falling.aoy;
 
 
-                if (!GameDataInstance.Options.InfiniteMovement &&
-                    GameDataInstance.TotalRotations > (int)GameDataInstance.Options.LockResets + 15)
+                if (!GameData.Options.InfiniteMovement &&
+                    GameData.TotalRotations > (int)GameData.Options.LockResets + 15)
                 {
-                    i2 = GameDataInstance.Falling.y + kicktableTest.y - GameDataInstance.Falling.aoy;
+                    i2 = GameData.Falling.y + kicktableTest.y - GameData.Falling.aoy;
                 }
 
-                if (IsLegalAtPos(GameDataInstance.Falling.type,
-                    GameDataInstance.Falling.x + (int)kicktableTest.x - GameDataInstance.Falling.aox,
-                    i2, rotation, GameDataInstance.Field))
+                if (IsLegalAtPos(GameData.Falling.type,
+                    GameData.Falling.x + (int)kicktableTest.x - GameData.Falling.aox,
+                    i2, rotation, GameData.Field))
                 {
 
-                    GameDataInstance.Falling.x += (int)kicktableTest.x - GameDataInstance.Falling.aox;
-                    GameDataInstance.Falling.y = i2;
-                    GameDataInstance.Falling.aox = 0;
-                    GameDataInstance.Falling.aoy = 0;
-                    GameDataInstance.Falling.r = rotation;
-                    GameDataInstance.Falling.SpinType = IsTspin();
-                    GameDataInstance.Falling.LastKick = kicktableIndex + 1;
-                    GameDataInstance.Falling.Last = "rotate";
-                    GameDataInstance.FallingRotations++;
-                    GameDataInstance.TotalRotations++;
+                    GameData.Falling.x += (int)kicktableTest.x - GameData.Falling.aox;
+                    GameData.Falling.y = i2;
+                    GameData.Falling.aox = 0;
+                    GameData.Falling.aoy = 0;
+                    GameData.Falling.r = rotation;
+                    GameData.Falling.SpinType = IsTspin();
+                    GameData.Falling.LastKick = kicktableIndex + 1;
+                    GameData.Falling.Last = "rotate";
+                    GameData.FallingRotations++;
+                    GameData.TotalRotations++;
 
-                    if (GameDataInstance.Falling.Clamped && GameDataInstance.Handling.DCD > 0)
+                    if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
                     {
-                        GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-                        GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
-                        GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-                        GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
+                        GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                        GameData.LDasIter = GameData.Handling.ARR;
+                        GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+                        GameData.RDasIter = GameData.Handling.ARR;
                     }
 
-                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
-                        GameDataInstance.Falling.Locking = 0;
+                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking = 0;
 
 
                     return;
@@ -662,39 +843,69 @@ namespace TetrioVirtualEnvironment
 
         public void Update()
         {
-            GameDataInstance.SubFrame = 0;
-        //    CurrentFrame++;
-            ProcessShift(false, 1 - GameDataInstance.SubFrame);
-            FallEvent(null, 1 - GameDataInstance.SubFrame);
+            GameData.SubFrame = 0;
+            //    CurrentFrame++;
+            ProcessShift(false, 1 - GameData.SubFrame);
+            FallEvent(null, 1 - GameData.SubFrame);
         }
-            //TODO: いつか上ので結合したい
-        public bool Update(bool is_ttr, List<Event>  events)
+        //TODO: いつか下のに結合
+        public bool Update(ReplayKind replayKind, List<Event> events)
         {
-            GameDataInstance.SubFrame = 0;
+            GameData.SubFrame = 0;
 
-            if (is_ttr)
-            {
-                if (!Event(events))
-                    return false;
-            }
-            else
-            {
-                if (!Event(events))
-                    return false;
-            }
+            if (!Event(events))
+                return false;
 
-          CurrentFrame++;
-          ProcessShift(false, 1 - GameDataInstance.SubFrame);
-          FallEvent(null, 1 - GameDataInstance.SubFrame);
+            CurrentFrame++;
+            ProcessShift(false, 1 - GameData.SubFrame);
+            FallEvent(null, 1 - GameData.SubFrame);
+
+            CheckGarbage();
+
+            if (GameData.Options.GravityIncrease > 0 &&
+                CurrentFrame > GameData.Options.GravityMargin)
+                GameData.Gravity += GameData.Options.GravityIncrease / 60;
+
+            if (GameData.Options.GarbageIncrease > 0 &&
+                CurrentFrame > GameData.Options.GarbageMargin)
+                GameData.Options.GarbageMultiplier += GameData.Options.GarbageIncrease / 60;
+
+            if (GameData.Options.GarbageCapIncrease > 0)
+                GameData.Options.GarbageCap += GameData.Options.GarbageCapIncrease / 60;
+
+
 
             return true;
         }
 
-        public bool Event( List<Event> events)
+        void CheckGarbage()
+        {
+            foreach (var garbage in Garbages)
+            {
+                if (garbage.confirmed_frame + 20 == CurrentFrame)
+                {
+                    if (garbage.state == Garbage.State.Interaction_Confirm)
+                        garbage.state = Garbage.State.Ready;
+
+                }
+            }
+
+            for (int i = 0; i < GarbagesImmediatery.Count; i++)
+            {
+                if (GarbagesImmediatery[0].confirmed_frame + 20 == CurrentFrame)
+                {
+                    GarbagesImmediatery[0].state = Garbage.State.Ready;
+                    Garbages.Add(GarbagesImmediatery[0]);
+                    GarbagesImmediatery.RemoveAt(0);
+                }
+            }
+        }
+
+        public bool Event(List<Event> events)
         {
             while (true)
             {
-                if (events[CurrentIndex].frame ==CurrentFrame)
+                if (events[CurrentIndex].frame == CurrentFrame)
                 {
 
                     switch (events[CurrentIndex].type)
@@ -702,8 +913,8 @@ namespace TetrioVirtualEnvironment
                         case "start":
                             break;
 
-                        case "full": 
-                          GameDataInstance.Falling.Init(null,EnvironmentMode);
+                        case "full":
+                            GameData.Falling.Init(null, EnvironmentMode);
                             break;
 
                         case "keydown":
@@ -716,11 +927,10 @@ namespace TetrioVirtualEnvironment
                             }
                             else
                             {
-                              DownKeys.Remove(inputEvent.key);
+                                DownKeys.Remove(inputEvent.key);
                             }
 
-                        KeyInput(events[CurrentIndex].type,
-                                                inputEvent);
+                            KeyInput(events[CurrentIndex].type, inputEvent);
 
                             break;
 
@@ -732,12 +942,25 @@ namespace TetrioVirtualEnvironment
 
                             if (data.data.type == "interaction_confirm")
                             {
-                               Garbages.Add(new Garbage((int)events[CurrentIndex].frame, data.data.data.column, data.data.data.amt));
+                                foreach (var garbage in Garbages)
+                                {
+                                    if (garbage.sent_frame == data.data.sent_frame && garbage.state == Garbage.State.Interaction)
+                                    {
+                                        garbage.state = Garbage.State.Interaction_Confirm;
+                                        garbage.confirmed_frame = (int)events[CurrentIndex].frame;
+                                        break;
+                                    }
+                                }
                             }
                             else if (data.data.type == "interaction")
+                                Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Interaction));
+                            else if (data.data.type == "attack")
+                                GarbagesImmediatery.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
+                            else if (data.data.type == "kev")
                             {
 
                             }
+                            else throw new Exception("Unknown InGameEvent");
 
                             break;
 
@@ -759,173 +982,163 @@ namespace TetrioVirtualEnvironment
 
         void ProcessLShift(bool value, double subFrameDiff = 1)
         {
-            if (!GameDataInstance.LShift || GameDataInstance.RShift && GameDataInstance.LastShift != -1)
+            if (!GameData.LShift || GameData.RShift && GameData.LastShift != -1)
                 return;
 
             var subFrameDiff2 = subFrameDiff;
-            var dasSomething = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.LDas);
+            var dasSomething = Math.Max(0, GameData.Handling.DAS - GameData.LDas);
 
-            GameDataInstance.LDas +=value?0:subFrameDiff;
+            GameData.LDas += value ? 0 : subFrameDiff;
 
-            if (GameDataInstance.LDas < GameDataInstance.Handling.DAS && !value)
+            if (GameData.LDas < GameData.Handling.DAS && !value)
                 return;
 
             subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
 
-            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
+            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
             var aboutARRValue = 1;
             if (!value)
             {
-                GameDataInstance.LDasIter+= GameDataInstance.Options.Version >= 15? subFrameDiff2: subFrameDiff;
-                
-                if (GameDataInstance.LDasIter < GameDataInstance.Handling.ARR)
+                GameData.LDasIter += GameData.Options.Version >= 15 ? subFrameDiff2 : subFrameDiff;
+
+                if (GameData.LDasIter < GameData.Handling.ARR)
                     return;
 
-                aboutARRValue= GameDataInstance.Handling.ARR==0?10:(int)(GameDataInstance.LDasIter / GameDataInstance.Handling.ARR);
+                aboutARRValue = GameData.Handling.ARR == 0 ? 10 : (int)(GameData.LDasIter / GameData.Handling.ARR);
 
-                GameDataInstance.LDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
+                GameData.LDasIter -= GameData.Handling.ARR * aboutARRValue;
             }
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x - 1, GameDataInstance.Falling.y, GameDataInstance.Falling.r, GameDataInstance.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
-                    GameDataInstance.Falling.x--;
-                    GameDataInstance.Falling.Last = "move";
-                    GameDataInstance.Falling.Clamped = false;
+                    GameData.Falling.x--;
+                    GameData.Falling.Last = "move";
+                    GameData.Falling.Clamped = false;
 
-                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
-                        GameDataInstance.Falling.Locking = 0;
+                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking = 0;
 
                 }
                 else
                 {
-                    GameDataInstance.Falling.Clamped = true;
+                    GameData.Falling.Clamped = true;
                 }
             }
         }
 
         void ProcessRShift(bool value, double subFrameDiff = 1)
         {
-            if (!GameDataInstance.RShift || GameDataInstance.LShift && GameDataInstance.LastShift != 1)
+            if (!GameData.RShift || GameData.LShift && GameData.LastShift != 1)
                 return;
 
             var subFrameDiff2 = subFrameDiff;
-            var dasSomething = Math.Max(0, GameDataInstance.Handling.DAS - GameDataInstance.RDas);
+            var dasSomething = Math.Max(0, GameData.Handling.DAS - GameData.RDas);
 
-            GameDataInstance.RDas+=value?0:subFrameDiff;
+            GameData.RDas += value ? 0 : subFrameDiff;
 
-            if (GameDataInstance.RDas < GameDataInstance.Handling.DAS && !value)
+            if (GameData.RDas < GameData.Handling.DAS && !value)
                 return;
 
             subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
-            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
+            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
             var aboutARRValue = 1;
             if (!value)
             {
-                GameDataInstance.RDasIter+= GameDataInstance.Options.Version >= 15?subFrameDiff2:subFrameDiff;
+                GameData.RDasIter += GameData.Options.Version >= 15 ? subFrameDiff2 : subFrameDiff;
 
-                if (GameDataInstance.RDasIter < GameDataInstance.Handling.ARR)
+                if (GameData.RDasIter < GameData.Handling.ARR)
                     return;
 
-                aboutARRValue= GameDataInstance.Handling.ARR == 0?10: (int)(GameDataInstance.RDasIter / GameDataInstance.Handling.ARR);
-            
-                GameDataInstance.RDasIter -= GameDataInstance.Handling.ARR * aboutARRValue;
+                aboutARRValue = GameData.Handling.ARR == 0 ? 10 : (int)(GameData.RDasIter / GameData.Handling.ARR);
+
+                GameData.RDasIter -= GameData.Handling.ARR * aboutARRValue;
             }
 
             for (var index = 0; index < aboutARRValue; index++)
             {
-                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x + 1, GameDataInstance.Falling.y, GameDataInstance.Falling.r, GameDataInstance.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
                 {
-                    GameDataInstance.Falling.x++;
-                    GameDataInstance.Falling.Last = "move";
-                    GameDataInstance.Falling.Clamped = false;
+                    GameData.Falling.x++;
+                    GameData.Falling.Last = "move";
+                    GameData.Falling.Clamped = false;
 
-                    if (++GameDataInstance.Falling.LockResets < 15 || GameDataInstance.Options.InfiniteMovement)
-                        GameDataInstance.Falling.Locking = 0;
+                    if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+                        GameData.Falling.Locking = 0;
 
                 }
                 else
                 {
-                    GameDataInstance.Falling.Clamped = true;
+                    GameData.Falling.Clamped = true;
                 }
             }
         }
 
         public void FallEvent(int? value, double subFrameDiff)
         {
-            if (GameDataInstance.Falling.SafeLock > 0)
-                GameDataInstance.Falling.SafeLock--;
+            if (GameData.Falling.SafeLock > 0)
+                GameData.Falling.SafeLock--;
 
-            if (GameDataInstance.Falling.Sleep || GameDataInstance.Falling.DeepSleep)
+            if (GameData.Falling.Sleep || GameData.Falling.DeepSleep)
                 return;
 
-            var subframeGravity = GameDataInstance.Gravity * subFrameDiff;
+            var subframeGravity = GameData.Gravity * subFrameDiff;
 
-            if (GameDataInstance.SoftDrop)
+            if (GameData.SoftDrop)
             {
-                if (GameDataInstance.Options.Version >= 15 && GameDataInstance.Handling.SDF == 41)
-                    subframeGravity = 400 * subFrameDiff;
-                else if (!(GameDataInstance.Options.Version >= 15) && GameDataInstance.Handling.SDF == 21)
-                    subframeGravity = 20 * subFrameDiff;
+                if (GameData.Handling.SDF == (GameData.Options.Version >= 15 ? 41 : 21))
+                    subframeGravity = (GameData.Options.Version >= 15 ? 400 : 20) * subFrameDiff;
                 else
                 {
-                    subframeGravity *= GameDataInstance.Handling.SDF;
-                    int tempvalue;
-                    if (GameDataInstance.Options.Version >= 13)
-                        tempvalue = 1;
-                    else
-                        tempvalue = 0;
-
-                    if (Math.Max(subframeGravity, tempvalue) > 0)
-                        subframeGravity = 0.05 * GameDataInstance.Handling.SDF;
-                    else
-                        subframeGravity = 0.42;
+                    subframeGravity *= GameData.Handling.SDF;
+                    subframeGravity = Math.Max(subframeGravity, GameData.Options.Version >= 13 ?
+                        0.05 * GameData.Handling.SDF : 0.42);
                 }
             }
 
             if (value != null)
                 subframeGravity = (int)value;
 
-            if (!GameDataInstance.Options.InfiniteMovement &&
-                GameDataInstance.Falling.LockResets >= (int)GameDataInstance.Options.LockResets &&
-                !IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x,
-                GameDataInstance.Falling.y + 1, GameDataInstance.Falling.r, GameDataInstance.Field))
+            if (!GameData.Options.InfiniteMovement &&
+                GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
+                !IsLegalAtPos(GameData.Falling.type, GameData.Falling.x,
+                GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
             {
                 subframeGravity = 20;
-                GameDataInstance.Falling.ForceLock = true;
+                GameData.Falling.ForceLock = true;
             }
 
 
-            if (!GameDataInstance.Options.InfiniteMovement &&
-                GameDataInstance.FallingRotations > (int)GameDataInstance.Options.LockResets + 15)
+            if (!GameData.Options.InfiniteMovement &&
+                GameData.FallingRotations > (int)GameData.Options.LockResets + 15)
             {
                 subframeGravity += 0.5 * subFrameDiff *
-                    (GameDataInstance.FallingRotations - ((int)GameDataInstance.Options.LockResets + 15));
+                    (GameData.FallingRotations - ((int)GameData.Options.LockResets + 15));
             }
 
             var r = subframeGravity;
 
             for (; subframeGravity > 0;)
             {
-                var ceiledValue = Math.Ceiling(GameDataInstance.Falling.y);
+                var ceiledValue = Math.Ceiling(GameData.Falling.y);
                 if (!HardDrop(Math.Min(1, subframeGravity), r))
                 {
                     if (value != null)
-                        GameDataInstance.Falling.ForceLock = true;
-                    FunctionA(value != 0, subFrameDiff);
+                        GameData.Falling.ForceLock = true;
+                    FunctionA(value != 0 && value != null, subFrameDiff);
                     break;
                 }
 
                 subframeGravity -= Math.Min(1, subframeGravity);
-                if (ceiledValue != Math.Ceiling(GameDataInstance.Falling.y))
+                if (ceiledValue != Math.Ceiling(GameData.Falling.y))
                 {
-                    GameDataInstance.Falling.Last = "fall";
-                    if (GameDataInstance.SoftDrop)
+                    GameData.Falling.Last = "fall";
+                    if (GameData.SoftDrop)
                     {
                         //ScoreAdd
 
@@ -936,34 +1149,34 @@ namespace TetrioVirtualEnvironment
 
         bool HardDrop(double value, double value2)
         {
-            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameDataInstance.Falling.y) /
+            var fallingy_kouho = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) /
                 Math.Pow(10, 13) + value;
 
             if (fallingy_kouho % 1 == 0)
                 fallingy_kouho += 0.00001;
 
-            var o = Math.Floor(Math.Pow(10, 13) * GameDataInstance.Falling.y) / Math.Pow(10, 13) + 1;
+            var o = Math.Floor(Math.Pow(10, 13) * GameData.Falling.y) / Math.Pow(10, 13) + 1;
             if (o % 1 == 0)
                 o -= 0.00002;
 
-            if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, fallingy_kouho, GameDataInstance.Falling.r, GameDataInstance.Field) &&
-                IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, o, GameDataInstance.Falling.r, GameDataInstance.Field))
+            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, fallingy_kouho, GameData.Falling.r, GameData.Field) &&
+                IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, o, GameData.Falling.r, GameData.Field))
             {
-                var s = GameDataInstance.Falling.HighestY;
-                o = GameDataInstance.Falling.y;
+                var s = GameData.Falling.HighestY;
+                o = GameData.Falling.y;
 
-                GameDataInstance.Falling.y = fallingy_kouho;
-                GameDataInstance.Falling.HighestY = Math.Ceiling(Math.Max(GameDataInstance.Falling.HighestY, fallingy_kouho));
-                GameDataInstance.Falling.Floored = false;
+                GameData.Falling.y = fallingy_kouho;
+                GameData.Falling.HighestY = Math.Ceiling(Math.Max(GameData.Falling.HighestY, fallingy_kouho));
+                GameData.Falling.Floored = false;
                 if (Math.Ceiling(fallingy_kouho) != Math.Ceiling(o))
                 {
                     // TODO: 更新フラグtrue
 
                 }
 
-                if (fallingy_kouho > s || GameDataInstance.Options.InfiniteMovement)
-                    GameDataInstance.Falling.LockResets = 0;
-                GameDataInstance.FallingRotations = 0;
+                if (fallingy_kouho > s || GameData.Options.InfiniteMovement)
+                    GameData.Falling.LockResets = 0;
+                GameData.FallingRotations = 0;
 
                 if (value2 >= int.MaxValue)
                 {
@@ -978,63 +1191,127 @@ namespace TetrioVirtualEnvironment
 
         void PiecePlace(bool sValue)
         {
-            GameDataInstance.Falling.Sleep = true;
+            GameData.Falling.Sleep = true;
             //ミノを盤面に適用
-            foreach (var pos in TETRIMINOS[GameDataInstance.Falling.type][GameDataInstance.Falling.r])
+            foreach (var pos in TETRIMINOS[GameData.Falling.type][GameData.Falling.r])
             {
-                GameDataInstance.Field[(int)((pos.x + GameDataInstance.Falling.x - TETRIMINO_DIFF[GameDataInstance.Falling.type].x) +
-                    (int)(pos.y + GameDataInstance.Falling.y - TETRIMINO_DIFF[GameDataInstance.Falling.type].y) * 10)] = GameDataInstance.Falling.type;
+                GameData.Field[(int)((pos.x + GameData.Falling.x - TETRIMINO_DIFF[GameData.Falling.type].x) +
+                    (int)(pos.y + GameData.Falling.y - TETRIMINO_DIFF[GameData.Falling.type].y) * 10)] = GameData.Falling.type;
             }
 
-            if (!sValue && GameDataInstance.Handling.SafeLock > 0)
-                GameDataInstance.Falling.SafeLock = 7;
+            if (!sValue && GameData.Handling.SafeLock > 0)
+                GameData.Falling.SafeLock = 7;
 
             var istspin = IsTspin();
             var clearedLineCount = ClearLine();
 
 
-            int tempGargabeCount = 0;
+            // int tempGargabeCount = 0;
 
 
             GetAttackPower(clearedLineCount, istspin);
             IsBoardEmpty();
 
-            while (Garbages.Count != 0 || tempGargabeCount == GameDataInstance.Options.GarbageCap)
+            //
+
+            if (OnPiecePlaced != null)
+                OnPiecePlaced(this, EventArgs.Empty);
+
+
+            GameData.Falling.Init(null, EnvironmentMode);
+
+
+
+
+        }
+
+
+        public void Move(Action action)
+        {
+            switch (action)
             {
-                //足しても大丈夫なら全部取得
-                //ダメならCAPになるまで
-                if (Garbages.Count != 0 &&
-                    Garbages[0].frame + GameDataInstance.Options.GarbageSpeed - 1 <= CurrentFrame)
-                {
-                    if (tempGargabeCount + Garbages[0].power <= GameDataInstance.Options.GarbageCap)
-                    {
-                        ReceiveGarbage(Garbages[0].posX, Garbages[0].power);
-                        tempGargabeCount += Garbages[0].power;
-                        Garbages.RemoveAt(0);
-                    }
-                    else if (GameDataInstance.Options.GarbageCap - tempGargabeCount > 0)
-                    {
-                        ReceiveGarbage(Garbages[0].posX, GameDataInstance.Options.GarbageCap - tempGargabeCount);
-                        Garbages[0].power -= GameDataInstance.Options.GarbageCap - tempGargabeCount;
+                case Action.MoveRight:
+                    if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                        GameData.Falling.x++;
+                    break;
 
-                        tempGargabeCount += GameDataInstance.Options.GarbageCap - tempGargabeCount;
-                        break;
-                    }
-                    else
-                        break;
+                case Action.MoveLeft:
+                    if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - 1, GameData.Falling.y, GameData.Falling.r, GameData.Field))
+                        GameData.Falling.x--;
+                    break;
 
-                }
-                else
+                case Action.RotateLeft:
+                    var e = GameData.Falling.r - 1;
+                    if (e < 0)
+                        e = 3;
+                    RotatePiece(e);
+                    break;
+
+                case Action.RotateRight:
+                    e = GameData.Falling.r + 1;
+                    if (e > 3)
+                        e = 0;
+                    RotatePiece(e);
+                    break;
+
+                case Action.Rotate180:
+                    e = GameData.Falling.r + 2;
+                    if (e > 3)
+                        e -= 4;
+                    RotatePiece(e);
+                    break;
+
+                case Action.Hold:
+                    SwapHold();
+                    break;
+
+                case Action.Harddrop:
+                    FallEvent(int.MaxValue, 1);
+                    break;
+
+                case Action.QuickSoftdrop:
+                    while (true)
+                    {
+                        if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
+                            GameData.Falling.y++;
+                        else
+                            break;
+                    }
+                    break;
+
+                case Action.MoveUp:
+                    if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y - 1, GameData.Falling.r, GameData.Field))
+                        GameData.Falling.y--;
+                    break;
+
+                case Action.MoveDown:
+                    if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
+                        GameData.Falling.y++;
+                    break;
+
+                default: throw new Exception();
+            }
+
+        }
+
+        /// <summary>
+        /// This is for DEBUG
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        public object GetData(string kind)
+        {
+            switch (kind)
+            {
+                case "safelock":
+
                     break;
             }
 
+            if (kind == "safelock")
+                return GameData.Falling.SafeLock;
 
-
-            GameDataInstance.Falling.Init(null, EnvironmentMode);
-
-
-
-
+            return null;
         }
 
         int ClearLine()
@@ -1047,7 +1324,7 @@ namespace TetrioVirtualEnvironment
                 flag = true;
                 for (int x = 0; x < FIELD_WIDTH; x++)
                 {
-                    if (GameDataInstance.Field[x + y * 10] == (int)MinoKind.Empty)
+                    if (GameData.Field[x + y * 10] == (int)MinoKind.Empty)
                     {
                         flag = false;
                         break;
@@ -1061,7 +1338,7 @@ namespace TetrioVirtualEnvironment
             list.Reverse();
             foreach (var value in list)
             {
-                DownLine(value, GameDataInstance.Field);
+                DownLine(value, GameData.Field);
             }
 
             return list.Count;
@@ -1087,8 +1364,8 @@ namespace TetrioVirtualEnvironment
             int testy = 1;
             while (true)
             {
-                if (IsLegalAtPos(GameDataInstance.Falling.type, GameDataInstance.Falling.x, GameDataInstance.Falling.y + testy,
-                    GameDataInstance.Falling.r, GameDataInstance.Field))
+                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + testy,
+                    GameData.Falling.r, GameData.Field))
                     testy++;
                 else
                 {
@@ -1120,20 +1397,20 @@ namespace TetrioVirtualEnvironment
 
         void FunctionA(bool value = false, double subframe = 1)
         {
-            if (GameDataInstance.Options.Version >= 15)
-                GameDataInstance.Falling.Locking += subframe;
+            if (GameData.Options.Version >= 15)
+                GameData.Falling.Locking += subframe;
             else
-                GameDataInstance.Falling.Locking += 1;
+                GameData.Falling.Locking += 1;
 
-            if (!GameDataInstance.Falling.Floored)
-                GameDataInstance.Falling.Floored = true;
+            if (!GameData.Falling.Floored)
+                GameData.Falling.Floored = true;
 
 
 
-            if (GameDataInstance.Falling.Locking > GameDataInstance.Options.LockTime ||
-                GameDataInstance.Falling.ForceLock ||
-                GameDataInstance.Falling.LockResets > GameDataInstance.Options.LockResets &&
-                !GameDataInstance.Options.InfiniteMovement)
+            if (GameData.Falling.Locking > GameData.Options.LockTime ||
+                GameData.Falling.ForceLock ||
+                GameData.Falling.LockResets > GameData.Options.LockResets &&
+                !GameData.Options.InfiniteMovement)
             {
                 PiecePlace(value);
 
@@ -1143,7 +1420,7 @@ namespace TetrioVirtualEnvironment
             }
         }
 
-        public int RefreshNext(List< int> next, bool noszo)
+        public int RefreshNext(List<int> next, bool noszo)
         {
             var value = next[0];
 
@@ -1152,27 +1429,27 @@ namespace TetrioVirtualEnvironment
                 next[i] = next[i + 1];
             }
 
-            if (GameDataInstance.NextBag.Count == 0)
+            if (GameData.NextBag.Count == 0)
             {
                 var array = (int[])MINOTYPES.Clone();
                 RNG.ShuffleArray(array);
-                GameDataInstance.NextBag.AddRange(array);
+                GameData.NextBag.AddRange(array);
             }
 
             if (noszo)
             {
                 while (true)
                 {
-                    if (GameDataInstance.NextBag[0] == (int)MinoKind.S ||
-                         GameDataInstance.NextBag[0] == (int)MinoKind.Z ||
-                        GameDataInstance.NextBag[0] == (int)MinoKind.O)
+                    if (GameData.NextBag[0] == (int)MinoKind.S ||
+                         GameData.NextBag[0] == (int)MinoKind.Z ||
+                        GameData.NextBag[0] == (int)MinoKind.O)
                     {
-                        var temp = GameDataInstance.NextBag[0];
-                        for (int i = 0; i < GameDataInstance.NextBag.Count - 1; i++)
+                        var temp = GameData.NextBag[0];
+                        for (int i = 0; i < GameData.NextBag.Count - 1; i++)
                         {
-                            GameDataInstance.NextBag[i] = GameDataInstance.NextBag[i + 1];
+                            GameData.NextBag[i] = GameData.NextBag[i + 1];
                         }
-                        GameDataInstance.NextBag[GameDataInstance.NextBag.Count - 1] = temp;
+                        GameData.NextBag[GameData.NextBag.Count - 1] = temp;
                     }
                     else
                         break;
@@ -1181,67 +1458,105 @@ namespace TetrioVirtualEnvironment
             }
 
 
-            next[next.Count - 1] = GameDataInstance.NextBag[0];
-            GameDataInstance.NextBag.RemoveAt(0);
+            next[next.Count - 1] = GameData.NextBag[0];
+            GameData.NextBag.RemoveAt(0);
             return value;
         }
 
         void SwapHold()
         {
-            var s = GameDataInstance.Falling.type;
-            GameDataInstance.Falling.Init(GameDataInstance.Hold,EnvironmentMode);
-            GameDataInstance.Hold = s;
+
+            var s = GameData.Falling.type;
+            GameData.Falling.Init(GameData.Hold, EnvironmentMode);
+            GameData.Hold = s;
         }
 
         string? IsTspin()
         {
-            if (GameDataInstance.Falling.Last != "rotate")
+            if (GameData.SpinBonuses == "none")
                 return null;
 
-            var s = 0;
+            if (GameData.SpinBonuses == "stupid")
+                throw new Exception("未実装");
+
+            if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
+                return null;
+
+            if (GameData.Falling.type != (int)MinoKind.T && GameData.SpinBonuses != "handheld")
+            {
+                if (GameData.SpinBonuses == "all")
+                {
+                    if (!(IsLegalAtPos(GameData.Falling.type, GameData.Falling.x - 1, GameData.Falling.y, GameData.Falling.r, GameData.Field) ||
+                       IsLegalAtPos(GameData.Falling.type, GameData.Falling.x + 1, GameData.Falling.y, GameData.Falling.r, GameData.Field) ||
+                       IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y - 1, GameData.Falling.r, GameData.Field) ||
+                       IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field)))
+                        return "normal";
+                    else
+                        return null;
+                }
+                else
+                    return null;
+
+            }
+
+            if (GameData.Falling.Last != "rotate")
+                return null;
+
+            var cornerCount = 0;
             var a = 0;
 
-            if (!IsEmptyPos(GameDataInstance.Falling.x - 1, (int)GameDataInstance.Falling.y - 1, GameDataInstance.Field))
+            for (int n = 0; n < 4; n++)
             {
-                s++;
-                if (!(GameDataInstance.Falling.r != 3 && GameDataInstance.Falling.r != 0))
-                    a++;
+                Vector2[][] minoCorner = null;
+
+                    minoCorner = CORNERTABLE[TEMP(GameData.Falling.type)];
+
+                    int TEMP(int type)
+                    {
+                        switch (type)
+                        {
+                            case (int)MinoKind.Z:
+                            case (int)MinoKind.L:
+                                return type;
+                            case (int)MinoKind.S:
+                                return type - 1;
+                            case (int)MinoKind.J:
+                            case (int)MinoKind.T:
+                                return type - 2;
+
+                            default: throw new Exception("不明");
+
+                        }
+                    }
+                
+                if (!IsEmptyPos((int)(GameData.Falling.x + minoCorner[GameData.Falling.r][n].x),
+                    (int)(GameData.Falling.y + minoCorner[GameData.Falling.r][n].y), GameData.Field))
+                {
+                    cornerCount++;
+
+                    //AdditinalTableは無理やり追加したものなのでx,yは関係ない
+                    if (!(GameData.Falling.type != (int)MinoKind.T ||
+                        (GameData.Falling.r != CORNERADDITIONALTTABLE[GameData.Falling.r][n].x &&
+                        GameData.Falling.r != CORNERADDITIONALTTABLE[GameData.Falling.r][n].y)))
+                        a++;
+                }
+
             }
 
-            if (!IsEmptyPos(GameDataInstance.Falling.x + 1, (int)GameDataInstance.Falling.y - 1, GameDataInstance.Field))
-            {
-                s++;
-                if (!(GameDataInstance.Falling.r != 0 && GameDataInstance.Falling.r != 1))
-                    a++;
-            }
 
-            if (!IsEmptyPos(GameDataInstance.Falling.x + 1, (int)GameDataInstance.Falling.y + 1, GameDataInstance.Field))
-            {
-                s++;
-                if (!(GameDataInstance.Falling.r != 1 && GameDataInstance.Falling.r != 2))
-                    a++;
-            }
-
-            if (!IsEmptyPos(GameDataInstance.Falling.x - 1, (int)GameDataInstance.Falling.y + 1, GameDataInstance.Field))
-            {
-                s++;
-                if (!(GameDataInstance.Falling.r != 2 && GameDataInstance.Falling.r != 3))
-                    a++;
-            }
-
-            if (s < 3)
+            if (cornerCount < 3)
                 return null;
 
             var spintype = "normal";
 
-            if (a != 2)
+            if (GameData.Falling.type == (int)MinoKind.T && a != 2)
                 spintype = "mini";
-            if (GameDataInstance.Falling.LastKick == 4)
+
+            if (GameData.Falling.LastKick == 4)
                 spintype = "normal";
 
 
             return spintype;
-            //switch(GameDataInstance.Options.bou)
 
         }
 
@@ -1257,7 +1572,7 @@ namespace TetrioVirtualEnvironment
                     if (y + power >= FIELD_HEIGHT)
                         break;
                     else
-                        GameDataInstance.Field[x + (y) * 10] = GameDataInstance.Field[x + (y + power) * 10];
+                        GameData.Field[x + (y) * 10] = GameData.Field[x + (y + power) * 10];
                 }
             }
 
@@ -1267,9 +1582,9 @@ namespace TetrioVirtualEnvironment
                 for (int x = 0; x < FIELD_WIDTH; x++)
                 {
                     if (x == garbageX)
-                        GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Empty;
+                        GameData.Field[x + (y) * 10] = (int)MinoKind.Empty;
                     else
-                        GameDataInstance.Field[x + (y) * 10] = (int)MinoKind.Ojama;
+                        GameData.Field[x + (y) * 10] = (int)MinoKind.Ojama;
                 }
             }
         }
@@ -1280,8 +1595,8 @@ namespace TetrioVirtualEnvironment
 
             if (clearLineCount > 0)
             {
-                StatsInstance.Combo++;
-                StatsInstance.TopCombo = Math.Max(StatsInstance.Combo, StatsInstance.TopCombo);
+                Stats.Combo++;
+                Stats.TopCombo = Math.Max(Stats.Combo, Stats.TopCombo);
 
                 if (clearLineCount == 4)
                     isBTB = true;
@@ -1293,21 +1608,21 @@ namespace TetrioVirtualEnvironment
 
                 if (isBTB)
                 {
-                    StatsInstance.BTB++;
-                    StatsInstance.TopBTB = Math.Max(StatsInstance.BTB, StatsInstance.TopBTB);
+                    Stats.BTB++;
+                    Stats.TopBTB = Math.Max(Stats.BTB, Stats.TopBTB);
                 }
                 else
                 {
                     //btb updateの中身何
-                    StatsInstance.BTB = 0;
+                    Stats.BTB = 0;
 
                 }
 
             }
             else
             {
-                StatsInstance.Combo = 0;
-                StatsInstance.CurrentComboPower = 0;
+                Stats.Combo = 0;
+                Stats.CurrentComboPower = 0;
             }
 
 
@@ -1378,18 +1693,18 @@ namespace TetrioVirtualEnvironment
                     break;
             }
 
-            if (clearLineCount > 0 && StatsInstance.BTB > 1)
+            if (clearLineCount > 0 && Stats.BTB > 1)
             {
-                if (GameDataInstance.Options.BTBChaining)
+                if (GameData.Options.BTBChaining)
                 {
                     double tempValue;
-                    if (StatsInstance.BTB - 1 == 1)
+                    if (Stats.BTB - 1 == 1)
                         tempValue = 0;
                     else
-                        tempValue = 1 + (Math.Log((StatsInstance.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+                        tempValue = 1 + (Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
                     var btb_bonus = DataGarbage.BACKTOBACK_BONUS *
-                        (Math.Floor(1 + Math.Log((StatsInstance.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+                        (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
                     garbageValue += btb_bonus;
 
@@ -1398,9 +1713,9 @@ namespace TetrioVirtualEnvironment
                         //AddFire
                     }
 
-                    if ((int)btb_bonus > GameDataInstance.CurrentBTBChainPower)
+                    if ((int)btb_bonus > GameData.CurrentBTBChainPower)
                     {
-                        GameDataInstance.CurrentBTBChainPower = (int)btb_bonus;
+                        GameData.CurrentBTBChainPower = (int)btb_bonus;
                     }
 
 
@@ -1411,35 +1726,43 @@ namespace TetrioVirtualEnvironment
             }
             else
             {
-                if (clearLineCount > 0 & StatsInstance.BTB <= 1)
-                    GameDataInstance.CurrentBTBChainPower = 0;
+                //TODO: これ本当？
+                if (clearLineCount > 0 && Stats.BTB <= 1)
+                    GameData.CurrentBTBChainPower = 0;
             }
 
-            if (StatsInstance.Combo > 1)
+            if (Stats.Combo > 1)
             {
-                garbageValue *= 1 + DataGarbage.COMBO_BONUS * (StatsInstance.Combo - 1);
+                garbageValue *= 1 + DataGarbage.COMBO_BONUS * (Stats.Combo - 1);
             }
 
-            if (StatsInstance.Combo > 2)
+            if (Stats.Combo > 2)
             {
                 garbageValue = Math.Max(Math.Log(DataGarbage.COMBO_MINIFIER *
-                    (StatsInstance.Combo - 1) *
+                    (Stats.Combo - 1) *
                     DataGarbage.COMBO_MINIFIER_LOG + 1), garbageValue);
             }
 
-            int l = (int)(garbageValue * GameDataInstance.Options.GarbageMultiplier);
-            if (StatsInstance.Combo > 2)
-                StatsInstance.CurrentComboPower = Math.Max(StatsInstance.CurrentComboPower, l);
 
-            if (clearLineCount > 0 && StatsInstance.Combo > 1 && StatsInstance.CurrentComboPower >= 7)
+
+
+
+
+
+
+
+            int totalPower = (int)(garbageValue * GameData.Options.GarbageMultiplier);
+            if (Stats.Combo > 2)
+                Stats.CurrentComboPower = Math.Max(Stats.CurrentComboPower, totalPower);
+
+            if (clearLineCount > 0 && Stats.Combo > 1 && Stats.CurrentComboPower >= 7)
             {
                 //そもそもAddFireって？
                 //AddFire
             }
 
             //火力の相殺をする
-            SousaiAttacks(l);
-
+            SousaiAttacks(totalPower);
             //リプレイだと火力送信する必要なし、相殺のみ
             if (clearLineCount > 0)
             {
@@ -1447,8 +1770,38 @@ namespace TetrioVirtualEnvironment
             }
             else
             {
+                TakeAllDamage();
                 // TODO: もらった火力を受ける
                 //TakeAllDamage
+                // TakeAllDamage();
+            }
+
+        }
+
+        void TakeAllDamage()
+        {
+            var receivedDamage = 0;
+
+            var receiveGarbageCount = Garbages.CountCanReceive();
+            for (int i = 0; i < receiveGarbageCount; i++)
+            {
+                receivedDamage += Garbages[0].power;
+
+                if (receivedDamage > GameData.Options.GarbageCap)
+                {
+                    //receive
+                    var receivedValue = (int)GameData.Options.GarbageCap - (receivedDamage - Garbages[0].power);
+                    ReceiveGarbage(Garbages[0].posX, receivedValue);
+                    Garbages[0].power -= receivedValue;
+                    receivedDamage = (int)GameData.Options.GarbageCap;
+                    break;
+                }
+                else
+                {
+                    //receive
+                    ReceiveGarbage(Garbages[0].posX, Garbages[0].power);
+                    Garbages.RemoveAt(0);
+                }
             }
 
         }
@@ -1463,7 +1816,7 @@ namespace TetrioVirtualEnvironment
 
                 for (int x = 0; x < FIELD_WIDTH; x++)
                 {
-                    if (GameDataInstance.Field[x + y * 10] != (int)MinoKind.Empty)
+                    if (GameData.Field[x + y * 10] != (int)MinoKind.Empty)
                         return;
 
                 }
@@ -1472,8 +1825,8 @@ namespace TetrioVirtualEnvironment
             }
 
             //PC
-
-            SousaiAttacks(DataGarbage.ALL_CLEAR * GameDataInstance.Options.GarbageMultiplier);
+            //TODO: かけた後変換？
+            SousaiAttacks((int)(DataGarbage.ALL_CLEAR * GameData.Options.GarbageMultiplier));
 
 
 
@@ -1482,25 +1835,20 @@ namespace TetrioVirtualEnvironment
         void SousaiAttacks(int lines)
         {
 
-            while (Garbages.Count > 0)
+            while (Garbages.CountCanSousai() != 0 && lines != 0)
             {
-                if (lines > 0)
+                if (Garbages[0].power <= lines)
                 {
-                    if (Garbages[0].power - lines <= 0)
-                    {
-                        lines -= Garbages[0].power;
-                        Garbages.RemoveAt(0);
-                    }
-                    else
-                    {
-                        Garbages[0].power -= lines;
-                        break;
-                    }
-
+                    lines -= Garbages[0].power;
+                    Garbages.RemoveAt(0);
                 }
                 else
-                    break;
+                {
+                    Garbages[0].power -= lines;
+                    lines = 0;
+                }
             }
+
         }
     }
 }
