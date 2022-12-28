@@ -121,7 +121,7 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_HEIGHT = 40;
         //  public const int FIELD_VIEW_HEIGHT = 20;
         public event EventHandler OnPiecePlaced = null;
-
+        List<Garbage> _historyInteraction;
 
         static public readonly Vector2[][][] CORNERTABLE =
           new Vector2[][][]{
@@ -474,7 +474,7 @@ namespace TetrioVirtualEnvironment
         public void ResetGame(EventFull envData, EnvironmentModeEnum envMode, InitData initData, int nextSkipCount = 0)
         {
 
-
+            _historyInteraction = new List<Garbage>();
             Garbages = new List<Garbage>();
             GarbagesImmediatery = new List<Garbage>();
             CurrentFrame = 0;
@@ -890,13 +890,13 @@ namespace TetrioVirtualEnvironment
                 }
             }
 
-            for (int i = 0; i < GarbagesImmediatery.Count; i++)
+            for (int i = GarbagesImmediatery.Count - 1; i >= 0; i--)
             {
-                if (GarbagesImmediatery[0].confirmed_frame + 20 == CurrentFrame)
+                if (GarbagesImmediatery[i].confirmed_frame + 20 == CurrentFrame)
                 {
-                    GarbagesImmediatery[0].state = Garbage.State.Ready;
-                    Garbages.Add(GarbagesImmediatery[0]);
-                    GarbagesImmediatery.RemoveAt(0);
+                    GarbagesImmediatery[i].state = Garbage.State.Ready;
+                    Garbages.Add(GarbagesImmediatery[i]);
+                    GarbagesImmediatery.RemoveAt(i);
                 }
             }
         }
@@ -942,18 +942,51 @@ namespace TetrioVirtualEnvironment
 
                             if (data.data.type == "interaction_confirm")
                             {
+                                var flag = true;
                                 foreach (var garbage in Garbages)
                                 {
                                     if (garbage.sent_frame == data.data.sent_frame && garbage.state == Garbage.State.Interaction)
                                     {
+
                                         garbage.state = Garbage.State.Interaction_Confirm;
                                         garbage.confirmed_frame = (int)events[CurrentIndex].frame;
+                                        flag = false;
                                         break;
                                     }
+
+                                }
+
+                                if (flag)
+                                {
+                                    var flag2 = true;
+
+                                    var count = _historyInteraction.Count;
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        if (_historyInteraction[0].sent_frame == data.data.sent_frame)
+                                        {
+                                            flag2 = false;
+                                            _historyInteraction.RemoveAt(0);
+                                            break;
+                                        }
+                                    }
+
+                                    if (flag2)
+                                        GarbagesImmediatery.Add(new Garbage(data.frame,
+                                        (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Attack));
+
+
+                                    //TODO: これ本当にあってる？
+                                    //  //  Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column,
+                                    //    (int)data.data.data.amt, Garbage.State.Ready));
+
                                 }
                             }
                             else if (data.data.type == "interaction")
+                            {
                                 Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Interaction));
+                                //    _historyInteraction.Add(data.data.sent_frame);
+                            }
                             else if (data.data.type == "attack")
                                 GarbagesImmediatery.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
                             else if (data.data.type == "kev")
@@ -1509,26 +1542,26 @@ namespace TetrioVirtualEnvironment
             {
                 Vector2[][] minoCorner = null;
 
-                    minoCorner = CORNERTABLE[TEMP(GameData.Falling.type)];
+                minoCorner = CORNERTABLE[TEMP(GameData.Falling.type)];
 
-                    int TEMP(int type)
+                int TEMP(int type)
+                {
+                    switch (type)
                     {
-                        switch (type)
-                        {
-                            case (int)MinoKind.Z:
-                            case (int)MinoKind.L:
-                                return type;
-                            case (int)MinoKind.S:
-                                return type - 1;
-                            case (int)MinoKind.J:
-                            case (int)MinoKind.T:
-                                return type - 2;
+                        case (int)MinoKind.Z:
+                        case (int)MinoKind.L:
+                            return type;
+                        case (int)MinoKind.S:
+                            return type - 1;
+                        case (int)MinoKind.J:
+                        case (int)MinoKind.T:
+                            return type - 2;
 
-                            default: throw new Exception("不明");
+                        default: throw new Exception("不明");
 
-                        }
                     }
-                
+                }
+
                 if (!IsEmptyPos((int)(GameData.Falling.x + minoCorner[GameData.Falling.r][n].x),
                     (int)(GameData.Falling.y + minoCorner[GameData.Falling.r][n].y), GameData.Field))
                 {
@@ -1840,6 +1873,8 @@ namespace TetrioVirtualEnvironment
                 if (Garbages[0].power <= lines)
                 {
                     lines -= Garbages[0].power;
+                    if (Garbages[0].confirmed_frame == -1)
+                        _historyInteraction.Add(Garbages[0]);
                     Garbages.RemoveAt(0);
                 }
                 else
