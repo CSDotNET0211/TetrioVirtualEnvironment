@@ -16,11 +16,11 @@ StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 var rawjson = reader.ReadToEnd();
 Replay replay;
 
-Select:;
 replay = new Replay(rawjson);
 
 int replayIndex;
 int playerIndex;
+Select:;
 
 
 if (Path.GetExtension(filePath) == ".ttr")
@@ -89,12 +89,12 @@ while (true)
 
 
     Print(replay);
-    var input = Console.ReadLine();
-    if (input != "")
-    {
-        Console.Clear();
-        replay.SkipFrame(int.Parse(input));
-    }
+    //var input = Console.ReadLine();
+    //if (input != "")
+    //{
+    //    Console.Clear();
+    //    replay.SkipFrame(int.Parse(input));
+    //}
 
     nextFrame += period;
 }

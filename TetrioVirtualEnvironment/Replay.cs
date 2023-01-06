@@ -15,8 +15,19 @@ namespace TetrioVirtualEnvironment
         public List<Environment> Environments = new List<Environment>();
         public ReplayKind ReplayKind { get; private set; }
         public int ReplayIndex = -1;
-        public bool IsLoaded = false;
-        public bool IsPlaying = false;
+        public int PlaybackSkipFrame=0;
+        int PassedSkipFrame=0;
+        public ReplayStatusEnum ReplayStatus;
+        public enum ReplayStatusEnum
+        {
+
+            Inited,
+            Loaded,
+            Playing,
+            Paused,
+
+        }
+
         public int GameFrames { get; private set; }
 
 
@@ -28,11 +39,16 @@ namespace TetrioVirtualEnvironment
             ReplayKind = ismulti ? ReplayKind.TTRM : ReplayKind.TTR;
 
             ReplayData = ParseReplay(jsondata, ReplayKind);
+            ReplayStatus=ReplayStatusEnum.Inited;
         }
 
         public void LoadGame(int replayIndex)
         {
             ReplayIndex = replayIndex;
+            PlaybackSkipFrame=0;
+            PassedSkipFrame=0;
+
+            Environments.Clear();
 
             for (int playerIndex = 0; playerIndex < GetPlayerCount(ReplayData, ReplayKind); playerIndex++)
             {
@@ -42,8 +58,7 @@ namespace TetrioVirtualEnvironment
 
             }
 
-            IsLoaded = true;
-            IsPlaying = true;
+            ReplayStatus = ReplayStatusEnum.Playing;
             GameFrames = GetGameFrames(ReplayData, ReplayKind, replayIndex);
         }
 
@@ -73,15 +88,20 @@ namespace TetrioVirtualEnvironment
 
         public bool Update()
         {
-            if (!IsPlaying)
-                return true; //https://dev.classmethod.jp/articles/litedb-on-net-core2/
+
+            if(PassedSkipFrame<PlaybackSkipFrame)
+            {
+                PassedSkipFrame++;
+                return true;
+            }else
+                PassedSkipFrame= 0;
 
             for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
             {
                 var result = Environments[playerIndex].Update(ReplayKind, GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex));
                 if (!result)
                 {
-                    IsPlaying = false;
+                    ReplayStatus = ReplayStatusEnum.Loaded;
                     return false;
                 }
 

@@ -31,6 +31,10 @@ namespace TetrioVirtualEnvironment
             if (initData.Next == null)
             {
                 Next = new List<int>(new int[(int)eventfull.options.nextcount]);
+
+                foreach(var  value in NextBag)
+                    Console.WriteLine(value.ToString());
+
                 environment.RefreshNext(Next, eventfull.options.no_szo == null ? false : (bool)eventfull.options.no_szo);
                 for (int i = 0; i < Next.Count - 1; i++)
                     environment.RefreshNext(Next, false);
@@ -45,7 +49,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-            while (nextSkipCount > environment.RNG.CalledCount)
+            while (nextSkipCount > environment.RefreshNextCount)
                 environment.RefreshNext(Next, false);
 
 

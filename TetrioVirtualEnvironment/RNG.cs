@@ -11,10 +11,11 @@ namespace TetrioVirtualEnvironment
     {
         double t;
         public double Seed { get; private set; }
-        public int CalledCount { get; private set; }
 
         static public int[] GetNextAt(double seed, int skipCount, int length)
         {
+            skipCount -= 5;
+
             int[] result = new int[length];
             var rng = new RNG();
             rng.Init(seed);
@@ -28,7 +29,7 @@ namespace TetrioVirtualEnvironment
                     rng.ShuffleArray(array);
                     list.AddRange(array);
                 }
-                
+
                 if (i >= skipCount)
                 {
                     result[i - skipCount] = list[0];
@@ -38,14 +39,13 @@ namespace TetrioVirtualEnvironment
 
                 list.RemoveAt(0);
 
-                
+
             }
         }
 
         public void Init(double seed)
         {
             Seed = seed;
-            CalledCount = 0;
             t = seed % 2147483647;
             if (t <= 0)
             {
@@ -73,7 +73,6 @@ namespace TetrioVirtualEnvironment
 
         double NextFloat()
         {
-            CalledCount++;
             return (Next() - 1) / 2147483646f;
         }
 

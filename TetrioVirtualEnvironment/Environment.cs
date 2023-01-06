@@ -122,6 +122,7 @@ namespace TetrioVirtualEnvironment
         //  public const int FIELD_VIEW_HEIGHT = 20;
         public event EventHandler OnPiecePlaced = null;
         List<Garbage> _historyInteraction;
+        public int RefreshNextCount { get;private set; }
 
         static public readonly Vector2[][][] CORNERTABLE =
           new Vector2[][][]{
@@ -473,7 +474,7 @@ namespace TetrioVirtualEnvironment
         /// <param name="envData"></param>
         public void ResetGame(EventFull envData, EnvironmentModeEnum envMode, InitData initData, int nextSkipCount = 0)
         {
-
+            RefreshNextCount=0;
             _historyInteraction = new List<Garbage>();
             Garbages = new List<Garbage>();
             GarbagesImmediatery = new List<Garbage>();
@@ -976,17 +977,13 @@ namespace TetrioVirtualEnvironment
                                         (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Attack));
 
 
-                                    //TODO: これ本当にあってる？
-                                    //  //  Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column,
-                                    //    (int)data.data.data.amt, Garbage.State.Ready));
 
                                 }
                             }
                             else if (data.data.type == "interaction")
                             {
                                 Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Interaction));
-                                //    _historyInteraction.Add(data.data.sent_frame);
-                            }
+                             }
                             else if (data.data.type == "attack")
                                 GarbagesImmediatery.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
                             else if (data.data.type == "kev")
@@ -1394,6 +1391,9 @@ namespace TetrioVirtualEnvironment
 
         public int GetFallestPosDiff()
         {
+            if(GameData.Falling.type==-1)
+                return 0;
+
             int testy = 1;
             while (true)
             {
@@ -1455,6 +1455,7 @@ namespace TetrioVirtualEnvironment
 
         public int RefreshNext(List<int> next, bool noszo)
         {
+            RefreshNextCount++;
             var value = next[0];
 
             for (int i = 0; i < next.Count - 1; i++)
