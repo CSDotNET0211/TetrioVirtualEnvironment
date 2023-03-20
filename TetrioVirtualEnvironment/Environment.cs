@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
@@ -97,20 +98,23 @@ namespace TetrioVirtualEnvironment
             Hold = null;
             Next = null;
             Now = null;
+            Garbages = null;
         }
 
-        public InitData(int[] field, int hold, int now, int[] next)
+        public InitData(int[] field, int hold, int now, int[] next, int[]? garbages)
         {
             Field = field;
             Hold = hold;
             Now = now;
             Next = next;
+            Garbages = garbages;
         }
 
         public int[]? Field;
         public int? Hold;
         public int? Now;
         public int[]? Next;
+        public int[]? Garbages;
 
     }
     public class Environment
@@ -121,8 +125,11 @@ namespace TetrioVirtualEnvironment
         public const int FIELD_HEIGHT = 40;
         //  public const int FIELD_VIEW_HEIGHT = 20;
         public event EventHandler OnPiecePlaced = null;
+        public event EventHandler OnPieceCreated = null;
         List<Garbage> _historyInteraction;
-        public int RefreshNextCount { get;private set; }
+        public int RefreshNextCount { get; private set; }
+        public bool InfinityHold { get; set; } = false;
+        public string Username { get; private set; }
 
         static public readonly Vector2[][][] CORNERTABLE =
           new Vector2[][][]{
@@ -349,7 +356,8 @@ namespace TetrioVirtualEnvironment
             J,
             T,
             Ojama,
-            Empty
+            Empty,
+            None = -1
         }
         /// <summary>
         /// 回転状態を表す構造体
@@ -421,10 +429,12 @@ namespace TetrioVirtualEnvironment
         /// </summary>
         /// <param name="envData"></param>
         /// <param name="envMode"></param>
-        public Environment(EventFull envData, EnvironmentModeEnum envMode, InitData initData = null, int nextSkipCount = 0)
+        public Environment(EventFull envData, EnvironmentModeEnum envMode, string username, InitData initData = null, int nextSkipCount = 0)
         {
             if (initData == null)
                 initData = new InitData();
+
+            Username = username;
 
             EnvironmentMode = envMode;
             EventFull = envData;
@@ -474,7 +484,7 @@ namespace TetrioVirtualEnvironment
         /// <param name="envData"></param>
         public void ResetGame(EventFull envData, EnvironmentModeEnum envMode, InitData initData, int nextSkipCount = 0)
         {
-            RefreshNextCount=0;
+            RefreshNextCount = 0;
             _historyInteraction = new List<Garbage>();
             Garbages = new List<Garbage>();
             GarbagesImmediatery = new List<Garbage>();
@@ -486,6 +496,45 @@ namespace TetrioVirtualEnvironment
                 new GameData(envData, this, ref GameData, nextSkipCount, initData);
             else
                 new GameData(envData.options, this, ref GameData, initData);
+        }
+
+        /// <summary>
+        /// value%10 GarbageKind
+        /// value/10%10 GarbagePos
+        /// value/100 Amount of Garbage
+        /// </summary>
+        /// <returns></returns>
+        public int[] GetGarbagesArray()
+        {
+            List<int> garbagesArray = new List<int>();
+
+            foreach (var value in Garbages)
+            {
+                var temp = 1;
+
+                if (value.state == Garbage.State.Ready)
+                    temp *= 1;
+                else
+                    temp *= 0;
+
+                temp += value.posX * 10;
+
+                temp += value.power * 100;
+
+
+                garbagesArray.Add(temp);
+            }
+
+            foreach (var value in GarbagesImmediatery)
+            {
+                var temp = 0;
+
+                temp += value.posX * 10;
+                temp += value.power * 100;
+                garbagesArray.Add(temp);
+            }
+
+            return garbagesArray.ToArray();
         }
 
         /// <summary>
@@ -650,7 +699,7 @@ namespace TetrioVirtualEnvironment
 
                     if (@event.key == "hold")
                     {
-                        if (!GameData.HoldLocked)
+                        if (!GameData.HoldLocked || InfinityHold)
                         {
                             if ((GameData.Options.DisplayHold == null ||
                             (bool)GameData.Options.DisplayHold))
@@ -983,7 +1032,7 @@ namespace TetrioVirtualEnvironment
                             else if (data.data.type == "interaction")
                             {
                                 Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Interaction));
-                             }
+                            }
                             else if (data.data.type == "attack")
                                 GarbagesImmediatery.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
                             else if (data.data.type == "kev")
@@ -1219,40 +1268,40 @@ namespace TetrioVirtualEnvironment
             return false;
         }
 
-        void PiecePlace(bool sValue)
+        public void PiecePlace(bool sValue, bool forceEmptyDrop = false)
         {
             GameData.Falling.Sleep = true;
             //ミノを盤面に適用
-            foreach (var pos in TETRIMINOS[GameData.Falling.type][GameData.Falling.r])
+            if (!forceEmptyDrop)
             {
-                GameData.Field[(int)((pos.x + GameData.Falling.x - TETRIMINO_DIFF[GameData.Falling.type].x) +
-                    (int)(pos.y + GameData.Falling.y - TETRIMINO_DIFF[GameData.Falling.type].y) * 10)] = GameData.Falling.type;
-            }
+                foreach (var pos in TETRIMINOS[GameData.Falling.type][GameData.Falling.r])
+                {
+                    GameData.Field[(int)((pos.x + GameData.Falling.x - TETRIMINO_DIFF[GameData.Falling.type].x) +
+                        (int)(pos.y + GameData.Falling.y - TETRIMINO_DIFF[GameData.Falling.type].y) * 10)] = GameData.Falling.type;
+                }
 
-            if (!sValue && GameData.Handling.SafeLock > 0)
-                GameData.Falling.SafeLock = 7;
+                if (!sValue && GameData.Handling.SafeLock > 0)
+                    GameData.Falling.SafeLock = 7;
+
+            }
 
             var istspin = IsTspin();
             var clearedLineCount = ClearLine();
 
-
-            // int tempGargabeCount = 0;
-
-
             GetAttackPower(clearedLineCount, istspin);
             IsBoardEmpty();
 
-            //
+            GameData.Falling.Init(null, EnvironmentMode);
 
             if (OnPiecePlaced != null)
                 OnPiecePlaced(this, EventArgs.Empty);
 
+        }
 
-            GameData.Falling.Init(null, EnvironmentMode);
-
-
-
-
+        public void CallOnPieceCreated()
+        {
+            if (OnPieceCreated != null)
+                OnPieceCreated(this, EventArgs.Empty);
         }
 
 
@@ -1391,14 +1440,21 @@ namespace TetrioVirtualEnvironment
 
         public int GetFallestPosDiff()
         {
-            if(GameData.Falling.type==-1)
+
+            return GetFallestPosDiff(GameData.Falling.type, GameData.Falling.x, (int)GameData.Falling.y, GameData.Falling.r);
+
+        }
+
+        public int GetFallestPosDiff(int type, int x, int y, int r)
+        {
+            if (type == -1)
                 return 0;
 
             int testy = 1;
             while (true)
             {
-                if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + testy,
-                    GameData.Falling.r, GameData.Field))
+                if (IsLegalAtPos(type, x, y + testy,
+                   r, GameData.Field))
                     testy++;
                 else
                 {
@@ -1409,6 +1465,8 @@ namespace TetrioVirtualEnvironment
 
             return testy;
         }
+
+
         /// <summary>
         /// 消去したラインを下げる
         /// </summary>
@@ -1596,9 +1654,6 @@ namespace TetrioVirtualEnvironment
 
         public void ReceiveGarbage(int garbageX, int power)
         {
-            //power分上に上げる
-            //下をループでx以外
-
             for (int y = 0; y < FIELD_HEIGHT; y++)
             {
                 for (int x = 0; x < FIELD_WIDTH; x++)
@@ -1647,7 +1702,6 @@ namespace TetrioVirtualEnvironment
                 }
                 else
                 {
-                    //btb updateの中身何
                     Stats.BTB = 0;
 
                 }
@@ -1737,9 +1791,11 @@ namespace TetrioVirtualEnvironment
                     else
                         tempValue = 1 + (Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
+
                     var btb_bonus = DataGarbage.BACKTOBACK_BONUS *
                         (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
+                  //  Debug.WriteLine(Username + " " + (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3)));
                     garbageValue += btb_bonus;
 
                     if ((int)btb_bonus >= 2)
@@ -1805,9 +1861,6 @@ namespace TetrioVirtualEnvironment
             else
             {
                 TakeAllDamage();
-                // TODO: もらった火力を受ける
-                //TakeAllDamage
-                // TakeAllDamage();
             }
 
         }

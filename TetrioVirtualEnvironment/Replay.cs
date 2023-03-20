@@ -13,11 +13,26 @@ namespace TetrioVirtualEnvironment
     public class Replay
     {
         public List<Environment> Environments = new List<Environment>();
+
         public ReplayKind ReplayKind { get; private set; }
         public int ReplayIndex = -1;
-        public int PlaybackSkipFrame=0;
-        int PassedSkipFrame=0;
-        public ReplayStatusEnum ReplayStatus;
+        public int PlaybackSkipFrame = 0;
+        int PassedSkipFrame = 0;
+        ReplayStatusEnum _replayStatus;
+        public event EventHandler? ReplayStatusChanged = null;
+        public ReplayStatusEnum ReplayStatus
+        {
+            get
+            {
+                return _replayStatus;
+            }
+            set
+            {
+                _replayStatus = value;
+                if (ReplayStatusChanged != null)
+                    ReplayStatusChanged(this, EventArgs.Empty);
+            }
+        }
         public enum ReplayStatusEnum
         {
 
@@ -39,22 +54,33 @@ namespace TetrioVirtualEnvironment
             ReplayKind = ismulti ? ReplayKind.TTRM : ReplayKind.TTR;
 
             ReplayData = ParseReplay(jsondata, ReplayKind);
-            ReplayStatus=ReplayStatusEnum.Inited;
+            ReplayStatus = ReplayStatusEnum.Inited;
         }
 
         public void LoadGame(int replayIndex)
         {
             ReplayIndex = replayIndex;
-            PlaybackSkipFrame=0;
-            PassedSkipFrame=0;
+            PlaybackSkipFrame = 0;
+            PassedSkipFrame = 0;
 
             Environments.Clear();
 
             for (int playerIndex = 0; playerIndex < GetPlayerCount(ReplayData, ReplayKind); playerIndex++)
             {
-                var full = GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex).Where(x => x.type == "full").First().data;
+                var events = GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex);
+                string full = null;
+                foreach (Event e in events)
+                {
+                    if (e.type == "full")
+                    {
+                        full = e.data.ToString();
+                        break;
+                    }
+                }
+
                 var fullevent = JsonSerializer.Deserialize<EventFull>(full.ToString());
-                Environments.Add(new Environment(fullevent, Environment.EnvironmentModeEnum.Seed));
+
+                Environments.Add(new Environment(fullevent, Environment.EnvironmentModeEnum.Seed, fullevent.options.username));
 
             }
 
@@ -70,7 +96,7 @@ namespace TetrioVirtualEnvironment
                 var frameDiff = newframe - Environments[0].CurrentFrame;
                 for (int i = 0; i < frameDiff; i++)
                 {
-                    Update();
+                    Update(true);
                 }
             }
             else
@@ -81,34 +107,54 @@ namespace TetrioVirtualEnvironment
                 //TODO: 終わりより大きかったら終わりまで、
                 for (int i = 0; i < newframe; i++)
                 {
-                    Update();
+                    Update(true);
                 }
             }
         }
 
-        public bool Update()
+        public bool Update(bool ignoreSkipFrame = false)
         {
+            int updateTime = 1;
 
-            if(PassedSkipFrame<PlaybackSkipFrame)
+            if (!ignoreSkipFrame)
             {
-                PassedSkipFrame++;
-                return true;
-            }else
-                PassedSkipFrame= 0;
-
-            for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
-            {
-                var result = Environments[playerIndex].Update(ReplayKind, GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex));
-                if (!result)
+                if (PlaybackSkipFrame < 0)
                 {
-                    ReplayStatus = ReplayStatusEnum.Loaded;
-                    return false;
+                    updateTime -= PlaybackSkipFrame;
+                }
+                else
+                {
+                    if (PassedSkipFrame < PlaybackSkipFrame)
+                    {
+                        PassedSkipFrame++;
+                        return true;
+                    }
+                    else
+                        PassedSkipFrame = 0;
                 }
 
+
+
+            }
+
+            for (int i = 0; i < updateTime; i++)
+            {
+                for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
+                {
+                    var result = Environments[playerIndex].Update(ReplayKind, GetReplayEvent(ReplayData, ReplayKind, playerIndex, ReplayIndex));
+                    if (!result)
+                    {
+                        ReplayStatus = ReplayStatusEnum.Loaded;
+                        return false;
+                    }
+
+                }
             }
 
             return true;
 
         }
+
+
     }
 }

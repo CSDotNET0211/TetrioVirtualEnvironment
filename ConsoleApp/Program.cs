@@ -33,7 +33,7 @@ if (Path.GetExtension(filePath) == ".ttr")
 }
 else
 {
-    Console.WriteLine("ttrmファイルを検出しました。");
+    Console.WriteLine("たぶんttrmファイルを検出しました。");
 
     var replayCount = GetReplayCount(replay.ReplayData, replay.ReplayKind);
     Console.WriteLine(replayCount + "個のゲームを検出しました。");
@@ -146,7 +146,6 @@ void Print(Replay replay)
         }
         output += "\r\n";
 
-        // int cursorTop = 10 + (playerIndex * 30);
         Console.WriteLine(output);
 
     }
@@ -160,65 +159,5 @@ void Print(Replay replay)
         Console.WriteLine("予告:" + garbage.NotConfirmed + " / 準備:" + garbage.Confirmed + " / 確定:" + garbage.Ready);
         Console.WriteLine("SafeLock:" + replay.Environments[playerIndex].GetData("safelock"));
     }
-
-
-    /*
-            Console.CursorLeft = 0;
-            Console.CursorTop = 30;
-            for (int i = 0; i < 5; i++)
-                Console.WriteLine("                                  ");
-
-            Console.CursorLeft = 0;
-            Console.CursorTop = 30;
-            for (int i = 0; i < replay.Environments[playerIndex].DownKeys.Count; i++)
-            {
-
-
-
-                Console.WriteLine(replay.Environments[playerIndex].DownKeys[i]);
-
-                cursorTop++;
-            }*/
-
-
-
-
-    /*
-
-    output += "\r\n";
-    output += "Current Frame:" + replay.CurrentFrame + "\r\n";
-    output += "Current Time:" + replay.CurrentFrame / 60f;
-    Console.WriteLine(output);
-
-    int cursorTop = 10;
-    Console.CursorLeft = 30;
-    Console.CursorTop = cursorTop;
-
-    Console.WriteLine("TotalRotations " + replay.Environments[0].GameDataInstance.TotalRotations + "     ");
-    Console.CursorLeft = 30;
-    Console.WriteLine("Falling.SafeLock " + replay.Environments[0].GameDataInstance.Falling.SafeLock + "     ");
-    Console.CursorLeft = 30;
-    Console.WriteLine("Falling.Locking " + replay.Environments[0].GameDataInstance.Falling.Locking + "                        ");
-    Console.CursorLeft = 30;
-    Console.WriteLine("Falling.Clamped " + replay.Environments[0].GameDataInstance.Falling.Clamped + "     ");
-    Console.CursorLeft = 30;
-    Console.WriteLine("Falling.Floored " + replay.Environments[0].GameDataInstance.Falling.Floored + "     ");
-    Console.CursorLeft = 30;
-    Console.WriteLine("Falling.LockResets " + replay.Environments[0].GameDataInstance.Falling.LockResets + "     ");
-    Console.CursorLeft = 30;
-
-    Console.CursorTop++;
-    if (replay.Environments[0].GameDataInstance.Hold == null)
-        Console.WriteLine("HOLD *NONE*     ");
-    else
-        Console.WriteLine("HOLD " + (MinoKind)replay.Environments[0].GameDataInstance.Hold + "     ");
-    Console.CursorLeft = 30;
-    Console.Write("NEXT ");
-    foreach (var next in replay.Environments[0].GameDataInstance.Next)
-        Console.Write((MinoKind)next + " ");
-    Console.Write("\r\n");
-  
-    Console.CursorLeft = 30;  */
-
 
 }

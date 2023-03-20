@@ -7,6 +7,22 @@ namespace TetrioVirtualEnvironment
     {
         public GameData(EventFull eventfull, Environment environment, ref GameData gameData, int nextSkipCount, InitData initData)
         {
+            if (initData.Garbages != null)
+            {
+                foreach (var garbage in initData.Garbages)
+                {
+                    var kind = garbage % 10;
+                    var pos = garbage / 10 % 10;
+                    var amount = garbage / 100;
+
+                    environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.State.Interaction_Confirm : Garbage.State.Ready));
+
+                }
+
+
+            }
+
+
             gameData = this;
 
             if (initData.Field == null)
@@ -32,7 +48,7 @@ namespace TetrioVirtualEnvironment
             {
                 Next = new List<int>(new int[(int)eventfull.options.nextcount]);
 
-                foreach(var  value in NextBag)
+                foreach (var value in NextBag)
                     Console.WriteLine(value.ToString());
 
                 environment.RefreshNext(Next, eventfull.options.no_szo == null ? false : (bool)eventfull.options.no_szo);
@@ -61,14 +77,14 @@ namespace TetrioVirtualEnvironment
             RDas = 0;
             LDas = 0;
             LastShift = 0;
-            if(eventfull.game==null)
+            if (eventfull.game == null)
                 Handling = new PlayerOptions((double)eventfull.options.handling.arr,
                (double)eventfull.options.handling.das, (double)eventfull.options.handling.dcd,
                (double)eventfull.options.handling.sdf,
                (bool)eventfull.options.handling.safelock ? 1 : 0, (bool)eventfull.options.handling.cancel);
             else
-            Handling = new PlayerOptions((double)eventfull.game.handling.arr, (double)eventfull.game.handling.das,
-                (double)eventfull.game.handling.dcd, (double)eventfull.game.handling.sdf, (bool)eventfull.game.handling.safelock ? 1 : 0, (bool)eventfull.game.handling.cancel);
+                Handling = new PlayerOptions((double)eventfull.game.handling.arr, (double)eventfull.game.handling.das,
+                    (double)eventfull.game.handling.dcd, (double)eventfull.game.handling.sdf, (bool)eventfull.game.handling.safelock ? 1 : 0, (bool)eventfull.game.handling.cancel);
 
             LDasIter = 0;
             RDasIter = 0;
@@ -86,6 +102,23 @@ namespace TetrioVirtualEnvironment
         public GameData(EventFullOptions optionsdata, Environment environment, ref GameData gameData,
             InitData initData)
         {
+            if (initData.Garbages != null)
+            {
+                foreach (var garbage in initData.Garbages)
+                {
+                    var kind = garbage % 10;
+                    var pos = garbage / 10 % 10;
+                    var amount = garbage / 100;
+
+
+
+                    environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.State.Interaction_Confirm : Garbage.State.Ready));
+                }
+
+
+            }
+
+
             gameData = this;
 
             if (initData.Field == null)

@@ -7,7 +7,7 @@ using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
-    public class Falling
+   public class Falling
     {
         public Falling(Environment environment, GameData gameData)
         {
@@ -44,6 +44,8 @@ namespace TetrioVirtualEnvironment
             this.r = r;
 
         }
+
+     
 
         public void Init(int? newtype,EnvironmentModeEnum environmentMode)
         {
@@ -106,6 +108,12 @@ namespace TetrioVirtualEnvironment
             {
                 Console.WriteLine("You are dead");
             }
+
+
+            EnvironmentInstance.CallOnPieceCreated();
+
+
+
         }
 
         public Environment EnvironmentInstance;
@@ -131,5 +139,13 @@ namespace TetrioVirtualEnvironment
         public double Locking;
         public bool Floored;
         public double HighestY;
+    }
+
+    static public class FallingEx {
+        static public Falling Clone(this Falling falling)
+        {
+            var value = new Falling(falling.type, falling.x, (int)falling.y, falling.r);
+            return value;
+        }
     }
 }
