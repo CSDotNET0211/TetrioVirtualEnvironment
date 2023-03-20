@@ -8,22 +8,6 @@ namespace TetrioVirtualEnvironment
 {
     static public class Extension
     {
-        static public int CountCanSousai(this List<Garbage> garbages)
-        {
-            
-
-            int count = 0;
-            foreach (var garbage in garbages)
-            {
-             //   if (garbage.state == Garbage.State.Ready || garbage.state == Garbage.State.Interaction_Confirm)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
         static public int CountCanReceive(this List<Garbage> garbages)
         {
             int count = 0;

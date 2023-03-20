@@ -1,16 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Diagnostics;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using TetrioVirtualEnvironment;
-using static System.Net.Mime.MediaTypeNames;
 using static TetrioVirtualEnvironment.Environment;
-using static TetrReplayLoaderLib.TetrLoader;
-using Environment = TetrioVirtualEnvironment.Environment;
+using static TetrReplayLoader.TetrLoader;
 
 
 
-Console.WriteLine("読み込むファイルを選択してください。");
+Console.WriteLine("Select file to replay.");
 string filePath = Console.ReadLine();
 StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 var rawjson = reader.ReadToEnd();
@@ -20,20 +15,21 @@ replay = new Replay(rawjson);
 
 int replayIndex;
 int playerIndex;
+
 Select:;
 
 
 if (Path.GetExtension(filePath) == ".ttr")
 {
-    Console.WriteLine("ttmファイルを検出しました。");
+    Console.WriteLine("detected TTR");
 
     replayIndex = 0;
     playerIndex = 0;
 
 }
-else
+else if (Path.GetExtension(filePath) == ".ttrm")
 {
-    Console.WriteLine("たぶんttrmファイルを検出しました。");
+    Console.WriteLine("delected TTRM");
 
     var replayCount = GetReplayCount(replay.ReplayData, replay.ReplayKind);
     Console.WriteLine(replayCount + "個のゲームを検出しました。");
@@ -48,7 +44,8 @@ else
 
     replayIndex = int.Parse(Console.ReadLine());
 
-}
+}else
+    throw new Exception();
 
 
 replay.LoadGame(replayIndex);
@@ -83,12 +80,11 @@ while (true)
     {
         Print(replay);
         goto Select;
-        break;
     }
 
 
-
     Print(replay);
+    //Step by step
     //var input = Console.ReadLine();
     //if (input != "")
     //{
@@ -99,12 +95,6 @@ while (true)
     nextFrame += period;
 }
 
-
-
-
-Console.WriteLine("Replay End");
-Console.WriteLine("Press Any Key to Exit...");
-Console.ReadKey();
 
 void Print(Replay replay)
 {

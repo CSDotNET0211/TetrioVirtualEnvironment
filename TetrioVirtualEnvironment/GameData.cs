@@ -1,4 +1,5 @@
-﻿using TetrReplayLoaderLib;
+﻿using TetrReplayLoader;
+using TetrReplayLoader.JsonClass.Event;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment

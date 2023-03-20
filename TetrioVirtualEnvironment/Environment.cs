@@ -1,137 +1,35 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
-using TetrReplayLoaderLib;
-using static System.Net.Mime.MediaTypeNames;
-using static TetrioVirtualEnvironment.Environment;
-using static TetrReplayLoaderLib.TetrLoader;
+﻿using System.Text.Json;
+using TetrReplayLoader;
+using TetrReplayLoader.JsonClass.Event;
 
 namespace TetrioVirtualEnvironment
 {
-    /// <summary>
-    /// Simple Structure having x,y Data.
-    /// </summary>
-    public struct Vector2
-    {
-        public Vector2(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-
-        public double x;
-        public double y;
-
-        public static readonly Vector2 zero = new Vector2(0, 0);
-        public static readonly Vector2 one = new Vector2(1, 1);
-        public static readonly Vector2 mone = new Vector2(-1, -1);
-        public static readonly Vector2 x1 = new Vector2(1, 0);
-        public static readonly Vector2 mx1 = new Vector2(-1, 0);
-        public static readonly Vector2 x2 = new Vector2(2, 0);
-        public static readonly Vector2 mx2 = new Vector2(-2, 0);
-        public static readonly Vector2 y1 = new Vector2(0, 1);
-        public static readonly Vector2 my1 = new Vector2(0, -1);
-        public static readonly Vector2 y2 = new Vector2(0, 2);
-        public static readonly Vector2 my2 = new Vector2(0, -2);
-
-        public static Vector2 operator +(Vector2 obj, Vector2 obj2)
-        {
-            return new Vector2(obj.x + obj2.x, obj.y + obj2.y);
-        }
-
-        public static Vector2 operator -(Vector2 obj, Vector2 obj2)
-        {
-            return new Vector2(obj.x - obj2.x, obj.y - obj2.y);
-        }
-        public static Vector2 operator *(Vector2 obj, Vector2 obj2)
-        {
-            return new Vector2(obj.x * obj2.x, obj.y * obj2.y);
-        }
-
-    }
-
-    /// <summary>
-    /// TETR.IO Garbage Structure
-    /// </summary>
-    public class Garbage
-    {
-        public enum State
-        {
-            Interaction,
-            Interaction_Confirm,
-            Ready,
-            Attack
-        }
-
-        public Garbage(int interaction_frame, int confirmed_frame, int sent_frame, int posX, int power, State state)
-        {
-            this.interaction_frame = interaction_frame;
-            this.confirmed_frame = confirmed_frame;
-            this.sent_frame = sent_frame;
-            this.posX = posX;
-            this.power = power;
-            this.state = state;
-        }
-
-        public int confirmed_frame;
-        public int interaction_frame;
-        public int sent_frame;
-        public int posX;
-        public int power;
-        public State state;
-
-    }
-
-
-    public class InitData
-    {
-        public InitData()
-        {
-            Field = null;
-            Hold = null;
-            Next = null;
-            Now = null;
-            Garbages = null;
-        }
-
-        public InitData(int[] field, int hold, int now, int[] next, int[]? garbages)
-        {
-            Field = field;
-            Hold = hold;
-            Now = now;
-            Next = next;
-            Garbages = garbages;
-        }
-
-        public int[]? Field;
-        public int? Hold;
-        public int? Now;
-        public int[]? Next;
-        public int[]? Garbages;
-
-    }
     public class Environment
     {
-        //DOTO: これとかapmに関する情報は関数でも作る
-        public List<string> DownKeys = new List<string>();
+        //DOTO: これとかapmに関する情報は関数でも作る pressedkeylist中身あったっけ
+        /// <summary>
+        /// Pressed key data
+        /// </summary>
+        public List<string> PressedKeyList = new List<string>();
         public const int FIELD_WIDTH = 10;
         public const int FIELD_HEIGHT = 40;
-        //  public const int FIELD_VIEW_HEIGHT = 20;
-        public event EventHandler OnPiecePlaced = null;
-        public event EventHandler OnPieceCreated = null;
+
+        // -- Events --
+        public event EventHandler? OnPiecePlaced = null;
+        public event EventHandler? OnPieceCreated = null;
+
+
         List<Garbage> _historyInteraction;
         public int RefreshNextCount { get; private set; }
         public bool InfinityHold { get; set; } = false;
         public string Username { get; private set; }
 
-        static public readonly Vector2[][][] CORNERTABLE =
+        /// <summary>
+        /// This is used to judge spin bonus.
+        /// Basically, used as Tspin.
+        /// AllSpin use all data.
+        /// </summary>
+        static public readonly Vector2[][][] CORNER_TABLE =
           new Vector2[][][]{
               //Z
               new Vector2[][]{
@@ -204,20 +102,20 @@ namespace TetrioVirtualEnvironment
 
         };
 
-        static public Vector2[][] CORNERADDITIONALTTABLE =
+        static public Vector2[][] CORNER_ADDITIONAL_TABLE =
                new Vector2[][]{
                    new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
                    new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
                    new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
                    new Vector2[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
-                   };
+               };
 
 
 
         /// <summary>
         /// Tetrimino Array
         /// </summary>
-        static public Vector2[][][] TETRIMINOS =
+        static public readonly Vector2[][][] TETRIMINOS =
           new Vector2[][][]{
               //Z
               new Vector2[][]{
@@ -326,8 +224,10 @@ namespace TetrioVirtualEnvironment
         public List<Garbage> Garbages;
         /// <summary>
         /// GarbageList for Garbage.State.Attack
+        /// attak event maybe caused by lag?
         /// </summary>
-        public List<Garbage> GarbagesImmediatery;
+        public List<Garbage> GarbagesInterrupt;
+
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; private set; }
         public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; private set; }
 
@@ -429,7 +329,7 @@ namespace TetrioVirtualEnvironment
         /// </summary>
         /// <param name="envData"></param>
         /// <param name="envMode"></param>
-        public Environment(EventFull envData, EnvironmentModeEnum envMode, string username, InitData initData = null, int nextSkipCount = 0)
+        public Environment(EventFull envData, EnvironmentModeEnum envMode, string username, InitData? initData = null, int nextSkipCount = 0)
         {
             if (initData == null)
                 initData = new InitData();
@@ -487,7 +387,7 @@ namespace TetrioVirtualEnvironment
             RefreshNextCount = 0;
             _historyInteraction = new List<Garbage>();
             Garbages = new List<Garbage>();
-            GarbagesImmediatery = new List<Garbage>();
+            GarbagesInterrupt = new List<Garbage>();
             CurrentFrame = 0;
             CurrentIndex = 0;
             Stats = new Stats();
@@ -525,7 +425,7 @@ namespace TetrioVirtualEnvironment
                 garbagesArray.Add(temp);
             }
 
-            foreach (var value in GarbagesImmediatery)
+            foreach (var value in GarbagesInterrupt)
             {
                 var temp = 0;
 
@@ -940,13 +840,13 @@ namespace TetrioVirtualEnvironment
                 }
             }
 
-            for (int i = GarbagesImmediatery.Count - 1; i >= 0; i--)
+            for (int i = GarbagesInterrupt.Count - 1; i >= 0; i--)
             {
-                if (GarbagesImmediatery[i].confirmed_frame + 20 == CurrentFrame)
+                if (GarbagesInterrupt[i].confirmed_frame + 20 == CurrentFrame)
                 {
-                    GarbagesImmediatery[i].state = Garbage.State.Ready;
-                    Garbages.Add(GarbagesImmediatery[i]);
-                    GarbagesImmediatery.RemoveAt(i);
+                    GarbagesInterrupt[i].state = Garbage.State.Ready;
+                    Garbages.Add(GarbagesInterrupt[i]);
+                    GarbagesInterrupt.RemoveAt(i);
                 }
             }
         }
@@ -973,26 +873,27 @@ namespace TetrioVirtualEnvironment
 
                             if (events[CurrentIndex].type == "keydown")
                             {
-                                DownKeys.Add(inputEvent.key);
+                                PressedKeyList.Add(inputEvent.key);
                             }
                             else
                             {
-                                DownKeys.Remove(inputEvent.key);
+                                PressedKeyList.Remove(inputEvent.key);
                             }
 
                             KeyInput(events[CurrentIndex].type, inputEvent);
 
                             break;
 
+                        //This environment support solo or 2 player only so it is not used.
                         case "targets":
                             break;
 
                         case "ige":
                             var data = JsonSerializer.Deserialize<EventIge>(events[CurrentIndex].data.ToString());
 
-                            if (data.data.type == "interaction_confirm")
+                            if (data?.data.type == "interaction_confirm")
                             {
-                                var flag = true;
+                                var confirmed = true;
                                 foreach (var garbage in Garbages)
                                 {
                                     if (garbage.sent_frame == data.data.sent_frame && garbage.state == Garbage.State.Interaction)
@@ -1000,13 +901,13 @@ namespace TetrioVirtualEnvironment
 
                                         garbage.state = Garbage.State.Interaction_Confirm;
                                         garbage.confirmed_frame = (int)events[CurrentIndex].frame;
-                                        flag = false;
+                                        confirmed = false;
                                         break;
                                     }
 
                                 }
 
-                                if (flag)
+                                if (confirmed)
                                 {
                                     var flag2 = true;
 
@@ -1022,8 +923,11 @@ namespace TetrioVirtualEnvironment
                                     }
 
                                     if (flag2)
-                                        GarbagesImmediatery.Add(new Garbage(data.frame,
-                                        (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Attack));
+                                    {
+                                        GarbagesInterrupt.Add(new Garbage(data.frame,
+                                        (int)events[CurrentIndex].frame, data.data.sent_frame, data.data.data.column,
+                                        data.data.data.amt, Garbage.State.Attack));
+                                    }
 
 
 
@@ -1031,22 +935,27 @@ namespace TetrioVirtualEnvironment
                             }
                             else if (data.data.type == "interaction")
                             {
-                                Garbages.Add(new Garbage(data.frame, -1, (int)data.data.sent_frame, data.data.data.column, (int)data.data.data.amt, Garbage.State.Interaction));
+                                Garbages.Add(new Garbage(data.frame, -1, data.data.sent_frame, data.data.data.column, data.data.data.amt, Garbage.State.Interaction));
                             }
                             else if (data.data.type == "attack")
-                                GarbagesImmediatery.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
+                            {
+                                //attack event will 
+                                //
+                                GarbagesInterrupt.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.State.Attack));
+                            }
                             else if (data.data.type == "kev")
                             {
-
+                                //I forget about this event but there is no problem because these is empty.
                             }
-                            else throw new Exception("Unknown InGameEvent");
+                            else throw new Exception("unknown InGameEvent");
 
                             break;
 
                         case "end":
                             return false;
+
                         default:
-                            throw new Exception("invalid key:" + events[CurrentIndex].type);
+                            throw new Exception("unknown event type: " + events[CurrentIndex].type);
                     }
 
                     CurrentIndex++;
@@ -1569,7 +1478,7 @@ namespace TetrioVirtualEnvironment
                 return null;
 
             if (GameData.SpinBonuses == "stupid")
-                throw new Exception("未実装");
+                throw new NotImplementedException();
 
             if (IsLegalAtPos(GameData.Falling.type, GameData.Falling.x, GameData.Falling.y + 1, GameData.Falling.r, GameData.Field))
                 return null;
@@ -1601,7 +1510,7 @@ namespace TetrioVirtualEnvironment
             {
                 Vector2[][] minoCorner = null;
 
-                minoCorner = CORNERTABLE[TEMP(GameData.Falling.type)];
+                minoCorner = CORNER_TABLE[TEMP(GameData.Falling.type)];
 
                 int TEMP(int type)
                 {
@@ -1628,8 +1537,8 @@ namespace TetrioVirtualEnvironment
 
                     //AdditinalTableは無理やり追加したものなのでx,yは関係ない
                     if (!(GameData.Falling.type != (int)MinoKind.T ||
-                        (GameData.Falling.r != CORNERADDITIONALTTABLE[GameData.Falling.r][n].x &&
-                        GameData.Falling.r != CORNERADDITIONALTTABLE[GameData.Falling.r][n].y)))
+                        (GameData.Falling.r != CORNER_ADDITIONAL_TABLE[GameData.Falling.r][n].x &&
+                        GameData.Falling.r != CORNER_ADDITIONAL_TABLE[GameData.Falling.r][n].y)))
                         a++;
                 }
 
@@ -1720,63 +1629,63 @@ namespace TetrioVirtualEnvironment
                 case 0:
                     if (isTspin == "mini")
                     {
-                        garbageValue = DataGarbage.TSPIN_MINI;
+                        garbageValue = ConstValue.Garbage.TSPIN_MINI;
                     }
                     else if (isTspin == "normal")
                     {
-                        garbageValue = DataGarbage.TSPIN;
+                        garbageValue = ConstValue.Garbage.TSPIN;
                     }
                     break;
 
                 case 1:
                     if (isTspin == "mini")
                     {
-                        garbageValue = DataGarbage.TSPIN_MINI_SINGLE;
+                        garbageValue = ConstValue.Garbage.TSPIN_MINI_SINGLE;
                     }
                     else if (isTspin == "normal")
                     {
-                        garbageValue = DataGarbage.TSPIN_SINGLE;
+                        garbageValue = ConstValue.Garbage.TSPIN_SINGLE;
                     }
                     else
                     {
-                        garbageValue = DataGarbage.SINGLE;
+                        garbageValue = ConstValue.Garbage.SINGLE;
                     }
                     break;
 
                 case 2:
                     if (isTspin == "mini")
                     {
-                        garbageValue = DataGarbage.TSPIN_MINI_DOUBLE;
+                        garbageValue = ConstValue.Garbage.TSPIN_MINI_DOUBLE;
                     }
                     else if (isTspin == "normal")
                     {
-                        garbageValue = DataGarbage.TSPIN_DOUBLE;
+                        garbageValue = ConstValue.Garbage.TSPIN_DOUBLE;
                     }
                     else
                     {
-                        garbageValue = DataGarbage.DOUBLE;
+                        garbageValue = ConstValue.Garbage.DOUBLE;
                     }
                     break;
 
                 case 3:
                     if (isTspin != null)
                     {
-                        garbageValue = DataGarbage.TSPIN_TRIPLE;
+                        garbageValue = ConstValue.Garbage.TSPIN_TRIPLE;
                     }
                     else
                     {
-                        garbageValue = DataGarbage.TRIPLE;
+                        garbageValue = ConstValue.Garbage.TRIPLE;
                     }
                     break;
 
                 case 4:
                     if (isTspin != null)
                     {
-                        garbageValue = DataGarbage.TSPIN_QUAD;
+                        garbageValue = ConstValue.Garbage.TSPIN_QUAD;
                     }
                     else
                     {
-                        garbageValue = DataGarbage.QUAD;
+                        garbageValue = ConstValue.Garbage.QUAD;
                     }
                     break;
             }
@@ -1789,13 +1698,13 @@ namespace TetrioVirtualEnvironment
                     if (Stats.BTB - 1 == 1)
                         tempValue = 0;
                     else
-                        tempValue = 1 + (Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+                        tempValue = 1 + (Math.Log((Stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
 
-                    var btb_bonus = DataGarbage.BACKTOBACK_BONUS *
-                        (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+                    var btb_bonus = ConstValue.Garbage.BACKTOBACK_BONUS *
+                        (Math.Floor(1 + Math.Log((Stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
-                  //  Debug.WriteLine(Username + " " + (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3)));
+                    //  Debug.WriteLine(Username + " " + (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3)));
                     garbageValue += btb_bonus;
 
                     if ((int)btb_bonus >= 2)
@@ -1812,7 +1721,7 @@ namespace TetrioVirtualEnvironment
 
                 }
                 else
-                    garbageValue += DataGarbage.BACKTOBACK_BONUS;
+                    garbageValue += ConstValue.Garbage.BACKTOBACK_BONUS;
             }
             else
             {
@@ -1823,14 +1732,14 @@ namespace TetrioVirtualEnvironment
 
             if (Stats.Combo > 1)
             {
-                garbageValue *= 1 + DataGarbage.COMBO_BONUS * (Stats.Combo - 1);
+                garbageValue *= 1 + ConstValue.Garbage.COMBO_BONUS * (Stats.Combo - 1);
             }
 
             if (Stats.Combo > 2)
             {
-                garbageValue = Math.Max(Math.Log(DataGarbage.COMBO_MINIFIER *
+                garbageValue = Math.Max(Math.Log(ConstValue.Garbage.COMBO_MINIFIER *
                     (Stats.Combo - 1) *
-                    DataGarbage.COMBO_MINIFIER_LOG + 1), garbageValue);
+                    ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
             }
 
 
@@ -1852,7 +1761,7 @@ namespace TetrioVirtualEnvironment
             }
 
             //火力の相殺をする
-            SousaiAttacks(totalPower);
+            CancelAttack(totalPower);
             //リプレイだと火力送信する必要なし、相殺のみ
             if (clearLineCount > 0)
             {
@@ -1913,16 +1822,19 @@ namespace TetrioVirtualEnvironment
 
             //PC
             //TODO: かけた後変換？
-            SousaiAttacks((int)(DataGarbage.ALL_CLEAR * GameData.Options.GarbageMultiplier));
+            CancelAttack((int)(ConstValue.Garbage.ALL_CLEAR * GameData.Options.GarbageMultiplier));
 
 
 
         }
 
-        void SousaiAttacks(int lines)
+        /// <summary>
+        /// In replay, received power is already exists so just cancel check.
+        /// </summary>
+        /// <param name="lines">cancel power</param>
+        void CancelAttack(int lines)
         {
-
-            while (Garbages.CountCanSousai() != 0 && lines != 0)
+            while (Garbages.Count != 0 && lines != 0)
             {
                 if (Garbages[0].power <= lines)
                 {

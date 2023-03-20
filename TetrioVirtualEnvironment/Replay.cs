@@ -5,8 +5,9 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TetrReplayLoaderLib;
-using static TetrReplayLoaderLib.TetrLoader;
+using TetrReplayLoader;
+using TetrReplayLoader.JsonClass.Event;
+using static TetrReplayLoader.TetrLoader;
 
 namespace TetrioVirtualEnvironment
 {
