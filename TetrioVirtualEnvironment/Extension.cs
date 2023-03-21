@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-    static public class Extension
+    public static class Extension
     {
-        static public int CountCanReceive(this List<Garbage> garbages)
+        public static int CountCanReceive(this List<Garbage> garbages)
         {
             int count = 0;
             foreach (var garbage in garbages)
             {
-                if (garbage.state == Garbage.State.Ready)
+                if (garbage.State == Garbage.StateEnum.Ready)
                 {
                     count++;
                 }
@@ -21,19 +21,19 @@ namespace TetrioVirtualEnvironment
 
             return count;
         }
-        static public (int NotConfirmed, int Confirmed,int Ready) GarbageCount(this List<Garbage> garbages)
+        public static (int NotConfirmed, int Confirmed,int Ready) GarbageCount(this List<Garbage> garbages)
         {
             int count = 0;
             int countConfirmed = 0;
             int countReady = 0;
             foreach (var garbage in garbages)
             {
-                if (garbage.state == Garbage.State.Interaction)
-                    count += garbage.power;
-                else if(garbage.state == Garbage.State.Interaction_Confirm)
-                    countConfirmed += garbage.power;
+                if (garbage.State == Garbage.StateEnum.Interaction)
+                    count += garbage.Power;
+                else if(garbage.State == Garbage.StateEnum.InteractionConfirm)
+                    countConfirmed += garbage.Power;
                 else
-                    countReady+= garbage.power;
+                    countReady+= garbage.Power;
             }
 
             return (count,countConfirmed,countReady);

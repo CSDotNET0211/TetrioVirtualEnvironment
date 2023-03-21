@@ -8,10 +8,10 @@ using static TetrReplayLoader.TetrLoader;
 Console.WriteLine("Select file to replay.");
 string filePath = Console.ReadLine();
 StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
-var rawjson = reader.ReadToEnd();
+var rawJson = reader.ReadToEnd();
 Replay replay;
 
-replay = new Replay(rawjson);
+replay = new Replay(rawJson);
 
 int replayIndex;
 int playerIndex;
@@ -29,7 +29,7 @@ if (Path.GetExtension(filePath) == ".ttr")
 }
 else if (Path.GetExtension(filePath) == ".ttrm")
 {
-    Console.WriteLine("delected TTRM");
+    Console.WriteLine("detected TTRM");
 
     var replayCount = GetReplayCount(replay.ReplayData, replay.ReplayKind);
     Console.WriteLine(replayCount + "個のゲームを検出しました。");
@@ -109,7 +109,7 @@ void Print(Replay replay)
 
         output += "Player" + (playerIndex + 1) + "\r\n";
         output += "CurrentFrame:";
-        output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
+        output += replay.Environments[playerIndex].currentFrame + "\r\n";
         var tempfield = (int[])replay.Environments[playerIndex].GameData.Field.Clone();
 
         if (replay.Environments[playerIndex].GameData.Falling.type != -1)

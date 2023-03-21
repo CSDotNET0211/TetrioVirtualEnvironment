@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace TetrioVirtualEnvironment
-{ /// <summary>
+{ 
+	/// <summary>
   /// Simple Structure having x,y Data.
   /// </summary>
     public struct Vector2
@@ -19,17 +15,17 @@ namespace TetrioVirtualEnvironment
         public double x;
         public double y;
 
-        public static readonly Vector2 zero = new Vector2(0, 0);
-        public static readonly Vector2 one = new Vector2(1, 1);
-        public static readonly Vector2 mone = new Vector2(-1, -1);
-        public static readonly Vector2 x1 = new Vector2(1, 0);
-        public static readonly Vector2 mx1 = new Vector2(-1, 0);
-        public static readonly Vector2 x2 = new Vector2(2, 0);
-        public static readonly Vector2 mx2 = new Vector2(-2, 0);
-        public static readonly Vector2 y1 = new Vector2(0, 1);
-        public static readonly Vector2 my1 = new Vector2(0, -1);
-        public static readonly Vector2 y2 = new Vector2(0, 2);
-        public static readonly Vector2 my2 = new Vector2(0, -2);
+        public static readonly Vector2 Zero = new(0, 0);
+        public static readonly Vector2 One = new(1, 1);
+        public static readonly Vector2 Mone = new(-1, -1);
+        public static readonly Vector2 X1 = new(1, 0);
+        public static readonly Vector2 Mx1 = new(-1, 0);
+        public static readonly Vector2 X2 = new(2, 0);
+        public static readonly Vector2 Mx2 = new(-2, 0);
+        public static readonly Vector2 Y1 = new(0, 1);
+        public static readonly Vector2 My1 = new(0, -1);
+        public static readonly Vector2 Y2 = new(0, 2);
+        public static readonly Vector2 My2 = new(0, -2);
 
         public static Vector2 operator +(Vector2 obj, Vector2 obj2)
         {

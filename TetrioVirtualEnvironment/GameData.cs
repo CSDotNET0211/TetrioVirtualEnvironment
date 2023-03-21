@@ -1,206 +1,223 @@
-﻿using TetrReplayLoader;
+﻿using System.Diagnostics;
+using TetrReplayLoader;
 using TetrReplayLoader.JsonClass.Event;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
-    public class GameData
-    {
-        public GameData(EventFull eventfull, Environment environment, ref GameData gameData, int nextSkipCount, InitData initData)
-        {
-            if (initData.Garbages != null)
-            {
-                foreach (var garbage in initData.Garbages)
-                {
-                    var kind = garbage % 10;
-                    var pos = garbage / 10 % 10;
-                    var amount = garbage / 100;
+	public class GameData
+	{
+		/// <summary>
+		/// Contructor for 
+		/// </summary>
+		/// <param name="eventFull"></param>
+		/// <param name="environment"></param>
+		/// <param name="gameData"></param>
+		/// <param name="nextSkipCount"></param>
+		/// <param name="dataForInitialize"></param>
+		/// <exception cref="Exception"></exception>
+		public GameData(ReplayKind replayKind,EventFull eventFull, Environment environment, out GameData gameData, int nextSkipCount, DataForInitialize dataForInitialize)
+		{
+			if (dataForInitialize.Garbages != null)
+			{
+				foreach (var garbage in dataForInitialize.Garbages)
+				{
+					var kind = garbage % 10;
+					var pos = garbage / 10 % 10;
+					var amount = garbage / 100;
 
-                    environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.State.Interaction_Confirm : Garbage.State.Ready));
+					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.StateEnum.InteractionConfirm : Garbage.StateEnum.Ready));
 
-                }
-
-
-            }
-
-
-            gameData = this;
-
-            if (initData.Field == null)
-            {
-                Field = new int[FIELD_WIDTH * FIELD_HEIGHT];
-                for (int x = 0; x < FIELD_WIDTH; x++)
-                {
-                    for (int y = 0; y < FIELD_HEIGHT; y++)
-                    {
-                        Field[x + y * 10] = (int)MinoKind.Empty;
-                    }
-                }
-            }
-            else
-            {
-                Field = initData.Field;
-            }
-
-            environment.RNG.Init(eventfull.options.seed);
-
-            NextBag = new List<int>();
-            if (initData.Next == null)
-            {
-                Next = new List<int>(new int[(int)eventfull.options.nextcount]);
-
-                foreach (var value in NextBag)
-                    Console.WriteLine(value.ToString());
-
-                environment.RefreshNext(Next, eventfull.options.no_szo == null ? false : (bool)eventfull.options.no_szo);
-                for (int i = 0; i < Next.Count - 1; i++)
-                    environment.RefreshNext(Next, false);
-
-            }
-            else
-            {
-                Next.AddRange(initData.Next);
-            }
+				}
 
 
+			}
 
 
+			gameData = this;
 
-            while (nextSkipCount > environment.RefreshNextCount)
-                environment.RefreshNext(Next, false);
+			if (dataForInitialize.Field == null)
+			{
+				Field = new int[FIELD_WIDTH * FIELD_HEIGHT];
+				for (int x = 0; x < FIELD_WIDTH; x++)
+				{
+					for (int y = 0; y < FIELD_HEIGHT; y++)
+					{
+						Field[x + y * 10] = (int)MinoKind.Empty;
+					}
+				}
+			}
+			else
+			{
+				Field = dataForInitialize.Field;
+			}
 
+			if (eventFull.options?.seed == null)
+				throw new Exception("seed is null");
 
-            Options = new Options(eventfull.options);
-            SubFrame = 0;
-            LShift = false;
-            RShift = false;
-            SoftDrop = false;
-            RDas = 0;
-            LDas = 0;
-            LastShift = 0;
-            if (eventfull.game == null)
-                Handling = new PlayerOptions((double)eventfull.options.handling.arr,
-               (double)eventfull.options.handling.das, (double)eventfull.options.handling.dcd,
-               (double)eventfull.options.handling.sdf,
-               (bool)eventfull.options.handling.safelock ? 1 : 0, (bool)eventfull.options.handling.cancel);
-            else
-                Handling = new PlayerOptions((double)eventfull.game.handling.arr, (double)eventfull.game.handling.das,
-                    (double)eventfull.game.handling.dcd, (double)eventfull.game.handling.sdf, (bool)eventfull.game.handling.safelock ? 1 : 0, (bool)eventfull.game.handling.cancel);
+			environment.Rng.Init(eventFull.options.seed);
 
-            LDasIter = 0;
-            RDasIter = 0;
-            Falling = new Falling(environment, this);
+			NextBag = new List<int>();
+			if (dataForInitialize.Next == null)
+			{
+				if (eventFull.options?.nextcount == null)
+					throw new Exception("nextCount is null");
 
-            Hold = initData.Hold;
+				Next = new List<int>(new int[(int)eventFull.options?.nextcount]);
 
-            Gravity = (double)(eventfull.options.g);
-            SpinBonuses = eventfull.options.spinbonuses;
+				foreach (var value in NextBag)
+					Console.WriteLine(value.ToString());
 
-        }
+				environment.RefreshNext(Next, eventFull.options.no_szo ?? false);
+				for (int i = 0; i < Next.Count - 1; i++)
+					environment.RefreshNext(Next, false);
+
+			}
+			else
+			{
+				Next.AddRange(dataForInitialize.Next);
+			}
 
 
 
-        public GameData(EventFullOptions optionsdata, Environment environment, ref GameData gameData,
-            InitData initData)
-        {
-            if (initData.Garbages != null)
-            {
-                foreach (var garbage in initData.Garbages)
-                {
-                    var kind = garbage % 10;
-                    var pos = garbage / 10 % 10;
-                    var amount = garbage / 100;
+
+
+			while (nextSkipCount > environment.RefreshNextCount)
+				environment.RefreshNext(Next, false);
+
+
+			Options = new Options(eventFull.options);
+			SubFrame = 0;
+			LShift = false;
+			RShift = false;
+			SoftDrop = false;
+			RDas = 0;
+			LDas = 0;
+			LastShift = 0;
+			if (eventFull.game == null)
+				Handling = new PlayerOptions((double)eventFull.options.handling.arr,
+			   (double)eventFull.options.handling.das, (double)eventFull.options.handling.dcd,
+			   (double)eventFull.options.handling.sdf,
+			   (bool)eventFull.options.handling.safelock ? 1 : 0, (bool)eventFull.options.handling.cancel);
+			else
+				Handling = new PlayerOptions((double)eventFull.game.handling.arr, (double)eventFull.game.handling.das,
+					(double)eventFull.game.handling.dcd, (double)eventFull.game.handling.sdf, (bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
+
+			LDasIter = 0;
+			RDasIter = 0;
+			Falling = new Falling(environment, this);
+
+			Hold = dataForInitialize.Hold;
+
+			Gravity = (double)(eventFull.options.g);
+			SpinBonuses = eventFull.options.spinbonuses;
+
+		}
 
 
 
-                    environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.State.Interaction_Confirm : Garbage.State.Ready));
-                }
-
-
-            }
-
-
-            gameData = this;
-
-            if (initData.Field == null)
-            {
-                for (int x = 0; x < FIELD_WIDTH; x++)
-                {
-                    for (int y = 0; y < FIELD_HEIGHT; y++)
-                    {
-                        Field[x + y * 10] = (int)MinoKind.Empty;
-                    }
-                }
-            }
-            else
-                Field = (int[])initData.Field.Clone();
-
-            Next = new List<int>();
-            if (initData != null && initData.Now != (int)MinoKind.Empty)
-                Next.Add((int)initData.Now);
-
-            if (initData.Next == null)
-            {
-            }
-            else
-            {
-                Next.AddRange(initData.Next);
-
-            }
+		public GameData(EventFullOptions optionsData, Environment environment, out GameData gameData, DataForInitialize dataForInitialize)
+		{
+			if (dataForInitialize.Garbages != null)
+			{
+				foreach (var garbage in dataForInitialize.Garbages)
+				{
+					var kind = garbage % 10;
+					var pos = garbage / 10 % 10;
+					var amount = garbage / 100;
 
 
 
-            Options = new Options(optionsdata);
-            Options.InfiniteMovement = true;
-            SubFrame = 0;
-            LShift = false;
-            RShift = false;
-            SoftDrop = false;
-            RDas = 0;
-            LDas = 0;
-            LastShift = 0;
-            Handling = new PlayerOptions((double)optionsdata.handling.arr,
-                (double)optionsdata.handling.das, (double)optionsdata.handling.dcd,
-                (double)optionsdata.handling.sdf,
-                (bool)optionsdata.handling.safelock ? 1 : 0, (bool)optionsdata.handling.cancel);
-            LDasIter = 0;
-            RDasIter = 0;
-            Falling = new Falling(environment, this);
-
-            if (initData.Hold != null && initData.Hold == (int)MinoKind.Empty)
-                Hold = null;
-            else
-                Hold = initData.Hold;
-
-            Gravity = (double)optionsdata.g;
-            SpinBonuses = optionsdata.spinbonuses;
+					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.StateEnum.InteractionConfirm : Garbage.StateEnum.Ready));
+				}
 
 
-            Falling.Init(null, environment.EnvironmentMode);
-        }
+			}
 
-        public string SpinBonuses;
-        public int[] Field;
-        public int CurrentBTBChainPower;
-        public List<int> Next;
-        public List<int> NextBag;
-        public Options Options;
-        public double SubFrame;
-        public bool LShift;
-        public bool RShift;
-        public int LastShift;
-        public double LDas;
-        public double RDas;
-        public PlayerOptions Handling;
-        public double LDasIter;
-        public double RDasIter;
-        public bool SoftDrop;
-        public Falling Falling;
-        public bool HoldLocked;
-        public int? Hold;
-        public double Gravity;
-        public int FallingRotations;
-        public int TotalRotations;
 
-    }
+			gameData = this;
+
+			if (dataForInitialize.Field == null)
+			{
+				for (int x = 0; x < FIELD_WIDTH; x++)
+				{
+					for (int y = 0; y < FIELD_HEIGHT; y++)
+					{
+						Field[x + y * 10] = (int)MinoKind.Empty;
+					}
+				}
+			}
+			else
+				Field = (int[])dataForInitialize.Field.Clone();
+
+			Next = new List<int>();
+			if (dataForInitialize.Current != (int)MinoKind.Empty)
+				Next.Add((int)dataForInitialize.Current);
+
+			if (dataForInitialize.Next == null)
+			{
+			}
+			else
+			{
+				Next.AddRange(dataForInitialize.Next);
+
+			}
+
+
+
+			Options = new Options(optionsData)
+			{
+				InfiniteMovement = true
+			};
+			SubFrame = 0;
+			LShift = false;
+			RShift = false;
+			SoftDrop = false;
+			RDas = 0;
+			LDas = 0;
+			LastShift = 0;
+			Handling = new PlayerOptions((double)optionsData.handling.arr,
+				(double)optionsData.handling.das, (double)optionsData.handling.dcd,
+				(double)optionsData.handling.sdf,
+				(bool)optionsData.handling.safelock ? 1 : 0, (bool)optionsData.handling.cancel);
+			LDasIter = 0;
+			RDasIter = 0;
+			Falling = new Falling(environment, this);
+
+			if (dataForInitialize.Hold is (int)MinoKind.Empty)
+				Hold = null;
+			else
+				Hold = dataForInitialize.Hold;
+
+			Gravity = (double)optionsData.g;
+			SpinBonuses = optionsData.spinbonuses;
+
+
+			Falling.Init(null, environment.EnvironmentMode);
+		}
+
+		public string? SpinBonuses { get; }
+		public int[] Field { get; }
+		public int CurrentBTBChainPower { get; internal set; }
+		public List<int> Next { get; }
+		public List<int> NextBag { get; }
+		public Options Options { get; }
+		public double SubFrame { get; internal set; }
+		public bool LShift { get; internal set; }
+		public bool RShift { get; internal set; }
+		public int LastShift { get; internal set; }
+		public double LDas { get; internal set; }
+		public double RDas { get; internal set; }
+		public PlayerOptions Handling { get; }
+		public double LDasIter { get; internal set; }
+		public double RDasIter { get; internal set; }
+		public bool SoftDrop { get; internal set; }
+		public Falling Falling { get; }
+		public bool HoldLocked { get; internal set; }
+		public int? Hold { get; internal set; }
+		public double Gravity { get; internal set; }
+		public int FallingRotations { get; internal set; }
+		public int TotalRotations { get; internal set; }
+
+	}
 }

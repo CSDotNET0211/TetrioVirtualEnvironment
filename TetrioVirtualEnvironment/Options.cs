@@ -2,52 +2,52 @@
 
 namespace TetrioVirtualEnvironment
 {
-    public class Options
-    {
-        public Options(EventFullOptions options)
-        {
-            Version = (int)options.version;
-            Seed = (int)options.seed;
-            HasGarbage = options.hasgarbage == null ? false : (bool)options.hasgarbage;
-            GravityMargin = options.gmargin == null ? 0 : (int)options.gmargin;
-            GravityIncrease = options.gincrease == null ? 0 : (double)options.gincrease;
-            InfiniteMovement = options.infinitemovement == null ? false : (bool)options.infinitemovement;
-            //TODO: これも取得させる
-            GarbageMultiplier = 1;
-            GarbageMargin = options.garbagemargin == null ? 0 : (int)options.garbagemargin; 
-            GarbageIncrease = options.garbageincrease == null ? 0 : (double)options.garbageincrease;
-            Allow180 = (bool)options.allow180;
-            AllowHardDrop = options.allow_harddrop == null ? true : (bool)options.allow_harddrop;
-            DisplayHold = options.display_hold;
-            LockResets = options.lockresets == null ? 15 : (int)options.lockresets;
-            LockTime = options.locktime == null ? 30 : (int)options.locktime;
-            GarbageCap = options.garbagecap == null ? 8 : (int)options.garbagecap;
-            GarbageCapIncrease = options.garbagecapincrease == null ? 0 : (int)options.garbagecapincrease;
-            GarbageSpeed = options.garbagespeed == null ? 0 : (int)options.garbagespeed;
-            BTBChaining = options.b2bchaining == null ? true : (bool)options.b2bchaining;
+	public class Options
+	{
+		public Options(EventFullOptions options)
+		{
+			Version = (int)options.version;
+			Seed = (int)options.seed;
+			HasGarbage = options.hasgarbage ?? false;
+			GravityMargin = options.gmargin ?? 0;
+			GravityIncrease = options.gincrease ?? 0;
+			InfiniteMovement = options.infinitemovement ?? false;
+			//TODO: これも取得させる
+			GarbageMultiplier = 1;
+			GarbageMargin = options.garbagemargin ?? 0;
+			GarbageIncrease = options.garbageincrease ?? 0;
+			Allow180 = options.allow180 ?? false;
+			AllowHardDrop = options.allow_harddrop ?? true;
+			DisplayHold = options.display_hold;
+			LockResets = options.lockresets ?? 15;
+			LockTime = options.locktime ?? 30;
+			GarbageCap = options.garbagecap ?? 8;
+			GarbageCapIncrease = options.garbagecapincrease ?? 0;
+			GarbageSpeed = options.garbagespeed ?? 0;
+			BTBChaining = options.b2bchaining ?? true;
 
-        }
+		}
 
-        public int Version;
-        public bool BTBChaining;
-        public int Seed;
-        public bool HasGarbage;
-        public int GravityMargin;
-        public double GravityIncrease;
-        public double GarbageMultiplier;
-        public int GarbageMargin;
-        public int GarbageSpeed;
-        public double GarbageIncrease;
-        public bool InfiniteMovement;
-        public double GarbageCap;
-        public double GarbageCapIncrease;
-        public bool Allow180;
-        public bool AllowHardDrop;
-        public bool? DisplayHold;
-        public int? LockResets;
-        public int? LockTime;
+		public int Version { get; internal set; }
+		public bool BTBChaining { get; internal set; }
+		public int Seed { get; internal set; }
+		public bool HasGarbage { get; internal set; }
+		public int GravityMargin { get; internal set; }
+		public double GravityIncrease { get; internal set; }
+		public double GarbageMultiplier { get; internal set; }
+		public int GarbageMargin { get; internal set; }
+		public int GarbageSpeed { get; internal set; }
+		public double GarbageIncrease { get; internal set; }
+		public bool InfiniteMovement { get; internal set; }
+		public double GarbageCap { get; internal set; }
+		public double GarbageCapIncrease { get; internal set; }
+		public bool Allow180 { get; internal set; }
+		public bool AllowHardDrop { get; internal set; }
+		public bool? DisplayHold { get; internal set; }
+		public int? LockResets { get; internal set; }
+		public int? LockTime { get; internal set; }
 
-    }
+	}
 
 
 

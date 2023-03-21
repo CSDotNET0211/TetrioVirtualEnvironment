@@ -6,39 +6,41 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-    /// <summary>
-    /// TETR.IO Garbage Structure
-    /// </summary>
-    public class Garbage
-    {
-        /// <summary>
-        /// Interaction:            Arrived Garbage
-        /// Interaction_Confirm:    
-        /// </summary>
-        public enum State
-        {
-            Interaction,
-            Interaction_Confirm,
-            Ready,
-            Attack
-        }
+	/// <summary>
+	/// TETR.IO Garbage Structure
+	/// </summary>
+	public class Garbage
+	{
+		/// <summary>
+		/// Interaction:            Arrived Garbage but that just show up in the game. After receiving InteractionConfirm, Changed to Ready mode by 20 frames. You can already cancel this by attack power.
+		/// Interaction_Confirm:    Count down started to become Ready state.
+		/// Ready:					If you drop piece in this state, garbaege will appear.
+		/// Attack:					Interrupt garbage.
+		/// </summary>	
+		public enum StateEnum
+		{
+			Interaction,
+			InteractionConfirm,
+			Ready,
+			Attack
+		}
 
-        public Garbage(int interaction_frame, int confirmed_frame, int sent_frame, int posX, int power, State state)
-        {
-            this.interaction_frame = interaction_frame;
-            this.confirmed_frame = confirmed_frame;
-            this.sent_frame = sent_frame;
-            this.posX = posX;
-            this.power = power;
-            this.state = state;
-        }
+		public Garbage(int interactionFrame, int confirmedFrame, int sentFrame, int posX, int power, StateEnum state)
+		{
+		InteractionFrame = interactionFrame;
+		ConfirmedFrame = confirmedFrame;
+		SentFrame = sentFrame;
+		PosX = posX;
+		Power = power;
+		State = state;
+		}
 
-        public int confirmed_frame;
-        public int interaction_frame;
-        public int sent_frame;
-        public int posX;
-        public int power;
-        public State state;
+		public int ConfirmedFrame { get; internal set; }
+		public int InteractionFrame { get; internal set; }
+		public int SentFrame { get; internal set; }
+		public int PosX { get; internal set; }
+		public int Power { get; internal set; }
+		public StateEnum State { get; internal set; }
 
-    }
+	}
 }

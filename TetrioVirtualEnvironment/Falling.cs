@@ -58,10 +58,10 @@ namespace TetrioVirtualEnvironment
             {
                 if(environmentMode==EnvironmentModeEnum.Limited)
                 {
-                    if (EnvironmentInstance.GameData.Next.Count != 0)
+                    if (EnvironmentInstance._gameData.Next.Count != 0)
                     {
-                        type = EnvironmentInstance.GameData.Next[0];
-                        EnvironmentInstance.GameData.Next.RemoveAt(0);
+                        type = EnvironmentInstance._gameData.Next[0];
+                        EnvironmentInstance._gameData.Next.RemoveAt(0);
                     }else
                     {
                         type=(int)MinoKind.Empty;
@@ -141,8 +141,8 @@ namespace TetrioVirtualEnvironment
         public double HighestY;
     }
 
-    static public class FallingEx {
-        static public Falling Clone(this Falling falling)
+    public static class FallingEx {
+        public static Falling Clone(this Falling falling)
         {
             var value = new Falling(falling.type, falling.x, (int)falling.y, falling.r);
             return value;
