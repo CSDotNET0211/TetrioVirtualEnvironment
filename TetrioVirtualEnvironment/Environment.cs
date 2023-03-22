@@ -815,13 +815,6 @@ namespace TetrioVirtualEnvironment
 			ProcessRShift(value, subFrameDiff);
 		}
 
-		//public void Update()
-		//{
-		//	_gameData.SubFrame = 0;
-		//	ProcessShift(false, 1 - _gameData.SubFrame);
-		//	FallEvent(null, 1 - _gameData.SubFrame);
-		//}
-		//TODO: いつか下のに結合
 		public bool Update(List<Event>? events = null)
 		{
 			_gameData.SubFrame = 0;
@@ -873,7 +866,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 		/// <summary>
-		/// Update game until events[CurrentIndex].frame == CurrentFrame 
+		/// Update game during events[CurrentIndex].frame == CurrentFrame 
 		/// </summary>
 		/// <param name="events"></param>
 		/// <returns></returns>
@@ -897,6 +890,9 @@ namespace TetrioVirtualEnvironment
 						case "keydown":
 						case "keyup":
 							var inputEvent = JsonSerializer.Deserialize<EventKeyInput>(events[CurrentIndex].data.ToString());
+
+							if (inputEvent == null)
+								throw new Exception("inputEvent is null.");
 
 							if (events[CurrentIndex].type == "keydown")
 							{
@@ -1146,7 +1142,7 @@ namespace TetrioVirtualEnvironment
 				{
 					if (value != null)
 						_gameData.Falling.ForceLock = true;
-					FunctionA(value != 0 && value != null, subFrameDiff);
+					CheckForcePlacePiece(value != 0 && value != null, subFrameDiff);
 					break;
 				}
 
@@ -1186,7 +1182,6 @@ namespace TetrioVirtualEnvironment
 				_gameData.Falling.Floored = false;
 				if (Math.Ceiling(fallingKouho) != Math.Ceiling(o))
 				{
-					// TODO: 更新フラグtrue
 
 				}
 
@@ -1421,7 +1416,7 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		void FunctionA(bool value = false, double subframe = 1)
+		private void CheckForcePlacePiece(bool value = false, double subframe = 1)
 		{
 			if (_gameData.Options.Version >= 15)
 				_gameData.Falling.Locking += subframe;
@@ -1439,10 +1434,6 @@ namespace TetrioVirtualEnvironment
 				!_gameData.Options.InfiniteMovement)
 			{
 				PiecePlace(value);
-
-
-
-
 			}
 		}
 
@@ -1573,16 +1564,16 @@ namespace TetrioVirtualEnvironment
 			if (cornerCount < 3)
 				return null;
 
-			var spintype = "normal";
+			var spinType = "normal";
 
 			if (_gameData.Falling.Type == (int)MinoKind.T && a != 2)
-				spintype = "mini";
+				spinType = "mini";
 
 			if (_gameData.Falling.LastKick == 4)
-				spintype = "normal";
+				spinType = "normal";
 
 
-			return spintype;
+			return spinType;
 
 		}
 
@@ -1653,65 +1644,42 @@ namespace TetrioVirtualEnvironment
 			{
 				case 0:
 					if (isTspin == "mini")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_MINI;
-					}
 					else if (isTspin == "normal")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN;
-					}
 					break;
 
 				case 1:
 					if (isTspin == "mini")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_MINI_SINGLE;
-					}
 					else if (isTspin == "normal")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_SINGLE;
-					}
 					else
-					{
 						garbageValue = ConstValue.Garbage.SINGLE;
-					}
 					break;
 
 				case 2:
 					if (isTspin == "mini")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_MINI_DOUBLE;
-					}
 					else if (isTspin == "normal")
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_DOUBLE;
-					}
 					else
-					{
 						garbageValue = ConstValue.Garbage.DOUBLE;
-					}
 					break;
 
 				case 3:
 					if (isTspin != null)
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_TRIPLE;
-					}
 					else
-					{
 						garbageValue = ConstValue.Garbage.TRIPLE;
-					}
 					break;
 
 				case 4:
 					if (isTspin != null)
-					{
 						garbageValue = ConstValue.Garbage.TSPIN_QUAD;
-					}
 					else
-					{
 						garbageValue = ConstValue.Garbage.QUAD;
-					}
+
 					break;
 			}
 
@@ -1750,7 +1718,6 @@ namespace TetrioVirtualEnvironment
 			}
 			else
 			{
-				//TODO: これ本当？
 				if (clearLineCount > 0 && Stats.BTB <= 1)
 					_gameData.CurrentBTBChainPower = 0;
 			}
@@ -1845,7 +1812,6 @@ namespace TetrioVirtualEnvironment
 			}
 
 			//PC
-			//TODO: かけた後変換？
 			CancelAttack((int)(ConstValue.Garbage.ALL_CLEAR * _gameData.Options.GarbageMultiplier));
 
 
