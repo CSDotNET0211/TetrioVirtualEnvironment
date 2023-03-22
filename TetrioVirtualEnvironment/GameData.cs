@@ -10,14 +10,17 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// Contructor for 
 		/// </summary>
+		/// <param name="envMode"></param>
 		/// <param name="eventFull"></param>
 		/// <param name="environment"></param>
 		/// <param name="gameData"></param>
 		/// <param name="nextSkipCount"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <exception cref="Exception"></exception>
-		public GameData(ReplayKind replayKind,EventFull eventFull, Environment environment, out GameData gameData, int nextSkipCount, DataForInitialize dataForInitialize)
+		public GameData(EnvironmentModeEnum envMode, EventFull eventFull, Environment environment, out GameData gameData, int nextSkipCount, DataForInitialize dataForInitialize)
 		{
+			gameData = this;
+
 			if (dataForInitialize.Garbages != null)
 			{
 				foreach (var garbage in dataForInitialize.Garbages)
@@ -27,63 +30,75 @@ namespace TetrioVirtualEnvironment
 					var amount = garbage / 100;
 
 					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.StateEnum.InteractionConfirm : Garbage.StateEnum.Ready));
-
 				}
-
-
 			}
 
 
-			gameData = this;
 
 			if (dataForInitialize.Field == null)
 			{
-				Field = new int[FIELD_WIDTH * FIELD_HEIGHT];
-				for (int x = 0; x < FIELD_WIDTH; x++)
-				{
-					for (int y = 0; y < FIELD_HEIGHT; y++)
-					{
-						Field[x + y * 10] = (int)MinoKind.Empty;
-					}
-				}
+				Field = new int[FIELD_SIZE];
+				Array.Fill(Field, (int)MinoKind.Empty);
 			}
 			else
-			{
-				Field = dataForInitialize.Field;
-			}
+				Field = (int[]?)dataForInitialize.Field.Clone();
 
 			if (eventFull.options?.seed == null)
 				throw new Exception("seed is null");
 
 			environment.Rng.Init(eventFull.options.seed);
 
-			NextBag = new List<int>();
-			if (dataForInitialize.Next == null)
+			if (envMode == EnvironmentModeEnum.Seed)
 			{
-				if (eventFull.options?.nextcount == null)
-					throw new Exception("nextCount is null");
 
-				Next = new List<int>(new int[(int)eventFull.options?.nextcount]);
 
-				foreach (var value in NextBag)
-					Console.WriteLine(value.ToString());
+				NextBag = new List<int>();
+				if (dataForInitialize.Next == null)
+				{
+					if (eventFull.options?.nextcount == null)
+						throw new Exception("nextCount is null");
 
-				environment.RefreshNext(Next, eventFull.options.no_szo ?? false);
-				for (int i = 0; i < Next.Count - 1; i++)
+					Next = new List<int>(new int[(int)eventFull.options?.nextcount]);
+
+					foreach (var value in NextBag)
+						Console.WriteLine(value.ToString());
+
+					environment.RefreshNext(Next, eventFull.options.no_szo ?? false);
+					for (int i = 0; i < Next.Count - 1; i++)
+						environment.RefreshNext(Next, false);
+
+				}
+				else
+				{
+					Next.AddRange(dataForInitialize.Next);
+				}
+
+				while (nextSkipCount > environment.RefreshNextCount)
 					environment.RefreshNext(Next, false);
+
 
 			}
 			else
 			{
-				Next.AddRange(dataForInitialize.Next);
+				Next = new List<int>();
+				if (dataForInitialize.Current != (int)MinoKind.Empty)
+					Next.Add((int)dataForInitialize.Current);
+
+				if (dataForInitialize.Next == null)
+				{
+				}
+				else
+				{
+					Next.AddRange(dataForInitialize.Next);
+
+				}
 			}
 
+			Hold = dataForInitialize.Hold is (int)MinoKind.Empty ? null : dataForInitialize.Hold;
 
 
 
 
-			while (nextSkipCount > environment.RefreshNextCount)
-				environment.RefreshNext(Next, false);
 
 
 			Options = new Options(eventFull.options);
@@ -112,89 +127,10 @@ namespace TetrioVirtualEnvironment
 			Gravity = (double)(eventFull.options.g);
 			SpinBonuses = eventFull.options.spinbonuses;
 
+			if (envMode == EnvironmentModeEnum.Limited)
+				Falling.Init(null, environment.EnvironmentMode);
 		}
 
-
-
-		public GameData(EventFullOptions optionsData, Environment environment, out GameData gameData, DataForInitialize dataForInitialize)
-		{
-			if (dataForInitialize.Garbages != null)
-			{
-				foreach (var garbage in dataForInitialize.Garbages)
-				{
-					var kind = garbage % 10;
-					var pos = garbage / 10 % 10;
-					var amount = garbage / 100;
-
-
-
-					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.StateEnum.InteractionConfirm : Garbage.StateEnum.Ready));
-				}
-
-
-			}
-
-
-			gameData = this;
-
-			if (dataForInitialize.Field == null)
-			{
-				for (int x = 0; x < FIELD_WIDTH; x++)
-				{
-					for (int y = 0; y < FIELD_HEIGHT; y++)
-					{
-						Field[x + y * 10] = (int)MinoKind.Empty;
-					}
-				}
-			}
-			else
-				Field = (int[])dataForInitialize.Field.Clone();
-
-			Next = new List<int>();
-			if (dataForInitialize.Current != (int)MinoKind.Empty)
-				Next.Add((int)dataForInitialize.Current);
-
-			if (dataForInitialize.Next == null)
-			{
-			}
-			else
-			{
-				Next.AddRange(dataForInitialize.Next);
-
-			}
-
-
-
-			Options = new Options(optionsData)
-			{
-				InfiniteMovement = true
-			};
-			SubFrame = 0;
-			LShift = false;
-			RShift = false;
-			SoftDrop = false;
-			RDas = 0;
-			LDas = 0;
-			LastShift = 0;
-			Handling = new PlayerOptions((double)optionsData.handling.arr,
-				(double)optionsData.handling.das, (double)optionsData.handling.dcd,
-				(double)optionsData.handling.sdf,
-				(bool)optionsData.handling.safelock ? 1 : 0, (bool)optionsData.handling.cancel);
-			LDasIter = 0;
-			RDasIter = 0;
-			Falling = new Falling(environment, this);
-
-			if (dataForInitialize.Hold is (int)MinoKind.Empty)
-				Hold = null;
-			else
-				Hold = dataForInitialize.Hold;
-
-			Gravity = (double)optionsData.g;
-			SpinBonuses = optionsData.spinbonuses;
-
-
-			Falling.Init(null, environment.EnvironmentMode);
-		}
 
 		public string? SpinBonuses { get; }
 		public int[] Field { get; }
@@ -212,7 +148,7 @@ namespace TetrioVirtualEnvironment
 		public double LDasIter { get; internal set; }
 		public double RDasIter { get; internal set; }
 		public bool SoftDrop { get; internal set; }
-		public Falling Falling { get; }
+		public Falling Falling { get;  }
 		public bool HoldLocked { get; internal set; }
 		public int? Hold { get; internal set; }
 		public double Gravity { get; internal set; }

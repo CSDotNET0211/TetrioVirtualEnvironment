@@ -6,7 +6,8 @@ using static TetrReplayLoader.TetrLoader;
 
 
 Console.WriteLine("Select file to replay.");
-string filePath = Console.ReadLine();
+//string filePath = Console.ReadLine();
+string filePath = @"C:\Users\CSDotNET\Downloads\minaisreplay.ttrm";
 StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 var rawJson = reader.ReadToEnd();
 Replay replay;
@@ -38,8 +39,8 @@ else if (Path.GetExtension(filePath) == ".ttrm")
         var stats1 = GetReplayStats(replay.ReplayData, replay.ReplayKind, 0, i);
         var stats2 = GetReplayStats(replay.ReplayData, replay.ReplayKind, 0, i);
 
-        Console.WriteLine($"{i}/    {stats1.PPS.ToString("F")}PPS {stats1.APM.ToString("F")}APM {stats1.VS.ToString("F")}VS\r\n" +
-            $"           {stats2.PPS.ToString("F")}PPS {stats2.APM.ToString("F")}APM {stats2.VS.ToString("F")}VS");
+        Console.WriteLine($"{i}/    {stats1.PPS:F}PPS {stats1.APM:F}APM {stats1.VS:F}VS\r\n" +
+            $"           {stats2.PPS:F}PPS {stats2.APM:F}APM {stats2.VS:F}VS");
     }
 
     replayIndex = int.Parse(Console.ReadLine());
@@ -109,14 +110,14 @@ void Print(Replay replay)
 
         output += "Player" + (playerIndex + 1) + "\r\n";
         output += "CurrentFrame:";
-        output += replay.Environments[playerIndex].currentFrame + "\r\n";
+        output += replay.Environments[playerIndex].CurrentFrame+ "\r\n";
         var tempfield = (int[])replay.Environments[playerIndex].GameData.Field.Clone();
 
-        if (replay.Environments[playerIndex].GameData.Falling.type != -1)
-            foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameData.Falling.type][replay.Environments[playerIndex].GameData.Falling.r])
+        if (replay.Environments[playerIndex].GameData.Falling.Type != -1)
+            foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
             {
-                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.x - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.type].x) +
-                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.type].y) * 10)] = (int)MinoKind.Z;
+                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.Type].x) +
+                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = (int)MinoKind.Z;
             }
 
 

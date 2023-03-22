@@ -8,12 +8,9 @@ namespace TetrioVirtualEnvironment
 	public class Replay
 	{
 		public List<Environment> Environments { get; } = new();
-
 		public ReplayKind ReplayKind { get; }
 		public int ReplayIndex { get; private set; } = -1;
 
-		public int PlaybackSkipFrame;
-		private int _passedSkipFrame;
 
 		private ReplayStatusEnum _replayStatus;
 		public event EventHandler? ReplayStatusChanged;
@@ -62,9 +59,6 @@ namespace TetrioVirtualEnvironment
 		public void LoadGame(int replayIndex)
 		{
 			ReplayIndex = replayIndex;
-			PlaybackSkipFrame = 0;
-			_passedSkipFrame = 0;
-
 			Environments.Clear();
 
 			for (int playerIndex = 0; playerIndex < GetPlayerCount(ReplayData, ReplayKind); playerIndex++)
@@ -94,68 +88,44 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newframe">Abusolute position of frame to jump.</param>
 		public void JumpFrame(int newframe)
 		{
-			if (Environments[0].currentFrame <= newframe)
+			if (Environments[0].CurrentFrame <= newframe)
 			{
-				var frameDiff = newframe - Environments[0].currentFrame;
+				var frameDiff = newframe - Environments[0].CurrentFrame;
 				for (int i = 0; i < frameDiff; i++)
 				{
-					Update(true);
+					Update();
 				}
 			}
 			else
 			{
+				//use checkpoint to back replay faster
 				foreach (var env in Environments)
 					env.ResetGame(env.EventFull, env.EnvironmentMode, env.DataForInitialize, env.NextSkipCount);
 
 				for (int i = 0; i < newframe; i++)
-				{
-					Update(true);
-				}
+					Update();
+
 			}
 		}
 
 		/// <summary>
 		/// Update individual environment in replay.
 		/// </summary>
-		/// <param name="ignoreSkipFrame"></param>
 		/// <returns></returns>
-		public bool Update(bool ignoreSkipFrame = false)
+		public bool Update()
 		{
 			int updateTime = 1;
-
-			if (!ignoreSkipFrame)
-			{
-				if (PlaybackSkipFrame < 0)
-				{
-					updateTime -= PlaybackSkipFrame;
-				}
-				else
-				{
-					if (_passedSkipFrame < PlaybackSkipFrame)
-					{
-						_passedSkipFrame++;
-						return true;
-					}
-					else
-						_passedSkipFrame = 0;
-				}
-
-
-
-			}
 
 			for (int i = 0; i < updateTime; i++)
 			{
 				for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
 				{
-					var gameUpdateSuccess = Environments[playerIndex].Update(ReplayKind, GetReplayEvents(ReplayData, ReplayKind, playerIndex, ReplayIndex));
-					if (!gameUpdateSuccess)
-					{
-						//update failed because of game ended.
-						//I should be the State ended.
-						ReplayStatus = ReplayStatusEnum.Loaded;
-						return false;
-					}
+					var gameUpdateSuccess = Environments[playerIndex].Update(GetReplayEvents(ReplayData, ReplayKind, playerIndex, ReplayIndex));
+					if (gameUpdateSuccess) continue;
+					//update failed because of game ended.
+					//I should be the State ended.
+					ReplayStatus = ReplayStatusEnum.Loaded;
+					return false;
 
 				}
 			}

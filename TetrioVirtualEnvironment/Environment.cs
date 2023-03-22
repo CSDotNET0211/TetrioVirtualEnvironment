@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using TetrReplayLoader;
 using TetrReplayLoader.JsonClass.Event;
 
@@ -13,6 +14,8 @@ namespace TetrioVirtualEnvironment
 		public List<string> PressedKeyList { get; private set; } = new();
 		public const int FIELD_WIDTH = 10;
 		public const int FIELD_HEIGHT = 40;
+
+		public static int FIELD_SIZE => FIELD_WIDTH * FIELD_HEIGHT;
 
 		// -- Events --
 		public event EventHandler? OnPiecePlaced;
@@ -239,8 +242,13 @@ namespace TetrioVirtualEnvironment
 		/// attak event maybe caused by lag?
 		/// </summary>
 		public List<Garbage> GarbagesInterrupt { get; private set; }
-
+		/// <summary>
+		/// Kickset of SRS+
+		/// </summary>
 		public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; }
+		/// <summary>
+		/// Kickset of SRS+ I-piece
+		/// </summary>
 		public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; }
 
 		internal GameData _gameData;
@@ -248,11 +256,18 @@ namespace TetrioVirtualEnvironment
 		public Stats Stats { get; private set; }
 		public Rng Rng { get; } = new();
 		public EnvironmentModeEnum EnvironmentMode { get; }
+		/// <summary>
+		/// event data of 'full'.use it for reset the game.
+		/// </summary>
 		public EventFull EventFull { get; }
 		public DataForInitialize DataForInitialize { get; }
 		public int NextSkipCount;
+		/// <summary>
+		/// for process events at same frame.
+		/// </summary>
 		public int CurrentIndex { get; private set; }
-		public int currentFrame { get; private set; }
+
+		public int CurrentFrame { get; private set; }
 
 		public enum EnvironmentModeEnum
 		{
@@ -272,9 +287,7 @@ namespace TetrioVirtualEnvironment
 			Empty,
 			None = -1
 		}
-		/// <summary>
-		/// 回転状態を表す構造体
-		/// </summary>
+
 		public enum Rotation
 		{
 			Zero,
@@ -283,7 +296,7 @@ namespace TetrioVirtualEnvironment
 			Left
 		}
 		/// <summary>
-		/// 行動を表す構造体　AI用
+		/// for AI
 		/// </summary>
 		public enum Action : byte
 		{
@@ -300,10 +313,7 @@ namespace TetrioVirtualEnvironment
 			Softdrop,
 			Hold
 		}
-		/// <summary>
-		/// 操作中のテトリミノの状態を保持する構造体
-		/// 種類・回転・位置の情報からなる
-		/// </summary>
+
 		/// <summary>
 		/// 右か左回転か
 		/// </summary>
@@ -313,23 +323,6 @@ namespace TetrioVirtualEnvironment
 			Left
 		}
 
-		/// <summary>
-		/// 操作中のテトリミノの状態を保持する構造体
-		/// 種類・回転・位置の情報からなる
-		/// </summary>
-		public struct Mino
-		{
-			public Mino(int minokind, int rotation, Vector2[] position)
-			{
-				MinoKind = minokind;
-				Rotation = rotation;
-				Positions = position;
-			}
-
-			public int MinoKind;
-			public int Rotation;
-			public Vector2[] Positions;
-		}
 
 		public enum KeyEvent
 		{
@@ -406,16 +399,14 @@ namespace TetrioVirtualEnvironment
 			_historyInteraction = new List<Garbage>();
 			Garbages = new List<Garbage>();
 			GarbagesInterrupt = new List<Garbage>();
-			currentFrame = 0;
+			CurrentFrame = 0;
 			CurrentIndex = 0;
 			Stats = new Stats();
 
-			if (envMode == EnvironmentModeEnum.Seed)
-				new GameData(envData, this, out _gameData, nextSkipCount, dataForInitialize);
-			else
-				new GameData(envData.options, this, out _gameData, dataForInitialize);
+			new GameData(envMode, envData, this, out _gameData, nextSkipCount, dataForInitialize);
 		}
 
+		//TODO: remove this
 		/// <summary>
 		/// value%10 GarbageKind
 		/// value/10%10 GarbagePos
@@ -490,6 +481,15 @@ namespace TetrioVirtualEnvironment
 			return field[x + y * 10] == (int)MinoKind.Empty;
 		}
 
+		/// <summary>
+		/// Check tetromino is in the field and not being overwraped.
+		/// remove this
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="rotation"></param>
+		/// <returns></returns>
 		public static bool IsLegalField(int type, int x, double y, int rotation)
 		{
 			var positions = TETRIMINOS[type][rotation];
@@ -506,7 +506,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 		/// <summary>
-		/// Check Is Valid Position or Not
+		/// Check x,y is in the field.
 		/// </summary>
 		/// <param name="x"></param>
 		/// <param name="y"></param>
@@ -517,6 +517,15 @@ namespace TetrioVirtualEnvironment
 				   y is >= 0 and < FIELD_HEIGHT;
 		}
 
+		/// <summary>
+		/// Check tetromino is in the field and not being overwraped.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="rotation"></param>
+		/// <param name="field"></param>
+		/// <returns></returns>
 		public static bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
 		{
 			var positions = TETRIMINOS[type][rotation];
@@ -585,7 +594,7 @@ namespace TetrioVirtualEnvironment
 				{
 					if (@event.key == "rotateCCW")
 					{
-						var e = _gameData.Falling.r - 1;
+						var e = _gameData.Falling.R - 1;
 						if (e < 0)
 							e = 3;
 						RotatePiece(e);
@@ -593,7 +602,7 @@ namespace TetrioVirtualEnvironment
 
 					if (@event.key == "rotateCW")
 					{
-						var e = _gameData.Falling.r + 1;
+						var e = _gameData.Falling.R + 1;
 						if (e > 3)
 							e = 0;
 						RotatePiece(e);
@@ -601,7 +610,7 @@ namespace TetrioVirtualEnvironment
 
 					if (@event.key == "rotate180" && _gameData.Options.Allow180)
 					{
-						var e = _gameData.Falling.r + 2;
+						var e = _gameData.Falling.R + 2;
 						if (e > 3)
 							e -= 4;
 						RotatePiece(e);
@@ -668,14 +677,14 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		void RotatePiece(int rotation)
+		private void RotatePiece(int rotation)
 		{
-			var nowmino_rotation = _gameData.Falling.r;
-			var nowmino_newmino_rotation = nowmino_rotation.ToString() + rotation.ToString();
+			var nowminoRotation = _gameData.Falling.R;
+			var nowminoNewminoRotation = nowminoRotation.ToString() + rotation.ToString();
 			var o = 0;
 			var i = "none";
 
-			if (rotation < nowmino_rotation)
+			if (rotation < nowminoRotation)
 			{
 				o = 1;
 				i = "right";
@@ -686,37 +695,37 @@ namespace TetrioVirtualEnvironment
 				i = "left";
 			}
 
-			if (rotation == 0 && nowmino_rotation == 3)
+			if (rotation == 0 && nowminoRotation == 3)
 			{
 				o = 1;
 				i = "right";
 			}
 
-			if (rotation == 3 && nowmino_rotation == 3)
+			if (rotation == 3 && nowminoRotation == 3)
 			{
 				o = -1;
 				i = "left";
 			}
 
-			if (rotation == 2 && nowmino_rotation == 0)
+			if (rotation == 2 && nowminoRotation == 0)
 				i = "vertical";
-			if (rotation == 0 && nowmino_rotation == 2)
+			if (rotation == 0 && nowminoRotation == 2)
 				i = "vertical";
-			if (rotation == 3 && nowmino_rotation == 1)
+			if (rotation == 3 && nowminoRotation == 1)
 				i = "horizontal";
-			if (rotation == 1 && nowmino_rotation == 3)
+			if (rotation == 1 && nowminoRotation == 3)
 				i = "horizontal";
 
-			if (IsLegalAtPos(_gameData.Falling.type,
-				_gameData.Falling.x - _gameData.Falling.aox,
-				_gameData.Falling.y - _gameData.Falling.aoy, rotation,
+			if (IsLegalAtPos(_gameData.Falling.Type,
+				_gameData.Falling.X - _gameData.Falling.Aox,
+				_gameData.Falling.Y - _gameData.Falling.Aoy, rotation,
 				_gameData.Field))
 			{
-				_gameData.Falling.x -= _gameData.Falling.aox;
-				_gameData.Falling.y -= _gameData.Falling.aoy;
-				_gameData.Falling.aox = 0;
-				_gameData.Falling.aoy = 0;
-				_gameData.Falling.r = rotation;
+				_gameData.Falling.X -= _gameData.Falling.Aox;
+				_gameData.Falling.Y -= _gameData.Falling.Aoy;
+				_gameData.Falling.Aox = 0;
+				_gameData.Falling.Aoy = 0;
+				_gameData.Falling.R = rotation;
 				_gameData.Falling.Last = "rotate";
 				_gameData.Falling.LastRotation = i;
 				_gameData.Falling.LastKick = 0;
@@ -740,37 +749,37 @@ namespace TetrioVirtualEnvironment
 				return;
 			}
 
-			if (_gameData.Falling.type == (int)MinoKind.O)
+			if (_gameData.Falling.Type == (int)MinoKind.O)
 				return;
 
-			var kicktable = KICKSET_SRSPLUS[nowmino_newmino_rotation];
+			var kicktable = KICKSET_SRSPLUS[nowminoNewminoRotation];
 
-			if (_gameData.Falling.type == (int)MinoKind.I)
-				kicktable = KICKSET_SRSPLUSI[nowmino_newmino_rotation];
+			if (_gameData.Falling.Type == (int)MinoKind.I)
+				kicktable = KICKSET_SRSPLUSI[nowminoNewminoRotation];
 
 			for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 			{
 				var kicktableTest = kicktable[kicktableIndex];
-				var i2 = (int)(_gameData.Falling.y) + 0.1 +
-					kicktableTest.y - _gameData.Falling.aoy;
+				var i2 = (int)(_gameData.Falling.Y) + 0.1 +
+					kicktableTest.y - _gameData.Falling.Aoy;
 
 
 				if (!_gameData.Options.InfiniteMovement &&
 					_gameData.TotalRotations > (int)_gameData.Options.LockResets + 15)
 				{
-					i2 = _gameData.Falling.y + kicktableTest.y - _gameData.Falling.aoy;
+					i2 = _gameData.Falling.Y + kicktableTest.y - _gameData.Falling.Aoy;
 				}
 
-				if (IsLegalAtPos(_gameData.Falling.type,
-					_gameData.Falling.x + (int)kicktableTest.x - _gameData.Falling.aox,
+				if (IsLegalAtPos(_gameData.Falling.Type,
+					_gameData.Falling.X + (int)kicktableTest.x - _gameData.Falling.Aox,
 					i2, rotation, _gameData.Field))
 				{
 
-					_gameData.Falling.x += (int)kicktableTest.x - _gameData.Falling.aox;
-					_gameData.Falling.y = i2;
-					_gameData.Falling.aox = 0;
-					_gameData.Falling.aoy = 0;
-					_gameData.Falling.r = rotation;
+					_gameData.Falling.X += (int)kicktableTest.x - _gameData.Falling.Aox;
+					_gameData.Falling.Y = i2;
+					_gameData.Falling.Aox = 0;
+					_gameData.Falling.Aoy = 0;
+					_gameData.Falling.R = rotation;
 					_gameData.Falling.SpinType = IsTspin();
 					_gameData.Falling.LastKick = kicktableIndex + 1;
 					_gameData.Falling.Last = "rotate";
@@ -792,44 +801,49 @@ namespace TetrioVirtualEnvironment
 					return;
 				}
 			}
-
-
 		}
 
+
+		/// <summary>
+		/// Right Left shift
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="subFrameDiff"></param>
 		public void ProcessShift(bool value, double subFrameDiff)
 		{
 			ProcessLShift(value, subFrameDiff);
 			ProcessRShift(value, subFrameDiff);
-
 		}
 
-		public void Update()
-		{
-			_gameData.SubFrame = 0;
-			//    CurrentFrame++;
-			ProcessShift(false, 1 - _gameData.SubFrame);
-			FallEvent(null, 1 - _gameData.SubFrame);
-		}
+		//public void Update()
+		//{
+		//	_gameData.SubFrame = 0;
+		//	ProcessShift(false, 1 - _gameData.SubFrame);
+		//	FallEvent(null, 1 - _gameData.SubFrame);
+		//}
 		//TODO: いつか下のに結合
-		public bool Update(ReplayKind replayKind, List<Event>? events)
+		public bool Update(List<Event>? events = null)
 		{
 			_gameData.SubFrame = 0;
 
-			if (!UpdateEvent(events))
+			if (events != null && !UpdateEvent(events))
 				return false;
 
-			currentFrame++;
+			CurrentFrame++;
 			ProcessShift(false, 1 - _gameData.SubFrame);
 			FallEvent(null, 1 - _gameData.SubFrame);
+
+			if (events == null)
+				return true;
 
 			CheckGarbage();
 
 			if (_gameData.Options.GravityIncrease > 0 &&
-				currentFrame > _gameData.Options.GravityMargin)
+				CurrentFrame > _gameData.Options.GravityMargin)
 				_gameData.Gravity += _gameData.Options.GravityIncrease / 60;
 
 			if (_gameData.Options.GarbageIncrease > 0 &&
-				currentFrame > _gameData.Options.GarbageMargin)
+				CurrentFrame > _gameData.Options.GarbageMargin)
 				_gameData.Options.GarbageMultiplier += _gameData.Options.GarbageIncrease / 60;
 
 			if (_gameData.Options.GarbageCapIncrease > 0)
@@ -844,14 +858,14 @@ namespace TetrioVirtualEnvironment
 		{
 			foreach (var garbage in Garbages)
 			{
-				if (garbage.ConfirmedFrame + 20 != currentFrame) continue;
+				if (garbage.ConfirmedFrame + 20 != CurrentFrame) continue;
 				if (garbage.State == Garbage.StateEnum.InteractionConfirm)
 					garbage.State = Garbage.StateEnum.Ready;
 			}
 
 			for (int i = GarbagesInterrupt.Count - 1; i >= 0; i--)
 			{
-				if (GarbagesInterrupt[i].ConfirmedFrame + 20 != currentFrame) continue;
+				if (GarbagesInterrupt[i].ConfirmedFrame + 20 != CurrentFrame) continue;
 				GarbagesInterrupt[i].State = Garbage.StateEnum.Ready;
 				Garbages.Add(GarbagesInterrupt[i]);
 				GarbagesInterrupt.RemoveAt(i);
@@ -864,11 +878,11 @@ namespace TetrioVirtualEnvironment
 		/// <param name="events"></param>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		public bool UpdateEvent(List<Event>? events)
+		public bool UpdateEvent(List<Event> events)
 		{
 			while (true)
 			{
-				if (events[CurrentIndex].frame == currentFrame)
+				if (events[CurrentIndex].frame == CurrentFrame)
 				{
 
 					switch (events[CurrentIndex].type)
@@ -1015,9 +1029,9 @@ namespace TetrioVirtualEnvironment
 
 			for (var index = 0; index < aboutARRValue; index++)
 			{
-				if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x - 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field))
+				if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X - 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field))
 				{
-					_gameData.Falling.x--;
+					_gameData.Falling.X--;
 					_gameData.Falling.Last = "move";
 					_gameData.Falling.Clamped = false;
 
@@ -1064,9 +1078,9 @@ namespace TetrioVirtualEnvironment
 
 			for (var index = 0; index < aboutARRValue; index++)
 			{
-				if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x + 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field))
+				if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X + 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field))
 				{
-					_gameData.Falling.x++;
+					_gameData.Falling.X++;
 					_gameData.Falling.Last = "move";
 					_gameData.Falling.Clamped = false;
 
@@ -1108,8 +1122,8 @@ namespace TetrioVirtualEnvironment
 
 			if (!_gameData.Options.InfiniteMovement &&
 				_gameData.Falling.LockResets >= (int)_gameData.Options.LockResets &&
-				!IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x,
-				_gameData.Falling.y + 1, _gameData.Falling.r, _gameData.Field))
+				!IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X,
+				_gameData.Falling.Y + 1, _gameData.Falling.R, _gameData.Field))
 			{
 				subframeGravity = 20;
 				_gameData.Falling.ForceLock = true;
@@ -1127,7 +1141,7 @@ namespace TetrioVirtualEnvironment
 
 			for (; subframeGravity > 0;)
 			{
-				var ceiledValue = Math.Ceiling(_gameData.Falling.y);
+				var ceiledValue = Math.Ceiling(_gameData.Falling.Y);
 				if (!HardDrop(Math.Min(1, subframeGravity), r))
 				{
 					if (value != null)
@@ -1137,7 +1151,7 @@ namespace TetrioVirtualEnvironment
 				}
 
 				subframeGravity -= Math.Min(1, subframeGravity);
-				if (ceiledValue != Math.Ceiling(_gameData.Falling.y))
+				if (ceiledValue != Math.Ceiling(_gameData.Falling.Y))
 				{
 					_gameData.Falling.Last = "fall";
 					if (_gameData.SoftDrop)
@@ -1151,23 +1165,23 @@ namespace TetrioVirtualEnvironment
 
 		private bool HardDrop(double value, double value2)
 		{
-			var fallingKouho = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.y) /
+			var fallingKouho = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) /
 				Math.Pow(10, 13) + value;
 
 			if (fallingKouho % 1 == 0)
 				fallingKouho += 0.00001;
 
-			var o = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.y) / Math.Pow(10, 13) + 1;
+			var o = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) / Math.Pow(10, 13) + 1;
 			if (o % 1 == 0)
 				o -= 0.00002;
 
-			if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, fallingKouho, _gameData.Falling.r, _gameData.Field) &&
-				IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, o, _gameData.Falling.r, _gameData.Field))
+			if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, fallingKouho, _gameData.Falling.R, _gameData.Field) &&
+				IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, o, _gameData.Falling.R, _gameData.Field))
 			{
 				var s = _gameData.Falling.HighestY;
-				o = _gameData.Falling.y;
+				o = _gameData.Falling.Y;
 
-				_gameData.Falling.y = fallingKouho;
+				_gameData.Falling.Y = fallingKouho;
 				_gameData.Falling.HighestY = Math.Ceiling(Math.Max(_gameData.Falling.HighestY, fallingKouho));
 				_gameData.Falling.Floored = false;
 				if (Math.Ceiling(fallingKouho) != Math.Ceiling(o))
@@ -1197,10 +1211,10 @@ namespace TetrioVirtualEnvironment
 			//ミノを盤面に適用
 			if (!forceEmptyDrop)
 			{
-				foreach (var pos in TETRIMINOS[_gameData.Falling.type][_gameData.Falling.r])
+				foreach (var pos in TETRIMINOS[_gameData.Falling.Type][_gameData.Falling.R])
 				{
-					_gameData.Field[(int)((pos.x + _gameData.Falling.x - TETRIMINO_DIFF[_gameData.Falling.type].x) +
-						(int)(pos.y + _gameData.Falling.y - TETRIMINO_DIFF[_gameData.Falling.type].y) * 10)] = _gameData.Falling.type;
+					_gameData.Field[(int)((pos.x + _gameData.Falling.X - TETRIMINO_DIFF[_gameData.Falling.Type].x) +
+						(int)(pos.y + _gameData.Falling.Y - TETRIMINO_DIFF[_gameData.Falling.Type].y) * 10)] = _gameData.Falling.Type;
 				}
 
 				if (!sValue && _gameData.Handling.SafeLock > 0)
@@ -1231,31 +1245,31 @@ namespace TetrioVirtualEnvironment
 			switch (action)
 			{
 				case Action.MoveRight:
-					if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x + 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field))
-						_gameData.Falling.x++;
+					if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X + 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field))
+						_gameData.Falling.X++;
 					break;
 
 				case Action.MoveLeft:
-					if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x - 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field))
-						_gameData.Falling.x--;
+					if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X - 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field))
+						_gameData.Falling.X--;
 					break;
 
 				case Action.RotateLeft:
-					var e = _gameData.Falling.r - 1;
+					var e = _gameData.Falling.R - 1;
 					if (e < 0)
 						e = 3;
 					RotatePiece(e);
 					break;
 
 				case Action.RotateRight:
-					e = _gameData.Falling.r + 1;
+					e = _gameData.Falling.R + 1;
 					if (e > 3)
 						e = 0;
 					RotatePiece(e);
 					break;
 
 				case Action.Rotate180:
-					e = _gameData.Falling.r + 2;
+					e = _gameData.Falling.R + 2;
 					if (e > 3)
 						e -= 4;
 					RotatePiece(e);
@@ -1272,21 +1286,21 @@ namespace TetrioVirtualEnvironment
 				case Action.QuickSoftdrop:
 					while (true)
 					{
-						if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y + 1, _gameData.Falling.r, _gameData.Field))
-							_gameData.Falling.y++;
+						if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y + 1, _gameData.Falling.R, _gameData.Field))
+							_gameData.Falling.Y++;
 						else
 							break;
 					}
 					break;
 
 				case Action.MoveUp:
-					if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y - 1, _gameData.Falling.r, _gameData.Field))
-						_gameData.Falling.y--;
+					if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y - 1, _gameData.Falling.R, _gameData.Field))
+						_gameData.Falling.Y--;
 					break;
 
 				case Action.MoveDown:
-					if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y + 1, _gameData.Falling.r, _gameData.Field))
-						_gameData.Falling.y++;
+					if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y + 1, _gameData.Falling.R, _gameData.Field))
+						_gameData.Falling.Y++;
 					break;
 
 				default: throw new Exception();
@@ -1362,7 +1376,7 @@ namespace TetrioVirtualEnvironment
 		public int GetFallestPosDiff()
 		{
 
-			return GetFallestPosDiff(_gameData.Falling.type, _gameData.Falling.x, (int)_gameData.Falling.y, _gameData.Falling.r);
+			return GetFallestPosDiff(_gameData.Falling.Type, _gameData.Falling.X, (int)_gameData.Falling.Y, _gameData.Falling.R);
 
 		}
 
@@ -1478,7 +1492,7 @@ namespace TetrioVirtualEnvironment
 
 		private void SwapHold()
 		{
-			var s = _gameData.Falling.type;
+			var s = _gameData.Falling.Type;
 			_gameData.Falling.Init(_gameData.Hold, EnvironmentMode);
 			_gameData.Hold = s;
 		}
@@ -1491,17 +1505,17 @@ namespace TetrioVirtualEnvironment
 			if (_gameData.SpinBonuses == "stupid")
 				throw new NotImplementedException();
 
-			if (IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y + 1, _gameData.Falling.r, _gameData.Field))
+			if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y + 1, _gameData.Falling.R, _gameData.Field))
 				return null;
 
-			if (_gameData.Falling.type != (int)MinoKind.T && _gameData.SpinBonuses != "handheld")
+			if (_gameData.Falling.Type != (int)MinoKind.T && _gameData.SpinBonuses != "handheld")
 			{
 				if (_gameData.SpinBonuses == "all")
 				{
-					if (!(IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x - 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field) ||
-					   IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x + 1, _gameData.Falling.y, _gameData.Falling.r, _gameData.Field) ||
-					   IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y - 1, _gameData.Falling.r, _gameData.Field) ||
-					   IsLegalAtPos(_gameData.Falling.type, _gameData.Falling.x, _gameData.Falling.y + 1, _gameData.Falling.r, _gameData.Field)))
+					if (!(IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X - 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field) ||
+					   IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X + 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Field) ||
+					   IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y - 1, _gameData.Falling.R, _gameData.Field) ||
+					   IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, _gameData.Falling.Y + 1, _gameData.Falling.R, _gameData.Field)))
 						return "normal";
 					else
 						return null;
@@ -1521,7 +1535,7 @@ namespace TetrioVirtualEnvironment
 			{
 				Vector2[][]? minoCorner = null;
 
-				minoCorner = CORNER_TABLE[GetIndex(_gameData.Falling.type)];
+				minoCorner = CORNER_TABLE[GetIndex(_gameData.Falling.Type)];
 
 				int GetIndex(int type)
 				{
@@ -1541,15 +1555,15 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 
-				if (!IsEmptyPos((int)(_gameData.Falling.x + minoCorner[_gameData.Falling.r][n].x),
-					(int)(_gameData.Falling.y + minoCorner[_gameData.Falling.r][n].y), _gameData.Field))
+				if (!IsEmptyPos((int)(_gameData.Falling.X + minoCorner[_gameData.Falling.R][n].x),
+					(int)(_gameData.Falling.Y + minoCorner[_gameData.Falling.R][n].y), _gameData.Field))
 				{
 					cornerCount++;
 
 					//AdditinalTableは無理やり追加したものなのでx,yは関係ない
-					if (!(_gameData.Falling.type != (int)MinoKind.T ||
-						(_gameData.Falling.r != CORNER_ADDITIONAL_TABLE[_gameData.Falling.r][n].x &&
-						_gameData.Falling.r != CORNER_ADDITIONAL_TABLE[_gameData.Falling.r][n].y)))
+					if (!(_gameData.Falling.Type != (int)MinoKind.T ||
+						(_gameData.Falling.R != CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].x &&
+						_gameData.Falling.R != CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].y)))
 						a++;
 				}
 
@@ -1561,7 +1575,7 @@ namespace TetrioVirtualEnvironment
 
 			var spintype = "normal";
 
-			if (_gameData.Falling.type == (int)MinoKind.T && a != 2)
+			if (_gameData.Falling.Type == (int)MinoKind.T && a != 2)
 				spintype = "mini";
 
 			if (_gameData.Falling.LastKick == 4)
