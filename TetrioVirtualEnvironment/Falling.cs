@@ -42,7 +42,12 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="newtype"></param>
+		/// <param name="isHold"></param>
+		/// <param name="environmentMode"></param>
 		public void Init(int? newtype, bool isHold, EnvironmentModeEnum environmentMode)
 		{
 			Locking = 0;
@@ -86,6 +91,12 @@ namespace TetrioVirtualEnvironment
 			GameDataInstance.FallingRotations = 0;
 			GameDataInstance.TotalRotations = 0;
 
+			/* in tetrio.js, normal tetromino creating has undefined argument, first hold is unll so easy to judge.
+			 * t.holdlocked = void 0 !== s
+			 * but in this code, null means normal tetromino creating. to solve this problem, I approached to use 2nd argument is hold or not.
+			 */
+			 
+			
 			if (isHold)
 				GameDataInstance.HoldLocked = true;
 			else
