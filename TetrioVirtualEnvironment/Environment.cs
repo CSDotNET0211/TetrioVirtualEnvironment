@@ -884,7 +884,7 @@ namespace TetrioVirtualEnvironment
 							break;
 
 						case "full":
-							_gameData.Falling.Init(null, EnvironmentMode);
+							_gameData.Falling.Init(null,false, EnvironmentMode);
 							break;
 
 						case "keydown":
@@ -1218,12 +1218,12 @@ namespace TetrioVirtualEnvironment
 			}
 
 			var istspin = IsTspin();
-			var clearedLineCount = ClearLine();
+			var clearedLineCount = ClearLines();
 
 			GetAttackPower(clearedLineCount, istspin);
 			IsBoardEmpty();
 
-			_gameData.Falling.Init(null, EnvironmentMode);
+			_gameData.Falling.Init(null,false, EnvironmentMode);
 
 			OnPiecePlaced?.Invoke(this, EventArgs.Empty);
 
@@ -1323,7 +1323,7 @@ namespace TetrioVirtualEnvironment
 			return null;
 		}
 
-		private int ClearLine()
+		private int ClearLines()
 		{
 			List<int> list = new List<int>();
 			bool flag = true;
@@ -1483,9 +1483,9 @@ namespace TetrioVirtualEnvironment
 
 		private void SwapHold()
 		{
-			var s = _gameData.Falling.Type;
-			_gameData.Falling.Init(_gameData.Hold, EnvironmentMode);
-			_gameData.Hold = s;
+			var tempCurrentType = _gameData.Falling.Type;
+			_gameData.Falling.Init(_gameData.Hold,true,EnvironmentMode);
+			_gameData.Hold = tempCurrentType;
 		}
 
 		private string? IsTspin()

@@ -6,8 +6,8 @@ using static TetrReplayLoader.TetrLoader;
 
 
 Console.WriteLine("Select file to replay.");
-//string filePath = Console.ReadLine();
-string filePath = @"C:\Users\CSDotNET\Downloads\minaisreplay.ttrm";
+string filePath = Console.ReadLine();
+//string filePath = @"C:\Users\CSDotNET\Downloads\bug.ttrm";
 StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 var rawJson = reader.ReadToEnd();
 Replay replay;
@@ -86,12 +86,12 @@ while (true)
 
     Print(replay);
     //Step by step
-    //var input = Console.ReadLine();
-    //if (input != "")
-    //{
-    //    Console.Clear();
-    //    replay.SkipFrame(int.Parse(input));
-    //}
+    var input = Console.ReadLine();
+    if (input != "")
+    {
+        Console.Clear();
+        replay.JumpFrame(int.Parse(input));
+    }
 
     nextFrame += period;
 }

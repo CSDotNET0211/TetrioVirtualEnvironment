@@ -43,7 +43,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-		public void Init(int? newtype, EnvironmentModeEnum environmentMode)
+		public void Init(int? newtype, bool isHold, EnvironmentModeEnum environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -86,7 +86,10 @@ namespace TetrioVirtualEnvironment
 			GameDataInstance.FallingRotations = 0;
 			GameDataInstance.TotalRotations = 0;
 
-			GameDataInstance.HoldLocked = newtype != null;
+			if (isHold)
+				GameDataInstance.HoldLocked = true;
+			else
+				GameDataInstance.HoldLocked = newtype != null;
 
 			if (Clamped && GameDataInstance.Handling.DCD > 0)
 			{
@@ -110,29 +113,29 @@ namespace TetrioVirtualEnvironment
 
 		}
 
-		public Environment EnvironmentInstance { get;}
-		public GameData GameDataInstance { get;  }
-		public int Type { get;  set; }
-		public int X { get;  set; }
-		public int Aox { get;  set; }
-		public double Y { get;  set; }
-		public int Aoy { get;  set; }
-		public int R { get;  set; }
+		public Environment EnvironmentInstance { get; }
+		public GameData GameDataInstance { get; }
+		public int Type { get; set; }
+		public int X { get; set; }
+		public int Aox { get; set; }
+		public double Y { get; set; }
+		public int Aoy { get; set; }
+		public int R { get; set; }
 		public int Irs { get; }
 		public int Ihs { get; }
-		public int SafeLock { get;  set; }
-		public bool ForceLock { get;  set; }
-		public bool Sleep { get;  set; }
+		public int SafeLock { get; set; }
+		public bool ForceLock { get; set; }
+		public bool Sleep { get; set; }
 		public bool DeepSleep { get; }
 		public string Last { get; set; }
-		public string LastRotation { get;  set; }
-		public string? SpinType { get;  set; }
-		public int LastKick { get;  set; }
-		public bool Clamped { get;  set; }
-		public int LockResets { get;  set; }
-		public double Locking { get;  set; }
-		public bool Floored { get;  set; }
-		public double HighestY { get;  set; }
+		public string LastRotation { get; set; }
+		public string? SpinType { get; set; }
+		public int LastKick { get; set; }
+		public bool Clamped { get; set; }
+		public int LockResets { get; set; }
+		public double Locking { get; set; }
+		public bool Floored { get; set; }
+		public double HighestY { get; set; }
 	}
 
 	public static class FallingEx

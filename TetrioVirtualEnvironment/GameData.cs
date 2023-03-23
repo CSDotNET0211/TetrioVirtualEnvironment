@@ -128,7 +128,7 @@ namespace TetrioVirtualEnvironment
 			SpinBonuses = eventFull.options.spinbonuses;
 
 			if (envMode == EnvironmentModeEnum.Limited)
-				Falling.Init(null, environment.EnvironmentMode);
+				Falling.Init(null,false, environment.EnvironmentMode);
 		}
 
 
