@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using TetrioVirtualEnvironment;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
@@ -32,14 +33,6 @@ namespace TetrioVirtualEnvironment
 			GameDataInstance = gameData;
 		}
 
-		public Falling(int type, int x, int y, int r)
-		{
-			Type = type;
-			X = x;
-			Y = y;
-			R = r;
-
-		}
 
 
 		/// <summary>
@@ -59,10 +52,10 @@ namespace TetrioVirtualEnvironment
 			{
 				if (environmentMode == EnvironmentModeEnum.Limited)
 				{
-					if (EnvironmentInstance._gameData.Next.Count != 0)
+					if (EnvironmentInstance.GameData.Next.Count != 0)
 					{
-						Type = EnvironmentInstance._gameData.Next[0];
-						EnvironmentInstance._gameData.Next.RemoveAt(0);
+						Type = EnvironmentInstance.GameData.Next[0];
+						EnvironmentInstance.GameData.Next.RemoveAt(0);
 					}
 					else
 					{
@@ -95,8 +88,8 @@ namespace TetrioVirtualEnvironment
 			 * t.holdlocked = void 0 !== s
 			 * but in this code, null means normal tetromino creating. to solve this problem, I approached to use 2nd argument is hold or not.
 			 */
-			 
-			
+
+
 			if (isHold)
 				GameDataInstance.HoldLocked = true;
 			else
@@ -124,37 +117,46 @@ namespace TetrioVirtualEnvironment
 
 		}
 
+		public void ForceMoveTetriminoPos(MinoPosition pos)
+		{
+			if (pos.type != -1)
+				Type = pos.type;
+
+			if (pos.x != -1)
+				X = pos.x;
+
+			if (pos.y != -1)
+				Y = pos.y;
+
+			if (pos.r != -1)
+				R = pos.r;
+		}
+
+		//DOTO:アクセスすべてできないようにするべき、ゲッターかなんか用意
 		public Environment EnvironmentInstance { get; }
 		public GameData GameDataInstance { get; }
-		public int Type { get; set; }
-		public int X { get; set; }
-		public int Aox { get; set; }
-		public double Y { get; set; }
-		public int Aoy { get; set; }
-		public int R { get; set; }
+		public int Type { get; private set; }
+		public int X { get; internal set; }
+		public int Aox { get; internal set; }
+		public double Y { get; internal set; }
+		public int Aoy { get; internal set; }
+		public int R { get; internal set; }
 		public int Irs { get; }
 		public int Ihs { get; }
-		public int SafeLock { get; set; }
-		public bool ForceLock { get; set; }
-		public bool Sleep { get; set; }
+		public int SafeLock { get; internal set; }
+		public bool ForceLock { get; internal set; }
+		public bool Sleep { get; internal set; }
 		public bool DeepSleep { get; }
-		public string Last { get; set; }
-		public string LastRotation { get; set; }
-		public string? SpinType { get; set; }
-		public int LastKick { get; set; }
-		public bool Clamped { get; set; }
-		public int LockResets { get; set; }
-		public double Locking { get; set; }
-		public bool Floored { get; set; }
-		public double HighestY { get; set; }
+		public string Last { get; internal set; }
+		public string LastRotation { get; internal set; }
+		public string? SpinType { get; internal set; }
+		public int LastKick { get; internal set; }
+		public bool Clamped { get; internal set; }
+		public int LockResets { get; internal set; }
+		public double Locking { get; internal set; }
+		public bool Floored { get; internal set; }
+		public double HighestY { get; internal set; }
 	}
 
-	public static class FallingEx
-	{
-		public static Falling Clone(this Falling falling)
-		{
-			var value = new Falling(falling.Type, falling.X, (int)falling.Y, falling.R);
-			return value;
-		}
-	}
+
 }

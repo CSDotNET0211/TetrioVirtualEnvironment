@@ -73,7 +73,7 @@ namespace TetrioVirtualEnvironment
 					Next.AddRange(dataForInitialize.Next);
 				}
 
-				while (nextSkipCount > environment.RefreshNextCount)
+				while (nextSkipCount > environment.GeneratedRngCount)
 					environment.RefreshNext(Next, false);
 
 

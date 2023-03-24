@@ -23,7 +23,10 @@ namespace TetrioVirtualEnvironment
 
 
 		private List<Garbage> _historyInteraction;
-		public int RefreshNextCount { get; private set; }
+		/// <summary>
+		/// for jump rng with seed to spetific point
+		/// </summary>
+		public int GeneratedRngCount { get; private set; }
 		public bool InfinityHold { get; set; } = false;
 		public string? Username { get; }
 
@@ -32,7 +35,7 @@ namespace TetrioVirtualEnvironment
 		/// Basically, used as Tspin.
 		/// AllSpin uses all data.
 		/// </summary>
-		public static readonly Vector2[][][] CORNER_TABLE =
+		private static readonly Vector2[][][] CORNER_TABLE =
 		  {
               //Z
               new[]
@@ -110,7 +113,7 @@ namespace TetrioVirtualEnvironment
 
 		};
 
-		public static readonly Vector2[][] CORNER_ADDITIONAL_TABLE =
+		private static readonly Vector2[][] CORNER_ADDITIONAL_TABLE =
 			   {
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
@@ -231,7 +234,7 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		public static readonly Vector2[] TETRIMINO_DIFF = { new(1, 1), new(1, 1), new(0, 1), new(1, 1), new(1, 1), new(1, 1), new(1, 1) };
 
-		public static readonly int[] MINOTYPES = { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
+		internal static readonly int[] MINOTYPES = { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
 
 		/// <summary>
 		/// GarbageList
@@ -245,13 +248,13 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// Kickset of SRS+
 		/// </summary>
-		public Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; }
+		private Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; }
 		/// <summary>
 		/// Kickset of SRS+ I-piece
 		/// </summary>
-		public Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; }
+		private Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; }
 
-		internal GameData _gameData;
+		private GameData _gameData;
 		public GameData GameData => _gameData;
 		public Stats Stats { get; private set; }
 		public Rng Rng { get; } = new();
@@ -259,8 +262,8 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// event data of 'full'.use it for reset the game.
 		/// </summary>
-		public EventFull EventFull { get; }
-		public DataForInitialize DataForInitialize { get; }
+		internal EventFull EventFull { get; }
+		internal DataForInitialize DataForInitialize { get; }
 		public int NextSkipCount;
 		/// <summary>
 		/// for process events at same frame.
@@ -393,9 +396,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="envMode"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		public void ResetGame(EventFull envData, EnvironmentModeEnum envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
+		internal void ResetGame(EventFull envData, EnvironmentModeEnum envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
 		{
-			RefreshNextCount = 0;
+			GeneratedRngCount = 0;
 			_historyInteraction = new List<Garbage>();
 			Garbages = new List<Garbage>();
 			GarbagesInterrupt = new List<Garbage>();
@@ -472,7 +475,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		public static bool IsEmptyPos(int x, int y, int[] field)
+		private static bool IsEmptyPos(int x, int y, int[] field)
 		{
 			if (!(x is >= 0 and < FIELD_WIDTH &&
 				  y is >= 0 and < FIELD_HEIGHT))
@@ -526,7 +529,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="rotation"></param>
 		/// <param name="field"></param>
 		/// <returns></returns>
-		public static bool IsLegalAtPos(int type, int x, double y, int rotation, int[] field)
+		public static bool IsLegalAtPos(int type, int x, double y, int rotation,in int[] field)
 		{
 			var positions = TETRIMINOS[type][rotation];
 			var diff = TETRIMINO_DIFF[type];
@@ -809,12 +812,17 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="subFrameDiff"></param>
-		public void ProcessShift(bool value, double subFrameDiff)
+		private void ProcessShift(bool value, double subFrameDiff)
 		{
 			ProcessLShift(value, subFrameDiff);
 			ProcessRShift(value, subFrameDiff);
 		}
 
+		/// <summary>
+		/// Update game. Don't call if environment is managed by Replay class.
+		/// </summary>
+		/// <param name="events"></param>
+		/// <returns></returns>
 		public bool Update(List<Event>? events = null)
 		{
 			_gameData.SubFrame = 0;
@@ -871,7 +879,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="events"></param>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		public bool UpdateEvent(List<Event> events)
+		private bool UpdateEvent(List<Event> events)
 		{
 			while (true)
 			{
@@ -884,7 +892,7 @@ namespace TetrioVirtualEnvironment
 							break;
 
 						case "full":
-							_gameData.Falling.Init(null,false, EnvironmentMode);
+							_gameData.Falling.Init(null, false, EnvironmentMode);
 							break;
 
 						case "keydown":
@@ -1091,7 +1099,7 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		public void FallEvent(int? value, double subFrameDiff)
+		private void FallEvent(int? value, double subFrameDiff)
 		{
 			if (_gameData.Falling.SafeLock > 0)
 				_gameData.Falling.SafeLock--;
@@ -1200,7 +1208,7 @@ namespace TetrioVirtualEnvironment
 			return false;
 		}
 
-		public void PiecePlace(bool sValue, bool forceEmptyDrop = false)
+		private void PiecePlace(bool sValue, bool forceEmptyDrop = false)
 		{
 			_gameData.Falling.Sleep = true;
 			//ミノを盤面に適用
@@ -1223,17 +1231,18 @@ namespace TetrioVirtualEnvironment
 			GetAttackPower(clearedLineCount, istspin);
 			IsBoardEmpty();
 
-			_gameData.Falling.Init(null,false, EnvironmentMode);
+			_gameData.Falling.Init(null, false, EnvironmentMode);
 
 			OnPiecePlaced?.Invoke(this, EventArgs.Empty);
 
 		}
 
-		public void CallOnPieceCreated()
+		internal void CallOnPieceCreated()
 		{
 			OnPieceCreated?.Invoke(this, EventArgs.Empty);
 		}
 
+		
 
 		public void Move(Action action)
 		{
@@ -1437,9 +1446,9 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		public int RefreshNext(List<int> next, bool noszo)
+		internal int RefreshNext(List<int> next, bool noszo)
 		{
-			RefreshNextCount++;
+			GeneratedRngCount++;
 			var value = next[0];
 
 			for (int i = 0; i < next.Count - 1; i++)
@@ -1484,7 +1493,7 @@ namespace TetrioVirtualEnvironment
 		private void SwapHold()
 		{
 			var tempCurrentType = _gameData.Falling.Type;
-			_gameData.Falling.Init(_gameData.Hold,true,EnvironmentMode);
+			_gameData.Falling.Init(_gameData.Hold, true, EnvironmentMode);
 			_gameData.Hold = tempCurrentType;
 		}
 
@@ -1577,7 +1586,7 @@ namespace TetrioVirtualEnvironment
 
 		}
 
-		public void ReceiveGarbage(int garbageX, int power)
+		private void ReceiveGarbage(int garbageX, int power)
 		{
 			for (int y = 0; y < FIELD_HEIGHT; y++)
 			{
@@ -1603,7 +1612,7 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		public void GetAttackPower(int clearLineCount, string? isTspin)
+		private void GetAttackPower(int clearLineCount, string? isTspin)
 		{
 			var isBTB = false;
 
