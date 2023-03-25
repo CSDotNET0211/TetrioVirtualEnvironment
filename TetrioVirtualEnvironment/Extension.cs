@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment
 {
-	internal static class Extension
+	public static class Extension
     {
         internal static int CountCanReceive(this List<Garbage> garbages)
         {
@@ -21,7 +21,7 @@ namespace TetrioVirtualEnvironment
 
             return count;
         }
-        internal static (int NotConfirmed, int Confirmed,int Ready) GarbageCount(this List<Garbage> garbages)
+        public static (int NotConfirmed, int Confirmed,int Ready) GarbageCount(this List<Garbage> garbages)
         {
             int count = 0;
             int countConfirmed = 0;
