@@ -474,8 +474,14 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-
-		private static bool IsEmptyPos(int x, int y, int[] field)
+		/// <summary>
+		/// Judge position is in the field and selected position is empty.
+		/// </summary>
+		/// <param name="x">absolute position</param>
+		/// <param name="y">absolute position</param>
+		/// <param name="field"></param>
+		/// <returns>Is empty</returns>
+		private static bool IsEmptyPos(int x, int y, IReadOnlyList<int> field)
 		{
 			if (!(x is >= 0 and < FIELD_WIDTH &&
 				  y is >= 0 and < FIELD_HEIGHT))
@@ -529,7 +535,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="rotation"></param>
 		/// <param name="field"></param>
 		/// <returns></returns>
-		public static bool IsLegalAtPos(int type, int x, double y, int rotation,in int[] field)
+		public static bool IsLegalAtPos(int type, int x, double y, int rotation,IReadOnlyList<int> field)
 		{
 			var positions = TETRIMINOS[type][rotation];
 			var diff = TETRIMINO_DIFF[type];
@@ -823,7 +829,7 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="events"></param>
 		/// <returns></returns>
-		public bool Update(List<Event>? events = null)
+		public bool Update(IReadOnlyList<Event>? events = null)
 		{
 			_gameData.SubFrame = 0;
 
@@ -879,7 +885,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="events"></param>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		private bool UpdateEvent(List<Event> events)
+		private bool UpdateEvent(IReadOnlyList<Event> events)
 		{
 			while (true)
 			{
@@ -1425,6 +1431,11 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
+		/// <summary>
+		/// Place piece if threshold is over.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="subframe"></param>
 		private void CheckForcePlacePiece(bool value = false, double subframe = 1)
 		{
 			if (_gameData.Options.Version >= 15)
@@ -1742,14 +1753,7 @@ namespace TetrioVirtualEnvironment
 					(Stats.Combo - 1) * ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
-
-
-
-
-
-
-
-
+			
 			int totalPower = (int)(garbageValue * _gameData.Options.GarbageMultiplier);
 			if (Stats.Combo > 2)
 				Stats.CurrentComboPower = Math.Max(Stats.CurrentComboPower, totalPower);
@@ -1759,22 +1763,22 @@ namespace TetrioVirtualEnvironment
 				//そもそもAddFireって？
 				//AddFire
 			}
-
-			//火力の相殺をする
+			
 			CancelAttack(totalPower);
-			//リプレイだと火力送信する必要なし、相殺のみ
+
+			//Sending attack power is not needed because garbage data is included in replay data.
 			if (clearLineCount > 0)
 			{
 				//FightLines
 			}
 			else
 			{
-				TakeAllDamage();
+				TakeDamage();
 			}
 
 		}
 
-		private void TakeAllDamage()
+		private void TakeDamage()
 		{
 			var receivedDamage = 0;
 
@@ -1785,7 +1789,6 @@ namespace TetrioVirtualEnvironment
 
 				if (receivedDamage > _gameData.Options.GarbageCap)
 				{
-					//receive
 					var receivedValue = (int)_gameData.Options.GarbageCap - (receivedDamage - Garbages[0].Power);
 					ReceiveGarbage(Garbages[0].PosX, receivedValue);
 					Garbages[0].Power -= receivedValue;
@@ -1794,7 +1797,6 @@ namespace TetrioVirtualEnvironment
 				}
 				else
 				{
-					//receive
 					ReceiveGarbage(Garbages[0].PosX, Garbages[0].Power);
 					Garbages.RemoveAt(0);
 				}
@@ -1828,9 +1830,9 @@ namespace TetrioVirtualEnvironment
 		}
 
 		/// <summary>
-		/// In replay, received power is already exists so just cancel check.
+		/// Cancel received attack power.
 		/// </summary>
-		/// <param name="lines">cancel power</param>
+		/// <param name="lines">Power</param>
 		private void CancelAttack(int lines)
 		{
 			while (Garbages.Count != 0 && lines != 0)

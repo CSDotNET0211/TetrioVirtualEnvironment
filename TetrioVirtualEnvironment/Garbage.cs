@@ -27,12 +27,12 @@ namespace TetrioVirtualEnvironment
 
 		public Garbage(int interactionFrame, int confirmedFrame, int sentFrame, int posX, int power, StateEnum state)
 		{
-		InteractionFrame = interactionFrame;
-		ConfirmedFrame = confirmedFrame;
-		SentFrame = sentFrame;
-		PosX = posX;
-		Power = power;
-		State = state;
+			InteractionFrame = interactionFrame;
+			ConfirmedFrame = confirmedFrame;
+			SentFrame = sentFrame;
+			PosX = posX;
+			Power = power;
+			State = state;
 		}
 
 		public int ConfirmedFrame { get; internal set; }

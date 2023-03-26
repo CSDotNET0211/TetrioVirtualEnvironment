@@ -128,7 +128,7 @@ namespace TetrioVirtualEnvironment
 			SpinBonuses = eventFull.options.spinbonuses;
 
 			if (envMode == EnvironmentModeEnum.Limited)
-				Falling.Init(null,false, environment.EnvironmentMode);
+				Falling.Init(null, false, environment.EnvironmentMode);
 		}
 
 
@@ -148,7 +148,7 @@ namespace TetrioVirtualEnvironment
 		public double LDasIter { get; internal set; }
 		public double RDasIter { get; internal set; }
 		public bool SoftDrop { get; internal set; }
-		public Falling Falling { get;  }
+		public Falling Falling { get; }
 		public bool HoldLocked { get; internal set; }
 		public int? Hold { get; internal set; }
 		public double Gravity { get; internal set; }

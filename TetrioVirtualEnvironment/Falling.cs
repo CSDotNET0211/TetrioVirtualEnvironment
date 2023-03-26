@@ -147,6 +147,9 @@ namespace TetrioVirtualEnvironment
 		public bool ForceLock { get; internal set; }
 		public bool Sleep { get; internal set; }
 		public bool DeepSleep { get; }
+		/// <summary>
+		/// Last move
+		/// </summary>
 		public string Last { get; internal set; }
 		public string LastRotation { get; internal set; }
 		public string? SpinType { get; internal set; }
