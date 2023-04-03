@@ -71,7 +71,7 @@ while (true)
 		continue;
 	}
 
-	replay.Environments
+	//replay.Environments
 
 	if (!replay.Update())
 	{
