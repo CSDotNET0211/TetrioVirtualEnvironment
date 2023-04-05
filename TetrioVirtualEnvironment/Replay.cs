@@ -12,9 +12,9 @@ namespace TetrioVirtualEnvironment
 		public int ReplayIndex { get; private set; } = -1;
 
 
-		private ReplayStatusEnum _replayStatus;
+		private ReplayStatusKind _replayStatus;
 		public event EventHandler? ReplayStatusChanged;
-		public ReplayStatusEnum ReplayStatus
+		public ReplayStatusKind ReplayStatus
 		{
 			get => _replayStatus;
 			set
@@ -31,7 +31,7 @@ namespace TetrioVirtualEnvironment
 		/// Playing			Replay is playing. Game update will be called.
 		/// Paused			Replay is paused. Game update will not be called.
 		/// </summary>		
-		public enum ReplayStatusEnum
+		public enum ReplayStatusKind
 		{
 			Initialized,
 			Loaded,
@@ -48,7 +48,7 @@ namespace TetrioVirtualEnvironment
 			ReplayKind = ismulti ? ReplayKind.TTRM : ReplayKind.TTR;
 
 			ReplayData = ParseReplay(jsondata, ReplayKind);
-			ReplayStatus = ReplayStatusEnum.Initialized;
+			ReplayStatus = ReplayStatusKind.Initialized;
 		}
 
 		/// <summary>
@@ -61,7 +61,12 @@ namespace TetrioVirtualEnvironment
 			ReplayIndex = replayIndex;
 			Environments.Clear();
 
-			for (int playerIndex = 0; playerIndex < GetPlayerCount(ReplayData, ReplayKind); playerIndex++)
+			var playerCount = GetPlayerCount(ReplayData, ReplayKind);
+
+			if (playerCount > 2)
+				throw new Exception("more than 3 players are not supported.");
+
+			for (int playerIndex = 0; playerIndex < playerCount; playerIndex++)
 			{
 				var events = GetReplayEvents(ReplayData, ReplayKind, playerIndex, ReplayIndex);
 				string? fullEventRawString = (from e in events where e.type == "full" select e.data.ToString()).FirstOrDefault();
@@ -74,11 +79,11 @@ namespace TetrioVirtualEnvironment
 				if (fullEvent == null)
 					throw new Exception("Failed to convert the game event 'full'");
 
-				Environments.Add(new Environment(fullEvent, Environment.EnvironmentModeEnum.Seed, fullEvent.options?.username));
+				Environments.Add(new Environment(fullEvent, Environment.NextGenerateKind.Seed, fullEvent.options?.username));
 
 			}
 
-			ReplayStatus = ReplayStatusEnum.Playing;
+			ReplayStatus = ReplayStatusKind.Playing;
 			TotalGameFramesAtLoadedGame = GetGameTotalFrames(ReplayData, ReplayKind, replayIndex);
 		}
 
@@ -100,7 +105,7 @@ namespace TetrioVirtualEnvironment
 			{
 				//use checkpoint to back replay faster
 				foreach (var env in Environments)
-					env.ResetGame(env.EventFull, env.EnvironmentMode, env.DataForInitialize, env.NextSkipCount);
+					env.ResetGame(env.EventFull, env.NextGenerateMode, env.DataForInitialize, env.NextSkipCount);
 
 				for (int i = 0; i < newframe; i++)
 					Update();
@@ -124,7 +129,7 @@ namespace TetrioVirtualEnvironment
 					if (gameUpdateSuccess) continue;
 					//update failed because of game ended.
 					//I should be the State ended.
-					ReplayStatus = ReplayStatusEnum.Loaded;
+					ReplayStatus = ReplayStatusKind.Loaded;
 					return false;
 
 				}

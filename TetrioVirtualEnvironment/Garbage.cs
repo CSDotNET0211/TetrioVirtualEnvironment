@@ -17,7 +17,7 @@ namespace TetrioVirtualEnvironment
 		/// Ready:					If you drop piece in this state, garbaege will appear.
 		/// Attack:					Interrupt garbage.
 		/// </summary>	
-		public enum StateEnum
+		public enum GarbageKind
 		{
 			Interaction,
 			InteractionConfirm,
@@ -25,7 +25,7 @@ namespace TetrioVirtualEnvironment
 			Attack
 		}
 
-		public Garbage(int interactionFrame, int confirmedFrame, int sentFrame, int posX, int power, StateEnum state)
+		public Garbage(int interactionFrame, int confirmedFrame, int sentFrame, int posX, int power, GarbageKind state)
 		{
 			InteractionFrame = interactionFrame;
 			ConfirmedFrame = confirmedFrame;
@@ -40,7 +40,7 @@ namespace TetrioVirtualEnvironment
 		public int SentFrame { get; internal set; }
 		public int PosX { get; internal set; }
 		public int Power { get; internal set; }
-		public StateEnum State { get; internal set; }
+		public GarbageKind State { get; internal set; }
 
 	}
 }

@@ -7,36 +7,15 @@ namespace TetrioVirtualEnvironment
 {
 	public class Environment
 	{
-		//DOTO: これとかapmに関する情報は関数でも作る pressedkeylist中身あったっけ
-		/// <summary>
-		/// Pressed key data
-		/// </summary>
-		public List<string> PressedKeyList { get; private set; } = new();
-		public const int FIELD_WIDTH = 10;
-		public const int FIELD_HEIGHT = 40;
-
-		public static int FIELD_SIZE => FIELD_WIDTH * FIELD_HEIGHT;
-
-		// -- Events --
-		public event EventHandler? OnPiecePlaced;
-		public event EventHandler? OnPieceCreated;
-
-
-		private List<Garbage> _historyInteraction;
-		/// <summary>
-		/// for jump rng with seed to spetific point
-		/// </summary>
-		public int GeneratedRngCount { get; private set; }
-		public bool InfinityHold { get; set; } = false;
-		public string? Username { get; }
-
-		/// <summary>
-		/// This is used to judge spin bonus.
-		/// Basically, used as Tspin.
-		/// AllSpin uses all data.
-		/// </summary>
-		private static readonly Vector2[][][] CORNER_TABLE =
-		  {
+		public class ConstData
+		{
+			/// <summary>
+			/// This is used to judge spin bonus.
+			/// Basically, used as Tspin.
+			/// AllSpin uses all data.
+			/// </summary>
+			internal static readonly Vector2[][][] CORNER_TABLE =
+			  {
               //Z
               new[]
 			  {
@@ -113,21 +92,18 @@ namespace TetrioVirtualEnvironment
 
 		};
 
-		private static readonly Vector2[][] CORNER_ADDITIONAL_TABLE =
-			   {
+			internal static readonly Vector2[][] CORNER_ADDITIONAL_TABLE =
+				   {
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
 				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
 			   };
-
-
-
-		/// <summary>
-		/// Tetrimino Array
-		/// </summary>
-		public static readonly Vector2[][][] TETRIMINOS =
-		  {
+			/// <summary>
+			/// Tetrimino Array
+			/// </summary>
+			public static readonly Vector2[][][] TETRIMINOS_SHAPES =
+			  {
               //Z
               new[]
 			  {
@@ -229,22 +205,66 @@ namespace TetrioVirtualEnvironment
 
 
 		};
+			/// <summary>
+			/// Diff Position for Fix Tetrimino Position
+			/// </summary>
+			public static readonly Vector2[] TETRIMINO_DIFFS = { new(1, 1), new(1, 1), new(0, 1), new(1, 1), new(1, 1), new(1, 1), new(1, 1) };
+			/// <summary>
+			/// for next generating
+			/// </summary>
+			internal static readonly int[] MINOTYPES = { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
+
+		}
+
+		public const int FIELD_WIDTH = 10;
+		public const int FIELD_HEIGHT = 40;
+
+		public static int FIELD_SIZE => FIELD_WIDTH * FIELD_HEIGHT;
+
+		// --- events ---
+		public event EventHandler? OnPiecePlaced;
+		public event EventHandler? OnPieceCreated;
+
+		// --- public propety ---
+		//DOTO: これとかapmに関する情報は関数でも作る pressedkeylist中身あったっけ
 		/// <summary>
-		/// Diff Position for Fix Tetrimino Position
+		/// Pressed key data
 		/// </summary>
-		public static readonly Vector2[] TETRIMINO_DIFF = { new(1, 1), new(1, 1), new(0, 1), new(1, 1), new(1, 1), new(1, 1), new(1, 1) };
-
-		internal static readonly int[] MINOTYPES = { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
-
+		public List<string> PressedKeyList { get; private set; } = new();
+		public int GeneratedRngCount { get; private set; }
+		public bool InfinityHold { get; set; } = false;
+		public string? Username { get; }
 		/// <summary>
 		/// GarbageList
 		/// </summary>
 		public List<Garbage> Garbages { get; private set; }
 		/// <summary>
-		/// GarbageList for Garbage.StateEnum.Attack
+		/// GarbageList for Garbage.GarbageKind.Attack
 		/// attak event maybe caused by lag?
 		/// </summary>
 		public List<Garbage> GarbagesInterrupt { get; private set; }
+		public GameData GameData => _gameData;
+		public Stats Stats { get; private set; }
+		/// <summary>
+		/// RNG Generator
+		/// </summary>
+		public Rng Rng { get; } = new();
+		public NextGenerateKind NextGenerateMode { get; }
+		public int NextSkipCount;
+		/// <summary>
+		/// for process events at same frame.
+		/// </summary>
+		public int CurrentIndex { get; private set; }
+		public int CurrentFrame { get; private set; }
+
+
+
+
+		private List<Garbage> _historyInteraction;
+		/// <summary>
+		/// for jump rng with seed to spetific point
+		/// </summary>
+
 		/// <summary>
 		/// Kickset of SRS+
 		/// </summary>
@@ -255,26 +275,24 @@ namespace TetrioVirtualEnvironment
 		private Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; }
 
 		private GameData _gameData;
-		public GameData GameData => _gameData;
-		public Stats Stats { get; private set; }
-		public Rng Rng { get; } = new();
-		public EnvironmentModeEnum EnvironmentMode { get; }
 		/// <summary>
 		/// event data of 'full'.use it for reset the game.
+		/// full event is first event after game started existing in ttr/ttrm.
 		/// </summary>
 		internal EventFull EventFull { get; }
-		internal DataForInitialize DataForInitialize { get; }
-		public int NextSkipCount;
 		/// <summary>
-		/// for process events at same frame.
+		/// initialize game data. it is used in NextGenerateKind is Array.
+		/// 
 		/// </summary>
-		public int CurrentIndex { get; private set; }
+		internal DataForInitialize DataForInitialize { get; }
 
-		public int CurrentFrame { get; private set; }
-
-		public enum EnvironmentModeEnum
+		/// <summary>
+		/// ArrayMode only use initialized Next.
+		/// SeedMode generate next from seed based on TETR.IO generate system.
+		/// </summary>
+		public enum NextGenerateKind
 		{
-			Limited,
+			Array,
 			Seed
 		}
 		public enum MinoKind
@@ -291,15 +309,8 @@ namespace TetrioVirtualEnvironment
 			None = -1
 		}
 
-		public enum Rotation
-		{
-			Zero,
-			Right,
-			Turn,
-			Left
-		}
 		/// <summary>
-		/// for AI
+		/// for AI moving
 		/// </summary>
 		public enum Action : byte
 		{
@@ -317,16 +328,6 @@ namespace TetrioVirtualEnvironment
 			Hold
 		}
 
-		/// <summary>
-		/// 右か左回転か
-		/// </summary>
-		public enum Rotate : byte
-		{
-			Right,
-			Left
-		}
-
-
 		public enum KeyEvent
 		{
 			KeyDown,
@@ -341,13 +342,13 @@ namespace TetrioVirtualEnvironment
 		/// <param name="username"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		public Environment(EventFull envData, EnvironmentModeEnum envMode, string? username, DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
+		public Environment(EventFull envData, NextGenerateKind envMode, string? username, DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
 		{
 			dataForInitialize ??= new DataForInitialize();
+			
 
 			Username = username;
-
-			EnvironmentMode = envMode;
+			NextGenerateMode = envMode;
 			EventFull = envData;
 			DataForInitialize = dataForInitialize;
 			NextSkipCount = nextSkipCount;
@@ -396,7 +397,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="envMode"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		internal void ResetGame(EventFull envData, EnvironmentModeEnum envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
+		internal void ResetGame(EventFull envData, NextGenerateKind envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
 		{
 			GeneratedRngCount = 0;
 			_historyInteraction = new List<Garbage>();
@@ -406,7 +407,7 @@ namespace TetrioVirtualEnvironment
 			CurrentIndex = 0;
 			Stats = new Stats();
 
-			new GameData(envMode, envData, this, out _gameData, nextSkipCount, dataForInitialize);
+			new GameData(out _gameData, envMode, envData, this, nextSkipCount, dataForInitialize);
 		}
 
 		//TODO: remove this
@@ -424,7 +425,7 @@ namespace TetrioVirtualEnvironment
 			{
 				var temp = 1;
 
-				if (value.State == Garbage.StateEnum.Ready)
+				if (value.State == Garbage.GarbageKind.Ready)
 					temp *= 1;
 				else
 					temp *= 0;
@@ -456,7 +457,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="keyKind"></param>
 		public void InputKeyEvent(KeyEvent keyEvent, Action keyKind)
 		{
-			if (EnvironmentMode == EnvironmentModeEnum.Limited)
+			if (NextGenerateMode == NextGenerateKind.Array)
 				if (keyKind == Action.Hold)
 				{
 
@@ -501,8 +502,8 @@ namespace TetrioVirtualEnvironment
 		/// <returns></returns>
 		public static bool IsLegalField(int type, int x, double y, int rotation)
 		{
-			var positions = TETRIMINOS[type][rotation];
-			var diff = TETRIMINO_DIFF[type];
+			var positions = ConstData.TETRIMINOS_SHAPES[type][rotation];
+			var diff = ConstData.TETRIMINO_DIFFS[type];
 
 			foreach (var position in positions)
 			{
@@ -535,10 +536,10 @@ namespace TetrioVirtualEnvironment
 		/// <param name="rotation"></param>
 		/// <param name="field"></param>
 		/// <returns></returns>
-		public static bool IsLegalAtPos(int type, int x, double y, int rotation,IReadOnlyList<int> field)
+		public static bool IsLegalAtPos(int type, int x, double y, int rotation, IReadOnlyList<int> field)
 		{
-			var positions = TETRIMINOS[type][rotation];
-			var diff = TETRIMINO_DIFF[type];
+			var positions = ConstData.TETRIMINOS_SHAPES[type][rotation];
+			var diff = ConstData.TETRIMINO_DIFFS[type];
 
 			foreach (var position in positions)
 			{
@@ -843,7 +844,7 @@ namespace TetrioVirtualEnvironment
 			if (events == null)
 				return true;
 
-			CheckGarbage();
+			GarbageUpdate();
 
 			if (_gameData.Options.GravityIncrease > 0 &&
 				CurrentFrame > _gameData.Options.GravityMargin)
@@ -861,19 +862,19 @@ namespace TetrioVirtualEnvironment
 			return true;
 		}
 
-		private void CheckGarbage()
+		private void GarbageUpdate()
 		{
 			foreach (var garbage in Garbages)
 			{
 				if (garbage.ConfirmedFrame + 20 != CurrentFrame) continue;
-				if (garbage.State == Garbage.StateEnum.InteractionConfirm)
-					garbage.State = Garbage.StateEnum.Ready;
+				if (garbage.State == Garbage.GarbageKind.InteractionConfirm)
+					garbage.State = Garbage.GarbageKind.Ready;
 			}
 
 			for (int i = GarbagesInterrupt.Count - 1; i >= 0; i--)
 			{
 				if (GarbagesInterrupt[i].ConfirmedFrame + 20 != CurrentFrame) continue;
-				GarbagesInterrupt[i].State = Garbage.StateEnum.Ready;
+				GarbagesInterrupt[i].State = Garbage.GarbageKind.Ready;
 				Garbages.Add(GarbagesInterrupt[i]);
 				GarbagesInterrupt.RemoveAt(i);
 			}
@@ -898,7 +899,7 @@ namespace TetrioVirtualEnvironment
 							break;
 
 						case "full":
-							_gameData.Falling.Init(null, false, EnvironmentMode);
+							_gameData.Falling.Init(null, false, NextGenerateMode);
 							break;
 
 						case "keydown":
@@ -929,15 +930,14 @@ namespace TetrioVirtualEnvironment
 							var data = JsonSerializer.Deserialize<EventIge>(events[CurrentIndex].data.ToString());
 
 							//when interaction_confirm is called, interaction is called before in most case.
-							//
 							if (data?.data.type == "interaction_confirm")
 							{
 								var notConfirmed = true;
 								foreach (var garbage in Garbages)
 								{
-									if (garbage.SentFrame == data.data.sent_frame && garbage.State == Garbage.StateEnum.Interaction)
+									if (garbage.SentFrame == data.data.sent_frame && garbage.State == Garbage.GarbageKind.Interaction)
 									{
-										garbage.State = Garbage.StateEnum.InteractionConfirm;
+										garbage.State = Garbage.GarbageKind.InteractionConfirm;
 										garbage.ConfirmedFrame = (int)events[CurrentIndex].frame;
 										notConfirmed = false;
 										break;
@@ -947,24 +947,25 @@ namespace TetrioVirtualEnvironment
 
 								if (notConfirmed)
 								{
-									var flag2 = true;
+									var flagCancelled = false;
 
+									//if interaction type garbage is canceled by attack, interaction_confirm will be ignored.
 									var historyInteractionCount = _historyInteraction.Count;
 									for (int i = 0; i < historyInteractionCount; i++)
 									{
 										if (_historyInteraction[0].SentFrame == data.data.sent_frame)
 										{
-											flag2 = false;
+											flagCancelled = true;
 											_historyInteraction.RemoveAt(0);
 											break;
 										}
 									}
 
-									if (flag2)
+									if (!flagCancelled)
 									{
 										GarbagesInterrupt.Add(new Garbage(data.frame,
 										(int)events[CurrentIndex].frame, data.data.sent_frame, data.data.data.column,
-										data.data.data.amt, Garbage.StateEnum.Attack));
+										data.data.data.amt, Garbage.GarbageKind.Attack));
 									}
 
 
@@ -973,13 +974,13 @@ namespace TetrioVirtualEnvironment
 							}
 							else if (data.data.type == "interaction")
 							{
-								Garbages.Add(new Garbage(data.frame, -1, data.data.sent_frame, data.data.data.column, data.data.data.amt, Garbage.StateEnum.Interaction));
+								Garbages.Add(new Garbage(data.frame, -1, data.data.sent_frame, data.data.data.column, data.data.data.amt, Garbage.GarbageKind.Interaction));
 							}
 							else if (data.data.type == "attack")
 							{
 								//attack event will caused by lag?
 								//
-								GarbagesInterrupt.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, (int)data.data.sent_frame, data.data.column, (int)data.data.lines, Garbage.StateEnum.Attack));
+								GarbagesInterrupt.Add(new Garbage(data.frame, (int)events[CurrentIndex].frame, data.data.sent_frame, data.data.column, data.data.lines, Garbage.GarbageKind.Attack));
 							}
 							else if (data.data.type == "kev")
 							{
@@ -1220,10 +1221,10 @@ namespace TetrioVirtualEnvironment
 			//ミノを盤面に適用
 			if (!forceEmptyDrop)
 			{
-				foreach (var pos in TETRIMINOS[_gameData.Falling.Type][_gameData.Falling.R])
+				foreach (var pos in ConstData.TETRIMINOS_SHAPES[_gameData.Falling.Type][_gameData.Falling.R])
 				{
-					_gameData.Field[(int)((pos.x + _gameData.Falling.X - TETRIMINO_DIFF[_gameData.Falling.Type].x) +
-						(int)(pos.y + _gameData.Falling.Y - TETRIMINO_DIFF[_gameData.Falling.Type].y) * 10)] = _gameData.Falling.Type;
+					_gameData.Field[(int)((pos.x + _gameData.Falling.X - ConstData.TETRIMINO_DIFFS[_gameData.Falling.Type].x) +
+						(int)(pos.y + _gameData.Falling.Y - ConstData.TETRIMINO_DIFFS[_gameData.Falling.Type].y) * 10)] = _gameData.Falling.Type;
 				}
 
 				if (!sValue && _gameData.Handling.SafeLock > 0)
@@ -1237,7 +1238,7 @@ namespace TetrioVirtualEnvironment
 			GetAttackPower(clearedLineCount, istspin);
 			IsBoardEmpty();
 
-			_gameData.Falling.Init(null, false, EnvironmentMode);
+			_gameData.Falling.Init(null, false, NextGenerateMode);
 
 			OnPiecePlaced?.Invoke(this, EventArgs.Empty);
 
@@ -1248,7 +1249,7 @@ namespace TetrioVirtualEnvironment
 			OnPieceCreated?.Invoke(this, EventArgs.Empty);
 		}
 
-		
+
 
 		public void Move(Action action)
 		{
@@ -1371,8 +1372,8 @@ namespace TetrioVirtualEnvironment
 
 		public static Vector2[] GetMinoPos(int type, int x, int y, int r)
 		{
-			var positions = (Vector2[])TETRIMINOS[type][r].Clone();
-			var diff = TETRIMINO_DIFF[type];
+			var positions = (Vector2[])ConstData.TETRIMINOS_SHAPES[type][r].Clone();
+			var diff = ConstData.TETRIMINO_DIFFS[type];
 
 			for (int i = 0; i < positions.Length; i++)
 			{
@@ -1469,7 +1470,7 @@ namespace TetrioVirtualEnvironment
 
 			if (_gameData.NextBag.Count == 0)
 			{
-				var array = (int[])MINOTYPES.Clone();
+				var array = (int[])ConstData.MINOTYPES.Clone();
 				Rng.ShuffleArray(array);
 				_gameData.NextBag.AddRange(array);
 			}
@@ -1504,7 +1505,7 @@ namespace TetrioVirtualEnvironment
 		private void SwapHold()
 		{
 			var tempCurrentType = _gameData.Falling.Type;
-			_gameData.Falling.Init(_gameData.Hold, true, EnvironmentMode);
+			_gameData.Falling.Init(_gameData.Hold, true, NextGenerateMode);
 			_gameData.Hold = tempCurrentType;
 		}
 
@@ -1546,7 +1547,7 @@ namespace TetrioVirtualEnvironment
 			{
 				Vector2[][]? minoCorner = null;
 
-				minoCorner = CORNER_TABLE[GetIndex(_gameData.Falling.Type)];
+				minoCorner = ConstData.CORNER_TABLE[GetIndex(_gameData.Falling.Type)];
 
 				int GetIndex(int type)
 				{
@@ -1573,8 +1574,8 @@ namespace TetrioVirtualEnvironment
 
 					//AdditinalTableは無理やり追加したものなのでx,yは関係ない
 					if (!(_gameData.Falling.Type != (int)MinoKind.T ||
-						(_gameData.Falling.R != CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].x &&
-						_gameData.Falling.R != CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].y)))
+						(_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].x &&
+						_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].y)))
 						a++;
 				}
 
@@ -1753,7 +1754,7 @@ namespace TetrioVirtualEnvironment
 					(Stats.Combo - 1) * ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
-			
+
 			int totalPower = (int)(garbageValue * _gameData.Options.GarbageMultiplier);
 			if (Stats.Combo > 2)
 				Stats.CurrentComboPower = Math.Max(Stats.CurrentComboPower, totalPower);
@@ -1763,7 +1764,7 @@ namespace TetrioVirtualEnvironment
 				//そもそもAddFireって？
 				//AddFire
 			}
-			
+
 			CancelAttack(totalPower);
 
 			//Sending attack power is not needed because garbage data is included in replay data.

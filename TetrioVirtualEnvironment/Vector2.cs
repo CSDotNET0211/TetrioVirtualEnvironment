@@ -2,7 +2,7 @@
 namespace TetrioVirtualEnvironment
 { 
 	/// <summary>
-  /// Simple Structure having x,y Data.
+  /// Simple Structure having x,y ConstData.
   /// </summary>
     public struct Vector2
     {

@@ -41,7 +41,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newtype"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(int? newtype, bool isHold, EnvironmentModeEnum environmentMode)
+		public void Init(int? newtype, bool isHold, NextGenerateKind environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -50,7 +50,7 @@ namespace TetrioVirtualEnvironment
 
 			if (newtype == null)
 			{
-				if (environmentMode == EnvironmentModeEnum.Limited)
+				if (environmentMode == NextGenerateKind.Array)
 				{
 					if (EnvironmentInstance.GameData.Next.Count != 0)
 					{

@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using TetrReplayLoader;
 using TetrioVirtualEnvironment;
-using static TetrioVirtualEnvironment.Environment;
-
-
+using Environment = TetrioVirtualEnvironment.Environment;
 
 Console.WriteLine("Select file to replay.");
 string filePath = Console.ReadLine();
@@ -82,12 +80,12 @@ while (true)
 
 	Print(replay);
 	//Step by step
-	var input = Console.ReadLine();
-	if (input != "")
-	{
-		Console.Clear();
-		replay.JumpFrame(int.Parse(input));
-	}
+	//var input = Console.ReadLine();
+	//if (input != "")
+	//{
+	//	Console.Clear();
+	//	replay.JumpFrame(int.Parse(input));
+	//}
 
 	nextFrame += period;
 }
@@ -110,10 +108,10 @@ void Print(Replay replay)
 		var tempfield = (int[])replay.Environments[playerIndex].GameData.Field.Clone();
 
 		if (replay.Environments[playerIndex].GameData.Falling.Type != -1)
-			foreach (var pos in TETRIMINOS[replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
+			foreach (var pos in Environment.ConstData.TETRIMINOS_SHAPES[replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
 			{
-				tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.Type].x) +
-					(int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y - TETRIMINO_DIFF[replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = (int)MinoKind.Z;
+				tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - Environment.ConstData.TETRIMINO_DIFFS[replay.Environments[playerIndex].GameData.Falling.Type].x) +
+					(int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y - Environment.ConstData.TETRIMINO_DIFFS[replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = (int)Environment.MinoKind.Z;
 			}
 
 
@@ -121,7 +119,7 @@ void Print(Replay replay)
 		{
 			for (int x = 0; x < 10; x++)
 			{
-				if (tempfield[x + y * 10] == (int)MinoKind.Empty)
+				if (tempfield[x + y * 10] == (int)Environment.MinoKind.Empty)
 					output += "□";
 				else
 					output += "■";

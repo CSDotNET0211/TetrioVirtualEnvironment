@@ -13,7 +13,7 @@ namespace TetrioVirtualEnvironment
             int count = 0;
             foreach (var garbage in garbages)
             {
-                if (garbage.State == Garbage.StateEnum.Ready)
+                if (garbage.State == Garbage.GarbageKind.Ready)
                 {
                     count++;
                 }
@@ -28,9 +28,9 @@ namespace TetrioVirtualEnvironment
             int countReady = 0;
             foreach (var garbage in garbages)
             {
-                if (garbage.State == Garbage.StateEnum.Interaction)
+                if (garbage.State == Garbage.GarbageKind.Interaction)
                     count += garbage.Power;
-                else if(garbage.State == Garbage.StateEnum.InteractionConfirm)
+                else if(garbage.State == Garbage.GarbageKind.InteractionConfirm)
                     countConfirmed += garbage.Power;
                 else
                     countReady+= garbage.Power;

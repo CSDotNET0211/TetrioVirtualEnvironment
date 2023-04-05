@@ -19,7 +19,7 @@ namespace TetrioVirtualEnvironment
 			{
 				if (list.Count == 0)
 				{
-					var array = (int[])Environment.MINOTYPES.Clone();
+					var array = (int[])Environment.ConstData.MINOTYPES.Clone();
 					rng.ShuffleArray(array);
 					list.AddRange(array);
 				}

@@ -5,7 +5,7 @@ using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
-	public class GameData
+ 	public class GameData
 	{
 		/// <summary>
 		/// Contructor for 
@@ -17,9 +17,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <exception cref="Exception"></exception>
-		public GameData(EnvironmentModeEnum envMode, EventFull eventFull, Environment environment, out GameData gameData, int nextSkipCount, DataForInitialize dataForInitialize)
+		public GameData(out GameData gamedataForInit,NextGenerateKind envMode, EventFull eventFull, Environment environment, int nextSkipCount, DataForInitialize dataForInitialize)
 		{
-			gameData = this;
+			gamedataForInit = this;
 
 			if (dataForInitialize.Garbages != null)
 			{
@@ -29,7 +29,7 @@ namespace TetrioVirtualEnvironment
 					var pos = garbage / 10 % 10;
 					var amount = garbage / 100;
 
-					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.StateEnum.InteractionConfirm : Garbage.StateEnum.Ready));
+					environment.Garbages.Add(new Garbage(0, 60, 0, pos, amount, kind == 0 ? Garbage.GarbageKind.InteractionConfirm : Garbage.GarbageKind.Ready));
 				}
 			}
 
@@ -48,7 +48,7 @@ namespace TetrioVirtualEnvironment
 
 			environment.Rng.Init(eventFull.options.seed);
 
-			if (envMode == EnvironmentModeEnum.Seed)
+			if (envMode == NextGenerateKind.Seed)
 			{
 
 
@@ -127,8 +127,8 @@ namespace TetrioVirtualEnvironment
 			Gravity = (double)(eventFull.options.g);
 			SpinBonuses = eventFull.options.spinbonuses;
 
-			if (envMode == EnvironmentModeEnum.Limited)
-				Falling.Init(null, false, environment.EnvironmentMode);
+			if (envMode == NextGenerateKind.Array)
+				Falling.Init(null, false, environment.NextGenerateMode);
 		}
 
 
