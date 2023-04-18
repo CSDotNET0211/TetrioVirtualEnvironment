@@ -43,6 +43,6 @@ namespace TetrReplayLoader.JsonClass.Event
         public int? lockresets { get; set; } = null;
         public bool? b2bchaining { get; set; } = null;
         public bool? clutch { get; set; } = null;
-        public bool? passthrough { get; set; } = null;
+        public object? passthrough { get; set; } = null;
     }
 }

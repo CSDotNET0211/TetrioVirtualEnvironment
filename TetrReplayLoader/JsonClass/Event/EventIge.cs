@@ -8,6 +8,7 @@ namespace TetrReplayLoader.JsonClass.Event
 {
     public class EventIge
     {
+        public int? id { get; set; }
         public int frame { get; set; }
         public string type { get; set; }
         public IgeData data { get; set; }

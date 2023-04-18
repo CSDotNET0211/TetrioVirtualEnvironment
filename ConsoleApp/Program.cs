@@ -105,7 +105,7 @@ void Print(Replay replay)
 		output += "Player" + (playerIndex + 1) + "\r\n";
 		output += "CurrentFrame:";
 		output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
-		var tempfield = (int[])replay.Environments[playerIndex].GameData.Field.Clone();
+		var tempfield = (int[])replay.Environments[playerIndex].GameData.Board.Clone();
 
 		if (replay.Environments[playerIndex].GameData.Falling.Type != -1)
 			foreach (var pos in Environment.ConstData.TETRIMINOS_SHAPES[replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])

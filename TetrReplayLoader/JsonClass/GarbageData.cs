@@ -8,8 +8,10 @@ namespace TetrReplayLoader.JsonClass
 {
     public class GarbageData
     {
+        public int iid { get; set; }
         public string type { get; set; }
         public int amt { get; set; }
+        public int ackiid { get; set; }
         public int x { get; set; }
         public int y { get; set; }
         public int column { get; set; }
