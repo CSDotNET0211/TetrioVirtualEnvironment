@@ -238,7 +238,7 @@ namespace TetrioVirtualEnvironment
         public bool InfinityHold { get; set; } = false;
         public string? Username { get; }
 
-        public List<int> GarbageIDs = new List<int>();
+        public List<int> GarbageIDs { get;internal set; }
         /// <summary>
         /// GarbageList
         /// </summary>
@@ -261,14 +261,6 @@ namespace TetrioVirtualEnvironment
         /// </summary>
         public int CurrentIndex { get; private set; }
         public int CurrentFrame { get; private set; }
-
-
-
-
-        private List<Garbage> _historyInteraction;
-        /// <summary>
-        /// for jump rng with seed to spetific point
-        /// </summary>
 
         /// <summary>
         /// Kickset of SRS+
@@ -405,9 +397,9 @@ namespace TetrioVirtualEnvironment
         internal void ResetGame(EventFull envData, NextGenerateKind envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
         {
             GeneratedRngCount = 0;
-            _historyInteraction = new List<Garbage>();
             Garbages = new List<Garbage>();
             GarbagesInterrupt = new List<Garbage>();
+            GarbageIDs = new List<int>();
             CurrentFrame = 0;
             CurrentIndex = 0;
             Stats = new Stats();
@@ -915,7 +907,7 @@ namespace TetrioVirtualEnvironment
                         case "targets":
                             var targets = JsonSerializer.Deserialize<EventTargets>(events[CurrentIndex].data.ToString());
                             for (int i = 0; i < targets.data.Count; i++)
-                                targets.data[i]=   targets.data[i].Substring(0, 24);
+                                targets.data[i] = targets.data[i].Substring(0, 24);
 
                             GameData.Targets = targets.data;
 
@@ -1095,11 +1087,17 @@ namespace TetrioVirtualEnvironment
             {
                 throw new NotImplementedException();
             }
+            else
+            {
+                throw new Exception("unknown type");
+            }
         }
 
 
         private void IncomingAttackHit(GarbageData data, string sender, int? cid)
         {
+        GameData.NotYetReceivedAttack--;
+
             if (cid != null)
             {
                 //ActiveDamage Function
@@ -1957,8 +1955,6 @@ namespace TetrioVirtualEnvironment
 
                 default: throw new Exception();
             }
-
-            return false;
         }
 
         private void FightLines(int attackLine)
@@ -2037,7 +2033,7 @@ namespace TetrioVirtualEnvironment
 
             for (var impendingIndex = GameData.ImpendingDamages.Count - 1; impendingIndex >= 0; impendingIndex--)
             {
-                if (GameData.ImpendingDamages[impendingIndex].active)
+                if (!GameData.ImpendingDamages[impendingIndex].active)
                 {
                     iArray.Insert(0, GameData.ImpendingDamages[impendingIndex]);
                     GameData.ImpendingDamages.RemoveAt(impendingIndex);
@@ -2079,13 +2075,14 @@ namespace TetrioVirtualEnvironment
 
             for (int x = 0; x < FIELD_WIDTH; x++)
             {
-                if (newBoardList[x + (FIELD_HEIGHT - 1) * FIELD_WIDTH] != null)
+                //x+y*10
+                if (newBoardList[x] != (int)MinoKind.Empty)
                     return false;
             }
 
             //一番てっぺんを消す
             for (int x = 0; x < FIELD_WIDTH; x++)
-                newBoardList.RemoveAt(x + (FIELD_HEIGHT - 1) * FIELD_WIDTH);
+                newBoardList.RemoveAt(x);
 
             var RValueList = new List<int>();
 

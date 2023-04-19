@@ -67,7 +67,7 @@ namespace TetrioVirtualEnvironment
 
         public bool ClipListenIDs { get; internal set; } = true;
         public string Passthrough { get; internal set; }
-        public string GarbageBlocking { get; internal set; } = "limited blocking";
+        public string GarbageBlocking { get; internal set; } = "combo blocking";
     }
 
 
