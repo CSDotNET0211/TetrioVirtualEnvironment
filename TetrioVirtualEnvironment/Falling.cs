@@ -107,6 +107,7 @@ namespace TetrioVirtualEnvironment
 
 			if (!IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board))
 			{
+				EnvironmentInstance.IsDead = true;
 				Debug.WriteLine("dead");
 			}
 

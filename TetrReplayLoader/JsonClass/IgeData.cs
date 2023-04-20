@@ -14,7 +14,7 @@ namespace TetrReplayLoader.JsonClass
         public string type { get; set; }
         public GarbageData data { get; set; }
         public string sender { get; set; }
-        public string sender_id { get; set; }
+        public string? sender_id { get; set; }
         public int sent_frame { get; set; }
         public int? cid { get; set; }
         public int lines { get; set; }
