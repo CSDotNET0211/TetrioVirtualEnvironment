@@ -410,45 +410,6 @@ namespace TetrioVirtualEnvironment
 			new GameData(out _gameData, envMode, envData, this, nextSkipCount, dataForInitialize);
 		}
 
-		//TODO: remove this
-		/// <summary>
-		/// value%10 GarbageKind
-		/// value/10%10 GarbagePos
-		/// value/100 Amount of Garbage
-		/// </summary>
-		/// <returns></returns>
-		public int[] GetGarbagesArray()
-		{
-			List<int> garbagesArray = new List<int>();
-
-			foreach (var value in Garbages)
-			{
-				var temp = 1;
-
-				if (value.State == Garbage.GarbageKind.Ready)
-					temp *= 1;
-				else
-					temp *= 0;
-
-				temp += value.PosX * 10;
-
-				temp += value.Power * 100;
-
-
-				garbagesArray.Add(temp);
-			}
-
-			foreach (var value in GarbagesInterrupt)
-			{
-				var temp = 0;
-
-				temp += value.PosX * 10;
-				temp += value.Power * 100;
-				garbagesArray.Add(temp);
-			}
-
-			return garbagesArray.ToArray();
-		}
 
 		/// <summary>
 		/// KeyInput for Self Control
@@ -691,40 +652,40 @@ namespace TetrioVirtualEnvironment
 		{
 			var nowminoRotation = _gameData.Falling.R;
 			var nowminoNewminoRotation = nowminoRotation.ToString() + rotation.ToString();
-			var o = 0;
-			var i = "none";
+			var oValue = 0;
+			var lastRotation = "none";
 
 			if (rotation < nowminoRotation)
 			{
-				o = 1;
-				i = "right";
+				oValue = 1;
+				lastRotation = "right";
 			}
 			else
 			{
-				o = -1;
-				i = "left";
+				oValue = -1;
+				lastRotation = "left";
 			}
 
 			if (rotation == 0 && nowminoRotation == 3)
 			{
-				o = 1;
-				i = "right";
+				oValue = 1;
+				lastRotation = "right";
 			}
 
 			if (rotation == 3 && nowminoRotation == 3)
 			{
-				o = -1;
-				i = "left";
+				oValue = -1;
+				lastRotation = "left";
 			}
 
 			if (rotation == 2 && nowminoRotation == 0)
-				i = "vertical";
+				lastRotation = "vertical";
 			if (rotation == 0 && nowminoRotation == 2)
-				i = "vertical";
+				lastRotation = "vertical";
 			if (rotation == 3 && nowminoRotation == 1)
-				i = "horizontal";
+				lastRotation = "horizontal";
 			if (rotation == 1 && nowminoRotation == 3)
-				i = "horizontal";
+				lastRotation = "horizontal";
 
 			if (IsLegalAtPos(_gameData.Falling.Type,
 				_gameData.Falling.X - _gameData.Falling.Aox,
@@ -737,7 +698,7 @@ namespace TetrioVirtualEnvironment
 				_gameData.Falling.Aoy = 0;
 				_gameData.Falling.R = rotation;
 				_gameData.Falling.Last = "rotate";
-				_gameData.Falling.LastRotation = i;
+				_gameData.Falling.LastRotation = lastRotation;
 				_gameData.Falling.LastKick = 0;
 				_gameData.Falling.SpinType = IsTspin();
 				_gameData.FallingRotations++;
@@ -770,23 +731,23 @@ namespace TetrioVirtualEnvironment
 			for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 			{
 				var kicktableTest = kicktable[kicktableIndex];
-				var i2 = (int)(_gameData.Falling.Y) + 0.1 +
+				var newMinoYPos = (int)(_gameData.Falling.Y) + 0.1 +
 					kicktableTest.y - _gameData.Falling.Aoy;
 
 
 				if (!_gameData.Options.InfiniteMovement &&
 					_gameData.TotalRotations > (int)_gameData.Options.LockResets + 15)
 				{
-					i2 = _gameData.Falling.Y + kicktableTest.y - _gameData.Falling.Aoy;
+					newMinoYPos = _gameData.Falling.Y + kicktableTest.y - _gameData.Falling.Aoy;
 				}
 
 				if (IsLegalAtPos(_gameData.Falling.Type,
 					_gameData.Falling.X + (int)kicktableTest.x - _gameData.Falling.Aox,
-					i2, rotation, _gameData.Board))
+					newMinoYPos, rotation, _gameData.Board))
 				{
 
 					_gameData.Falling.X += (int)kicktableTest.x - _gameData.Falling.Aox;
-					_gameData.Falling.Y = i2;
+					_gameData.Falling.Y = newMinoYPos;
 					_gameData.Falling.Aox = 0;
 					_gameData.Falling.Aoy = 0;
 					_gameData.Falling.R = rotation;
@@ -1233,18 +1194,18 @@ namespace TetrioVirtualEnvironment
 				return;
 
 			var subFrameDiff2 = subFrameDiff;
-			var dasSomething = Math.Max(0, _gameData.Handling.DAS - _gameData.RDas);
+			var dasDiff = Math.Max(0, _gameData.Handling.DAS - _gameData.RDas);
 
 			_gameData.RDas += value ? 0 : subFrameDiff;
 
 			if (_gameData.RDas < _gameData.Handling.DAS && !value)
 				return;
 
-			subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasSomething);
+			subFrameDiff2 = Math.Max(0, subFrameDiff2 - dasDiff);
 			if (_gameData.Falling.Sleep || _gameData.Falling.DeepSleep)
 				return;
 
-			var aboutARRValue = 1;
+			var moveARRValue = 1;
 			if (!value)
 			{
 				_gameData.RDasIter += _gameData.Options.Version >= 15 ? subFrameDiff2 : subFrameDiff;
@@ -1252,12 +1213,12 @@ namespace TetrioVirtualEnvironment
 				if (_gameData.RDasIter < _gameData.Handling.ARR)
 					return;
 
-				aboutARRValue = _gameData.Handling.ARR == 0 ? 10 : (int)(_gameData.RDasIter / _gameData.Handling.ARR);
+				moveARRValue = _gameData.Handling.ARR == 0 ? 10 : (int)(_gameData.RDasIter / _gameData.Handling.ARR);
 
-				_gameData.RDasIter -= _gameData.Handling.ARR * aboutARRValue;
+				_gameData.RDasIter -= _gameData.Handling.ARR * moveARRValue;
 			}
 
-			for (var index = 0; index < aboutARRValue; index++)
+			for (var ARRIndex = 0; ARRIndex < moveARRValue; ARRIndex++)
 			{
 				if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X + 1, _gameData.Falling.Y, _gameData.Falling.R, _gameData.Board))
 				{
@@ -1318,12 +1279,12 @@ namespace TetrioVirtualEnvironment
 					(_gameData.FallingRotations - ((int)_gameData.Options.LockResets + 15));
 			}
 
-			var r = subframeGravity;
+			double constSubFrameGravity = subframeGravity;
 
 			for (; subframeGravity > 0;)
 			{
 				var ceiledValue = Math.Ceiling(_gameData.Falling.Y);
-				if (!HardDrop(Math.Min(1, subframeGravity), r))
+				if (!HardDrop(Math.Min(1, subframeGravity), constSubFrameGravity))
 				{
 					if (value != null)
 						_gameData.Falling.ForceLock = true;
@@ -1346,31 +1307,31 @@ namespace TetrioVirtualEnvironment
 
 		private bool HardDrop(double value, double value2)
 		{
-			var fallingKouho = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) /
+			var yPos1 = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) /
 				Math.Pow(10, 13) + value;
 
-			if (fallingKouho % 1 == 0)
-				fallingKouho += 0.00001;
+			if (yPos1 % 1 == 0)
+				yPos1 += 0.00001;
 
-			var o = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) / Math.Pow(10, 13) + 1;
-			if (o % 1 == 0)
-				o -= 0.00002;
+			var yPos2 = Math.Floor(Math.Pow(10, 13) * _gameData.Falling.Y) / Math.Pow(10, 13) + 1;
+			if (yPos2 % 1 == 0)
+				yPos2 -= 0.00002;
 
-			if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, fallingKouho, _gameData.Falling.R, _gameData.Board) &&
-				IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, o, _gameData.Falling.R, _gameData.Board))
+			if (IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, yPos1, _gameData.Falling.R, _gameData.Board) &&
+				IsLegalAtPos(_gameData.Falling.Type, _gameData.Falling.X, yPos2, _gameData.Falling.R, _gameData.Board))
 			{
-				var s = _gameData.Falling.HighestY;
-				o = _gameData.Falling.Y;
+				var highestY = _gameData.Falling.HighestY;
+				yPos2 = _gameData.Falling.Y;
 
-				_gameData.Falling.Y = fallingKouho;
-				_gameData.Falling.HighestY = Math.Ceiling(Math.Max(_gameData.Falling.HighestY, fallingKouho));
+				_gameData.Falling.Y = yPos1;
+				_gameData.Falling.HighestY = Math.Ceiling(Math.Max(_gameData.Falling.HighestY, yPos1));
 				_gameData.Falling.Floored = false;
-				if (Math.Ceiling(fallingKouho) != Math.Ceiling(o))
+				if (Math.Ceiling(yPos1) != Math.Ceiling(yPos2))
 				{
 
 				}
 
-				if (fallingKouho > s || _gameData.Options.InfiniteMovement)
+				if (yPos1 > highestY || _gameData.Options.InfiniteMovement)
 					_gameData.Falling.LockResets = 0;
 				_gameData.FallingRotations = 0;
 
@@ -1402,10 +1363,10 @@ namespace TetrioVirtualEnvironment
 
 			}
 
-			var istspin = IsTspin();
+			var isTspin = IsTspin();
 			var clearedLineCount = ClearLines();
 
-			var announceLine = GetAttackPower(clearedLineCount, istspin);
+			var announceLine = GetAttackPower(clearedLineCount, isTspin);
 			IsBoardEmpty();
 
 			if (!announceLine)
@@ -1426,7 +1387,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-		public void Move(Action action)
+		public void UserInput(Action action)
 		{
 			switch (action)
 			{
@@ -1517,11 +1478,10 @@ namespace TetrioVirtualEnvironment
 		private int ClearLines()
 		{
 			List<int> list = new List<int>();
-			bool flag = true;
 
 			for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
 			{
-				flag = true;
+				bool flag = true;
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
 					if (_gameData.Board[x + y * 10] == (int)MinoKind.Empty)
@@ -1571,20 +1531,20 @@ namespace TetrioVirtualEnvironment
 			if (type == -1)
 				return 0;
 
-			int testy = 1;
+			int testY = 1;
 			while (true)
 			{
-				if (IsLegalAtPos(type, x, y + testy,
+				if (IsLegalAtPos(type, x, y + testY,
 				   r, _gameData.Board))
-					testy++;
+					testY++;
 				else
 				{
-					testy--;
+					testY--;
 					break;
 				}
 			}
 
-			return testy;
+			return testY;
 		}
 
 
@@ -1718,7 +1678,7 @@ namespace TetrioVirtualEnvironment
 			var cornerCount = 0;
 			var a = 0;
 
-			for (int n = 0; n < 4; n++)
+			for (int index = 0; index < 4; index++)
 			{
 				Vector2[][]? minoCorner = null;
 
@@ -1742,15 +1702,15 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 
-				if (!IsEmptyPos((int)(_gameData.Falling.X + minoCorner[_gameData.Falling.R][n].x),
-					(int)(_gameData.Falling.Y + minoCorner[_gameData.Falling.R][n].y), _gameData.Board))
+				if (!IsEmptyPos((int)(_gameData.Falling.X + minoCorner[_gameData.Falling.R][index].x),
+					(int)(_gameData.Falling.Y + minoCorner[_gameData.Falling.R][index].y), _gameData.Board))
 				{
 					cornerCount++;
 
 					//AdditinalTableは無理やり追加したものなのでx,yは関係ない
 					if (!(_gameData.Falling.Type != (int)MinoKind.T ||
-						(_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].x &&
-						_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][n].y)))
+						(_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][index].x &&
+						_gameData.Falling.R != ConstData.CORNER_ADDITIONAL_TABLE[_gameData.Falling.R][index].y)))
 						a++;
 				}
 
@@ -1772,33 +1732,7 @@ namespace TetrioVirtualEnvironment
 			return spinType;
 
 		}
-
-		private void ReceiveGarbage(int garbageX, int power)
-		{
-			for (int y = 0; y < FIELD_HEIGHT; y++)
-			{
-				for (int x = 0; x < FIELD_WIDTH; x++)
-				{
-					if (y + power >= FIELD_HEIGHT)
-						break;
-
-					_gameData.Board[x + (y) * 10] = _gameData.Board[x + (y + power) * 10];
-				}
-			}
-
-
-			for (int y = FIELD_HEIGHT - 1; y > FIELD_HEIGHT - 1 - power; y--)
-			{
-				for (int x = 0; x < FIELD_WIDTH; x++)
-				{
-					if (x == garbageX)
-						_gameData.Board[x + y * 10] = (int)MinoKind.Empty;
-					else
-						_gameData.Board[x + y * 10] = (int)MinoKind.Garbage;
-				}
-			}
-		}
-
+		
 		private bool GetAttackPower(int clearLineCount, string? isTspin)
 		{
 			var isBTB = false;
@@ -1894,7 +1828,6 @@ namespace TetrioVirtualEnvironment
 					var btb_bonus = ConstValue.Garbage.BACKTOBACK_BONUS *
 						(Math.Floor(1 + Math.Log((Stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
-					//  Debug.WriteLine(Username + " " + (Math.Floor(1 + Math.Log((Stats.BTB - 1) * DataGarbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3)));
 					garbageValue += btb_bonus;
 
 					if ((int)btb_bonus >= 2)
@@ -1953,7 +1886,7 @@ namespace TetrioVirtualEnvironment
 					return false;
 
 				case "none":
-					OffenceAA(totalPower);
+					Offence(totalPower);
 					return false;
 
 				default: throw new Exception();
@@ -1991,14 +1924,14 @@ namespace TetrioVirtualEnvironment
 				{
 					//PlaySound
 				}
-				OffenceAA(attackLine);
+				Offence(attackLine);
 
 
 			}
 
 		}
 
-		public void OffenceAA(int attackLine)
+		public void Offence(int attackLine)
 		{
 
 			attackLine = attackLine / Math.Max(1, 1);
@@ -2124,29 +2057,5 @@ namespace TetrioVirtualEnvironment
 			//PC
 			FightLines((int)(ConstValue.Garbage.ALL_CLEAR * _gameData.Options.GarbageMultiplier));
 		}
-
-		/// <summary>
-		/// Cancel received attack power.
-		/// </summary>
-		/// <param name="lines">Power</param>
-		//private void CancelAttack(int lines)
-		//{
-		//    while (Garbages.Count != 0 && lines != 0)
-		//    {
-		//        if (Garbages[0].Power <= lines)
-		//        {
-		//            lines -= Garbages[0].Power;
-		//            if (Garbages[0].ConfirmedFrame == -1)
-		//                _historyInteraction.Add(Garbages[0]);
-		//            Garbages.RemoveAt(0);
-		//        }
-		//        else
-		//        {
-		//            Garbages[0].Power -= lines;
-		//            lines = 0;
-		//        }
-		//    }
-
-		//}
 	}
 }
