@@ -240,15 +240,6 @@ namespace TetrioVirtualEnvironment
 		public string? Username { get; }
 
 		public List<int> GarbageIDs { get; internal set; }
-		/// <summary>
-		/// GarbageList
-		/// </summary>
-		public List<Garbage> Garbages { get; private set; }
-		/// <summary>
-		/// GarbageList for Garbage.GarbageKind.Attack
-		/// attak event maybe caused by lag?
-		/// </summary>
-		public List<Garbage> GarbagesInterrupt { get; private set; }
 		public GameData GameData => _gameData;
 		public Stats Stats { get; private set; }
 		/// <summary>
@@ -400,8 +391,6 @@ namespace TetrioVirtualEnvironment
 		{
 			IsDead = false;
 			GeneratedRngCount = 0;
-			Garbages = new List<Garbage>();
-			GarbagesInterrupt = new List<Garbage>();
 			GarbageIDs = new List<int>();
 			CurrentFrame = 0;
 			CurrentIndex = 0;
@@ -2003,6 +1992,8 @@ namespace TetrioVirtualEnvironment
 			GameData.ImpendingDamages.AddRange(iArray.ToArray());
 
 		}
+
+
 
 		private bool PushGarbageLine(int line, bool falseValue = false, int whatIsThis = 68)
 		{

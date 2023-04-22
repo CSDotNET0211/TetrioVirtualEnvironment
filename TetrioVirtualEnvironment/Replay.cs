@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using TetrReplayLoader;
 using TetrReplayLoader.JsonClass.Event;
-using static TetrReplayLoader.TetrLoader;
+using static TetrReplayLoader.ReplayLoader;
 
 namespace TetrioVirtualEnvironment
 {
@@ -84,7 +84,7 @@ namespace TetrioVirtualEnvironment
 			}
 
 			ReplayStatus = ReplayStatusKind.Playing;
-			TotalGameFramesAtLoadedGame = GetGameTotalFrames(ReplayData, ReplayKind, replayIndex);
+			TotalGameFramesAtLoadedGame = ReplayLoader.GetGameTotalFrames(ReplayData, ReplayKind, replayIndex);
 		}
 
 		/// <summary>

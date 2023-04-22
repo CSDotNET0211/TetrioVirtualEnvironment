@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\TetrReplayLoader\TetrLoader.csproj" />
 		<ProjectReference Include="..\TetrReplayLoader\TetrReplayLoader.csproj" />
 	</ItemGroup>
 

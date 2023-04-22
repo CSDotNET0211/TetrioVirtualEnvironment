@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrReplayLoader.JsonClass;
 
 namespace TetrioVirtualEnvironment
 {
@@ -17,20 +18,20 @@ namespace TetrioVirtualEnvironment
 			Garbages = null;
 		}
 
-		public DataForInitialize(int[] field, int hold, int current, int[] next, int[]? garbages)
+		public DataForInitialize(int[] field, int hold, int current, int[] next, IgeData[]? garbages)
 		{
 			Field = field;
 			Hold = hold;
 			Current = current;
 			Next = next;
-			Garbages = garbages;
+			Garbages = new List<IgeData>(garbages);
 		}
 
 		public int[]? Field { get; }
 		public int? Hold { get; }
 		public int? Current { get; }
 		public int[]? Next { get; }
-		public int[]? Garbages { get; }
+		public List<IgeData?> Garbages { get; }
 
 	}
 }

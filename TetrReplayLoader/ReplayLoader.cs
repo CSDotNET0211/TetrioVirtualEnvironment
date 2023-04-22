@@ -5,7 +5,7 @@ using TetrReplayLoader.JsonClass.Event;
 namespace TetrReplayLoader
 {
 
-	public class TetrLoader
+	public class ReplayLoader
 	{
 		/// <summary>
 		/// 

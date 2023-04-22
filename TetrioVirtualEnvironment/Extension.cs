@@ -3,41 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrReplayLoader.JsonClass;
 
 namespace TetrioVirtualEnvironment
 {
 	public static class Extension
-    {
-        internal static int CountCanReceive(this List<Garbage> garbages)
-        {
-            int count = 0;
-            foreach (var garbage in garbages)
-            {
-                if (garbage.State == Garbage.GarbageKind.Ready)
-                {
-                    count++;
-                }
-            }
+	{
+		public static int[] GetGarbagesAsArray(this List<IgeData?> env)
+		{
+			List<int> garbagesArray = new List<int>();
 
-            return count;
-        }
-        public static (int NotConfirmed, int Confirmed,int Ready) GarbageCount(this List<Garbage> garbages)
-        {
-            int count = 0;
-            int countConfirmed = 0;
-            int countReady = 0;
-            foreach (var garbage in garbages)
-            {
-                if (garbage.State == Garbage.GarbageKind.Interaction)
-                    count += garbage.Power;
-                else if(garbage.State == Garbage.GarbageKind.InteractionConfirm)
-                    countConfirmed += garbage.Power;
-                else
-                    countReady+= garbage.Power;
-            }
+			foreach (var garbage in env)
+			{
+				var temp = 1;
 
-            return (count,countConfirmed,countReady);
-        }
+				if (garbage.active)
+					temp *= 1;
+				else
+					temp *= 0;
 
-    }
+				temp += garbage.data.column * 10;
+
+				temp += garbage.data.amt * 100;
+
+
+			}
+			return garbagesArray.ToArray();
+		}
+
+		public static IgeData?[] Clone(this IgeData?[] env)
+		{
+			List<IgeData?> garbagesList = new();
+
+			foreach (var garbage in env)
+			{
+				garbagesList.Add(garbage.Clone());
+			}
+
+			return garbagesList.ToArray();
+		}
+
+		public static List<IgeData?> Clone(this List<IgeData?> env)
+		{
+			List<IgeData?> garbagesList = new();
+
+			foreach (var garbage in env)
+			{
+				garbagesList.Add(garbage.Clone());
+			}
+
+			return garbagesList;
+		}
+	}
 }

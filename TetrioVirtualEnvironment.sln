@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetrioVirtualEnvironment", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{A279E442-8DD3-4BB9-AFBA-CB172B285532}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetrReplayLoader", "TetrReplayLoader\TetrReplayLoader.csproj", "{3891F183-54D8-46F0-A7A5-EE932300A491}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetrLoader", "TetrReplayLoader\TetrLoader.csproj", "{3891F183-54D8-46F0-A7A5-EE932300A491}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
