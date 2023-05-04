@@ -80,12 +80,12 @@ while (true)
 
     Print(replay);
     //Step by step
-    var input = Console.ReadLine();
-    if (input != "")
-    {
-        Console.Clear();
-        replay.JumpFrame(int.Parse(input));
-    }
+    //var input = Console.ReadLine();
+    //if (input != "")
+    //{
+    //    Console.Clear();
+    //    replay.JumpFrame(int.Parse(input));
+    //}
 
     nextFrame += period;
 }

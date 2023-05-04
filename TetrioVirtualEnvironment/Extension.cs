@@ -24,9 +24,9 @@ namespace TetrioVirtualEnvironment
 
 				temp += garbage.data.column * 10;
 
-				temp += garbage.data.amt * 100;
+				temp += garbage.lines * 100;
 
-
+				garbagesArray.Add(temp);
 			}
 			return garbagesArray.ToArray();
 		}

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment;
+using TetrioVirtualEnvironment.System;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
@@ -105,7 +106,8 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board))
+			if (!JudgeSystem.IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
+				(!GameDataInstance.Options.NoLockout && HighestYisOver20()))
 			{
 				EnvironmentInstance.IsDead = true;
 				Debug.WriteLine("dead");
@@ -113,10 +115,22 @@ namespace TetrioVirtualEnvironment
 
 
 			EnvironmentInstance.CallOnPieceCreated();
-
-
-
 		}
+
+		public bool HighestYisOver20()
+		{
+			var positions = ConstData.TETRIMINOS_SHAPES[Type][R];
+			var diff = ConstData.TETRIMINO_DIFFS[Type];
+
+			foreach (var position in positions)
+			{
+				if (position.y + Y - diff.y > 20)
+					return true;
+			}
+
+			return false;
+		}
+
 
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
