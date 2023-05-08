@@ -1,7 +1,12 @@
 ﻿
 namespace TetrReplayLoader.JsonClass.Event
 {
-	public class EventFullOptions
+	public class EventFullOptions:Event
+	{
+		public EventFullGameData? data { get; set; } = null;
+	}
+
+	public class EventFullOptionsData
 	{
 		public int version { get; set; }
 		public bool? seed_random { get; set; } = null;

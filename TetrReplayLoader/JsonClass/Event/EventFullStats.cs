@@ -1,6 +1,12 @@
 ﻿namespace TetrReplayLoader.JsonClass.Event
 {
-    public class EventFullStats
+	public class EventFullStats : Event
+	{
+		public EventFullStats? data { get; set; } = null;
+
+	}
+
+	public class EventFullStatsData
     {
         public double? seed { get; set; }
         public int? lines { get; set; }

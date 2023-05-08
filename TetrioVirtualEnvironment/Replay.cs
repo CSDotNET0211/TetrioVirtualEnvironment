@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using TetrLoader;
 using TetrReplayLoader;
 using TetrReplayLoader.JsonClass.Event;
 using static TetrReplayLoader.ReplayLoader;
@@ -14,6 +15,8 @@ namespace TetrioVirtualEnvironment
 
 		private ReplayStatusKind _replayStatus;
 		public event EventHandler? ReplayStatusChanged;
+		private List<List<Event>>? _events = null;
+
 		public ReplayStatusKind ReplayStatus
 		{
 			get => _replayStatus;
@@ -40,7 +43,7 @@ namespace TetrioVirtualEnvironment
 
 		}
 		public int TotalGameFramesAtLoadedGame { get; private set; }
-		public object ReplayData { get; }
+		public IReplayData ReplayData { get; }
 
 		public Replay(string jsondata)
 		{
@@ -49,6 +52,8 @@ namespace TetrioVirtualEnvironment
 
 			ReplayData = ParseReplay(jsondata, ReplayKind);
 			ReplayStatus = ReplayStatusKind.Initialized;
+
+
 		}
 
 		/// <summary>
@@ -60,31 +65,34 @@ namespace TetrioVirtualEnvironment
 		{
 			ReplayIndex = replayIndex;
 			Environments.Clear();
+			_events = new List<List<Event>>();
 
-			var playerCount = GetPlayerCount(ReplayData, ReplayKind);
+			var playerCount = ReplayData.GetPlayerCount();
 
 			if (playerCount > 2)
 				throw new Exception("more than 3 players are not supported.");
 
 			for (int playerIndex = 0; playerIndex < playerCount; playerIndex++)
 			{
-				var events = GetReplayEvents(ReplayData, ReplayKind, playerIndex, ReplayIndex);
-				string? fullEventRawString = (from e in events where e.type == "full" select e.data.ToString()).FirstOrDefault();
+				_events.Add(ReplayData.GetReplayEvents(playerIndex, ReplayIndex));
 
-				if (fullEventRawString == null)
-					throw new Exception("Failed to load the game event 'full'");
+				EventFull? fullEvent = null;
 
-				var fullEvent = JsonSerializer.Deserialize<EventFull>(fullEventRawString);
+				foreach (var @event in _events[_events.Count - 1])
+				{
+					if (@event.type == "full")
+					{
+						fullEvent = @event as EventFull;
+						break;
+					}
+				}
 
-				if (fullEvent == null)
-					throw new Exception("Failed to convert the game event 'full'");
-
-				Environments.Add(new Environment(fullEvent, Environment.NextGenerateKind.Seed, fullEvent.options?.username));
-
+				Environments.Add(new Environment(fullEvent.data, Environment.NextGenerateKind.Seed, fullEvent.data.options?.username));
+				ReplayData.GetReplayEvents(playerIndex, ReplayIndex);
 			}
 
 			ReplayStatus = ReplayStatusKind.Playing;
-			TotalGameFramesAtLoadedGame = ReplayLoader.GetGameTotalFrames(ReplayData, ReplayKind, replayIndex);
+			TotalGameFramesAtLoadedGame = ReplayData.GetGameTotalFrames(replayIndex);
 		}
 
 		/// <summary>
@@ -119,20 +127,17 @@ namespace TetrioVirtualEnvironment
 		/// <returns></returns>
 		public bool Update()
 		{
-			int updateTime = 1;
 
-			for (int i = 0; i < updateTime; i++)
+			for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
 			{
-				for (int playerIndex = 0; playerIndex < Environments.Count; playerIndex++)
-				{
-					var gameUpdateSuccess = Environments[playerIndex].Update(GetReplayEvents(ReplayData, ReplayKind, playerIndex, ReplayIndex));
-					if (gameUpdateSuccess) continue;
-					//update failed because of game ended.
-					//I should be the State ended.
-					ReplayStatus = ReplayStatusKind.Loaded;
-					return false;
+				var gameUpdateSuccess = Environments[playerIndex].Update(_events[playerIndex]);
+				if (gameUpdateSuccess) continue;
+				//update failed because of game ended.
+				//I should be the State ended.
+				ReplayStatus = ReplayStatusKind.Loaded;
+				return false;
 
-				}
+
 			}
 
 			return true;

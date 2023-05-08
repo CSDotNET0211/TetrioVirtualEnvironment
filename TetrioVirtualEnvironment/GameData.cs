@@ -18,7 +18,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <exception cref="Exception"></exception>
-		public void Init(NextGenerateKind envMode, EventFull eventFull, ClassManager classManager,
+		public void Init(NextGenerateKind envMode, EventFullData eventFull, ClassManager classManager,
 			int nextSkipCount, DataForInitialize dataForInitialize)
 		{
 
@@ -60,7 +60,7 @@ namespace TetrioVirtualEnvironment
 				Falling.Init(null, false, classManager.Environment.NextGenerateMode);
 		}
 
-		private void InitHandling(EventFull eventFull)
+		private void InitHandling(EventFullData eventFull)
 		{
 			if (eventFull.game == null)
 				Handling = new PlayerOptions((double)eventFull.options?.handling.arr,
@@ -73,7 +73,7 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void InitWithInitializer(NextGenerateKind envMode, in DataForInitialize data, EventFull initGameData, int nextSkipCount, ClassManager classManager)
+		private void InitWithInitializer(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, ClassManager classManager)
 		{
 
 			if (data.Board == null)

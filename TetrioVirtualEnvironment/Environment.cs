@@ -298,7 +298,7 @@ namespace TetrioVirtualEnvironment
 		/// event data of 'full'.use it for reset the game.
 		/// full event is first event after game started existing in ttr/ttrm.
 		/// </summary>
-		internal EventFull EventFull { get; }
+		internal EventFullData EventFull { get; }
 		/// <summary>
 		/// initialize game data. it is used in NextGenerateKind is Array.
 		/// 
@@ -361,7 +361,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="username"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		public Environment(EventFull envData, NextGenerateKind envMode, string? username, DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
+		public Environment(EventFullData envData, NextGenerateKind envMode, string? username, DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
 		{
 			ClassManager = new ClassManager
 			{
@@ -389,7 +389,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="envMode"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		internal void ResetGame(EventFull envData, NextGenerateKind envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
+		internal void ResetGame(EventFullData envData, NextGenerateKind envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
 		{
 			IsDead = false;
 			GeneratedRngCount = 0;
@@ -430,7 +430,7 @@ namespace TetrioVirtualEnvironment
 
 
 
-		public void KeyInput(string type, EventKeyInput @event)
+		public void KeyInput(string type, EventKeyInputData @event)
 		{
 			if (type == "keydown")
 			{
@@ -629,93 +629,92 @@ namespace TetrioVirtualEnvironment
 
 						case "keydown":
 						case "keyup":
-							var inputEvent = JsonSerializer.Deserialize<EventKeyInput>(events[CurrentIndex].data.ToString());
+							var inputEvent = events[CurrentIndex] as EventKeyInput;
 
 							if (inputEvent == null)
 								throw new Exception("inputEvent is null.");
 
-							if (events[CurrentIndex].type == "keydown")
+							if (inputEvent.type == "keydown")
 							{
-								PressedKeyList.Add(inputEvent.key);
+								PressedKeyList.Add(inputEvent.data.key);
 							}
 							else
 							{
-								PressedKeyList.Remove(inputEvent.key);
+								PressedKeyList.Remove(inputEvent.data.key);
 							}
 
-							KeyInput(events[CurrentIndex].type, inputEvent);
+							KeyInput(inputEvent.type, inputEvent.data);
 
 							break;
 
 
 						case "targets":
-							var targets = JsonSerializer.Deserialize<EventTargets>(events[CurrentIndex].data.ToString());
-							for (int i = 0; i < targets.data.Count; i++)
-								targets.data[i] = targets.data[i].Substring(0, 24);
+							var targets = events[CurrentIndex] as EventTargets;
+							for (int i = 0; i < targets.data.data.Count; i++)
+								targets.data.data[i] = targets.data.data[i].Substring(0, 24);
 
-							GameData.Targets = targets.data;
+							GameData.Targets = targets.data.data;
 
 							break;
 
 						case "ige":
-							var igeStr = events[CurrentIndex].data.ToString();
-							var garbageEvent = JsonSerializer.Deserialize<EventIge>(igeStr);
+							var garbageEvent = events[CurrentIndex] as EventIge;
 
 
-							if (events[CurrentIndex].id != null)
+							if (garbageEvent.id != null)
 								Console.WriteLine("予期せぬEvent状態をしています。正常にリプレイが再生されない可能性があります。");
 
 
-							if (GarbageIDs.Contains((int)garbageEvent.id))
+							if (GarbageIDs.Contains((int)garbageEvent.data.id))
 								break;
 
-							GarbageIDs.Add((int)garbageEvent.id);
+							GarbageIDs.Add((int)garbageEvent.data.id);
 
-							if (garbageEvent.data.type == "attack")
+							if (garbageEvent.data.data.type == "attack")
 							{
 								IncomingAttack(new GarbageData()
 								{
 									type = "garbage",
-									amt = garbageEvent.data.lines,
-									column = garbageEvent.data.column,
+									amt = garbageEvent.data.data.lines,
+									column = garbageEvent.data.data.column,
 									x = -1,
 									y = -1,
-								}, garbageEvent.data.sender, garbageEvent.data.cid.ToString());
+								}, garbageEvent.data.data.sender, garbageEvent.data.data.cid.ToString());
 							}
 
-							if (garbageEvent.data.type == "interaction")
+							if (garbageEvent.data.data.type == "interaction")
 							{
-								switch (garbageEvent.data.data.type)
+								switch (garbageEvent.data.data.data.type)
 								{
 									case "garbage":
 										string? idValue;
 										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.sender_id != null ? garbageEvent.data.sender_id.Substring(0, 24) : null;
+											idValue = garbageEvent.data.data.sender_id != null ? garbageEvent.data.data.sender_id.Substring(0, 24) : null;
 										else
-											idValue = garbageEvent.data.sender_id;
-										StartingAttack(garbageEvent.data.data, garbageEvent.data.sender, idValue, garbageEvent.data.cid);
+											idValue = garbageEvent.data.data.sender_id;
+										StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender, idValue, garbageEvent.data.data.cid);
 
 										break;
 								}
 							}
 
-							if (garbageEvent.data.type == "interaction_confirm")
+							if (garbageEvent.data.data.type == "interaction_confirm")
 							{
-								switch (garbageEvent.data.data.type)
+								switch (garbageEvent.data.data.data.type)
 								{
 									case "garbage":
 										string idValue;
 										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.sender_id != null ? garbageEvent.data.sender_id.Substring(0, 24) : null;
+											idValue = garbageEvent.data.data.sender_id != null ? garbageEvent.data.data.sender_id.Substring(0, 24) : null;
 										else
-											idValue = garbageEvent.data.sender_id;
+											idValue = garbageEvent.data.data.sender_id;
 
-										IncomingAttack(garbageEvent.data.data, garbageEvent.data.sender, idValue, garbageEvent.data.cid);
+										IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender, idValue, garbageEvent.data.data.cid);
 										break;
 								}
 							}
 
-							if (garbageEvent.data.type == "kev")
+							if (garbageEvent.data.data.type == "kev")
 							{
 
 							}

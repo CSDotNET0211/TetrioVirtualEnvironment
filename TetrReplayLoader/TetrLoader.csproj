@@ -13,4 +13,8 @@
     <PackageProjectUrl>https://github.com/CSDotNET0211/TetrioVirtualEnvironment</PackageProjectUrl>
   </PropertyGroup>
 
+	<ItemGroup>
+	  <Folder Include="JsonClass\Event\Full\" />
+	</ItemGroup>
+
 </Project>

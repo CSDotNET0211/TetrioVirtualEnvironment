@@ -5,7 +5,7 @@ namespace TetrioVirtualEnvironment
 {
 	public class Options
 	{
-		public Options(EventFullOptions options)
+		public Options(EventFullOptionsData options)
 		{
 			GarbageCapMax = options.garbagecapmax ?? 40;
 			Version = (int)options.version;

@@ -20,13 +20,13 @@ Select:;
 if (ReplayLoader.IsMulti(rawJson))
 {
     Console.WriteLine("detected TTRM");
-    var replayCount = ReplayLoader.GetReplayCount(replay.ReplayData, replay.ReplayKind);
+    var replayCount = replay.ReplayData.GetReplayCount();
 
     Console.WriteLine(replayCount + "Games Found.");
     for (int i = 0; i < replayCount; i++)
     {
-        var stats1 = ReplayLoader.GetReplayStats(replay.ReplayData, replay.ReplayKind, 0, i);
-        var stats2 = ReplayLoader.GetReplayStats(replay.ReplayData, replay.ReplayKind, 1, i);
+        var stats1 = replay.ReplayData.GetReplayStats(0, i);
+        var stats2 = replay.ReplayData.GetReplayStats(1, i);
 
         Console.WriteLine($"{i}	{stats1.PPS:F}PPS {stats1.APM:F}APM {stats1.VS:F}VS" + "	/ " +
                           $"{stats2.PPS:F}PPS {stats2.APM:F}APM {stats2.VS:F}VS");
