@@ -90,9 +90,6 @@ namespace TetrioVirtualEnvironment
 			{
 				Next = new Queue<MinoKind?>();
 
-				//			if (envMode == NextGenerateKind.Array && initData.Current != null)
-				//			Next.Enqueue(initData.Current);
-
 				if (mode == NextGenerateKind.Array)
 				{
 					foreach (var next in initData.Next)
@@ -122,7 +119,7 @@ namespace TetrioVirtualEnvironment
 			}
 
 			InitBoard(data);
-			InitNext(data,envMode);
+			InitNext(data, envMode);
 
 
 			if (data.Hold != null && data.Hold != null)

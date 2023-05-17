@@ -19,20 +19,20 @@ namespace TetrioVirtualEnvironment
 			Garbages = null;
 		}
 
-		public DataForInitialize(MinoKind[] board, MinoKind hold, MinoKind current, MinoKind[] next, IgeData[]? garbages)
+		public DataForInitialize(MinoKind[] board, MinoKind hold, MinoKind current, MinoKind[] next, IgeData[] garbages)
 		{
 			Board = board;
 			Hold = hold;
 			Current = current;
 			Next = next;
-			Garbages = new List<IgeData>(garbages);
+			Garbages = new List<IgeData?>(garbages);
 		}
 
 		public MinoKind[]? Board { get; }
 		public MinoKind? Hold { get; }
 		public MinoKind? Current { get; }
 		public MinoKind[]? Next { get; }
-		public List<IgeData?> Garbages { get; }
+		public List<IgeData?>? Garbages { get; }
 
 	}
 }

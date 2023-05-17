@@ -632,15 +632,6 @@ namespace TetrioVirtualEnvironment
 							if (inputEvent == null)
 								throw new Exception("inputEvent is null.");
 
-							if (inputEvent.type == "keydown")
-							{
-								PressedKeyList.Add(inputEvent.data.key);
-							}
-							else
-							{
-								PressedKeyList.Remove(inputEvent.data.key);
-							}
-
 							KeyInput(inputEvent.type, inputEvent.data);
 
 							break;
