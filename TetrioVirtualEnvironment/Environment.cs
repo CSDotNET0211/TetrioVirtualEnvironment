@@ -1277,7 +1277,12 @@ namespace TetrioVirtualEnvironment
 		internal int RefreshNext(List<int> next, bool noszo)
 		{
 			GeneratedRngCount++;
-			var value = next[0];
+
+			int newType;
+			if (nextQueue.Count > 0)
+				newType = nextQueue.Dequeue();
+			else
+				newType = (int)MinoKind.None;
 
 			for (int i = 0; i < next.Count - 1; i++)
 			{
