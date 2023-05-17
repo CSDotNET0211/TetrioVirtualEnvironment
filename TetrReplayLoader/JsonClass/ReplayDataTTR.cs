@@ -1,7 +1,5 @@
 ﻿
-using System.Text.Json;
 using TetrLoader;
-using TetrReplayLoader.JsonClass.Event;
 
 namespace TetrReplayLoader.JsonClass
 {
@@ -23,7 +21,7 @@ namespace TetrReplayLoader.JsonClass
 		/// <summary>
 		/// 試合ごとのデータ群
 		/// </summary>
-		public ReplayEvent? data { get; set; } = null;
+		public  ReplayEvent? data { get; set; } = null;
 		public string? back { get; set; } = null;
 
 		public int GetGameTotalFrames(int replayIndex)
@@ -36,84 +34,7 @@ namespace TetrReplayLoader.JsonClass
 			=> 1;
 
 		public List<Event.Event>? GetReplayEvents(int playerIndex, int replayIndex)
-		{
-			var rawEvent = data?.events;
-			List<Event.Event> events = new List<Event.Event>();
-
-			foreach (var @event in rawEvent)
-			{
-				switch (@event.type)
-				{
-					case "start":
-						events.Add(@event);
-						break;
-
-					case "end":
-						events.Add(new EventEnd()
-						{
-							data = JsonSerializer.Deserialize<EventEndData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
-						break;
-
-					case "full":
-						events.Add(new EventFull()
-						{
-							data = JsonSerializer.Deserialize<EventFullData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
-						break;
-
-					case "keydown":
-					case "keyup":
-						events.Add(new EventKeyInput()
-						{
-							data = JsonSerializer.Deserialize<EventKeyInputData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
-						break;
-
-					case "targets":
-						events.Add(new EventTargets()
-						{
-							data = JsonSerializer.Deserialize<EventTargetsData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
-						break;
-
-					case "ige":
-						events.Add(new EventIge()
-						{
-							data = JsonSerializer.Deserialize<EventIgeData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
-						break;
-
-					default:
-						events.Add(@event);
-						break;
-
-				}
-			}
-
-			return events;
-
-
-
-
-
-
-		}
+		=> data?.events;
 
 		public Stats GetReplayStats(int playerIndex, int replayIndex)
 			=> new Stats()
