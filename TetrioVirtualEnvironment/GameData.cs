@@ -46,10 +46,6 @@ namespace TetrioVirtualEnvironment
 			SpinBonuses = eventFull.options.spinbonuses;
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
-
-			if (eventFull.options?.seed == null)
-				throw new Exception("seed is null");
-
 			classManager.Environment.Rng.Init(eventFull.options.seed);
 
 			InitWithInitializer(envMode, dataForInitialize, eventFull, nextSkipCount, classManager);
@@ -76,53 +72,58 @@ namespace TetrioVirtualEnvironment
 		private void InitWithInitializer(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, ClassManager classManager)
 		{
 
-			if (data.Board == null)
+			void InitBoard(DataForInitialize initData)
 			{
-				Board = new MinoKind?[FIELD_SIZE];
-				Array.Fill(Board, null);
-			}
-			else
-			{
-				Board = (MinoKind?[])data.Board.Clone();
-			}
-
-
-			if (envMode == NextGenerateKind.Array && data.Current !=null)
-				Next.Enqueue(data.Current);
-
-			if (data.Next != null)
-			{
-				foreach (var next in data.Next)
-					Next.Enqueue(next);
-			}
-			else
-			{
-				if (envMode == NextGenerateKind.Array)
+				if (initData.Board == null)
 				{
-					if (data.Current != null)
-						Next.Enqueue(data.Current);
+					Board = new MinoKind?[FIELD_SIZE];
+					Array.Fill(Board, null);
 				}
-				else if (envMode == NextGenerateKind.Seed)
+				else
+				{
+					Board = (MinoKind?[])initData.Board.Clone();
+				}
+
+			}
+
+			void InitNext(DataForInitialize initData, NextGenerateKind mode)
+			{
+				Next = new Queue<MinoKind?>();
+
+				//			if (envMode == NextGenerateKind.Array && initData.Current != null)
+				//			Next.Enqueue(initData.Current);
+
+				if (mode == NextGenerateKind.Array)
+				{
+					foreach (var next in initData.Next)
+						Next.Enqueue(next);
+				}
+				else if (mode == NextGenerateKind.Seed)
 				{
 					if (initGameData.options?.nextcount == null)
-						throw new Exception("nextCount is null");
+						throw new Exception("nextCount is undefined");
 
-					Next = new Queue<MinoKind?>();
+					if (initGameData.options?.nextcount < 1)
+						Console.WriteLine("nextCount is less than 1. This replay may not play properly.");
 
 					for (int nextInitIndex = 0; nextInitIndex < (int)initGameData.options?.nextcount; nextInitIndex++)
 						Next.Enqueue(null);
 
 					classManager.Environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
 
-					for (int i = 0; i < Next.Count-1; i++)
+					//初回生成はszoフラグを考慮して上で先行して行っているため、一通り生成したものを循環させるには本来の数-1する
+					for (int i = 0; i < Next.Count - 1; i++)
 						classManager.Environment.RefreshNext(Next, false);
 
-
-
+					//ネクストの乱数を指定した位置まで回してシフトさせる
 					while (nextSkipCount > classManager.Environment.GeneratedRngCount)
 						classManager.Environment.RefreshNext(Next, false);
 				}
 			}
+
+			InitBoard(data);
+			InitNext(data,envMode);
+
 
 			if (data.Hold != null && data.Hold != null)
 				Hold = data.Hold;
