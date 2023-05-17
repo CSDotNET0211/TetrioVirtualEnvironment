@@ -48,7 +48,7 @@ namespace TetrioVirtualEnvironment
 
 			classManager.Environment.Rng.Init(eventFull.options.seed);
 
-			InitWithInitializer(envMode, dataForInitialize, eventFull, nextSkipCount, classManager);
+			Initialize(envMode, dataForInitialize, eventFull, nextSkipCount, classManager);
 
 			InitHandling(eventFull);
 
@@ -69,7 +69,7 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void InitWithInitializer(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, ClassManager classManager)
+		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, ClassManager classManager)
 		{
 
 			void InitBoard(DataForInitialize initData)
