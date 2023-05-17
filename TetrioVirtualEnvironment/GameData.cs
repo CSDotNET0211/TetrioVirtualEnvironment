@@ -22,7 +22,7 @@ namespace TetrioVirtualEnvironment
 			int nextSkipCount, DataForInitialize dataForInitialize)
 		{
 
-			Next = new List<int>();
+			Next = new Queue<int>();
 			Hold = null;
 			ImpendingDamages = new List<IgeData?>();
 			NextBag = new List<int>();
@@ -88,29 +88,33 @@ namespace TetrioVirtualEnvironment
 
 
 			if (envMode == NextGenerateKind.Array && data.Current != (int)MinoKind.Empty)
-				Next.Add((int)data.Current);
+				Next.Enqueue((int)data.Current);
 
 			if (data.Next != null)
 			{
-				Next.AddRange(data.Next);
+				foreach (var next in data.Next)
+					Next.Enqueue(next);
 			}
 			else
 			{
 				if (envMode == NextGenerateKind.Array)
 				{
 					if (data.Current != (int)MinoKind.Empty)
-						Next.Add((int)data.Current);
+						Next.Enqueue((int)data.Current);
 				}
 				else if (envMode == NextGenerateKind.Seed)
 				{
 					if (initGameData.options?.nextcount == null)
 						throw new Exception("nextCount is null");
 
-					Next = new List<int>(new int[(int)initGameData.options?.nextcount]);
+					Next = new Queue<int>();
+
+					for (int nextInitIndex = 0; nextInitIndex < (int)initGameData.options?.nextcount; nextInitIndex++)
+						Next.Enqueue((int)MinoKind.None);
 
 					classManager.Environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
 
-					for (int i = 0; i < Next.Count - 1; i++)
+					for (int i = 0; i < Next.Count-1; i++)
 						classManager.Environment.RefreshNext(Next, false);
 
 
@@ -131,7 +135,7 @@ namespace TetrioVirtualEnvironment
 		public string? SpinBonuses { get; private set; }
 		public int[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }
-		public List<int> Next { get; private set; }
+		public Queue<int> Next { get; private set; }
 		public List<int> NextBag { get; private set; }
 		public Options Options { get; private set; }
 		public double SubFrame { get; internal set; }

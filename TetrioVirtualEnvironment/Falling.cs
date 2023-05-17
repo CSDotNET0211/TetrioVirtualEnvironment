@@ -55,8 +55,7 @@ namespace TetrioVirtualEnvironment
 				{
 					if (EnvironmentInstance.GameData.Next.Count != 0)
 					{
-						Type = EnvironmentInstance.GameData.Next[0];
-						EnvironmentInstance.GameData.Next.RemoveAt(0);
+						Type = EnvironmentInstance.GameData.Next.Dequeue();
 					}
 					else
 					{

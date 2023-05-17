@@ -1274,20 +1274,13 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		internal int RefreshNext(List<int> next, bool noszo)
+		internal int RefreshNext(Queue<int> nextQueue, bool noszo)
 		{
 			GeneratedRngCount++;
 
 			int newType;
-			if (nextQueue.Count > 0)
 				newType = nextQueue.Dequeue();
-			else
-				newType = (int)MinoKind.None;
 
-			for (int i = 0; i < next.Count - 1; i++)
-			{
-				next[i] = next[i + 1];
-			}
 
 			if (ClassManager.GameData.NextBag.Count == 0)
 			{
@@ -1318,9 +1311,9 @@ namespace TetrioVirtualEnvironment
 			}
 
 
-			next[^1] = ClassManager.GameData.NextBag[0];
+			nextQueue.Enqueue(ClassManager.GameData.NextBag[0]);
 			ClassManager.GameData.NextBag.RemoveAt(0);
-			return value;
+			return newType;
 		}
 
 		private void SwapHold()
