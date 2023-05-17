@@ -51,7 +51,7 @@ namespace TetrioVirtualEnvironment.System
 			if (rotation == 1 && nowminoRotation == 3)
 				lastRotation = "horizontal";
 
-			if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type,
+			if (JudgeSystem.IsLegalAtPos((MinoKind)gameData.Falling.Type,
 				gameData.Falling.X - gameData.Falling.Aox,
 				gameData.Falling.Y - gameData.Falling.Aoy, rotation,
 				gameData.Board))
@@ -84,12 +84,12 @@ namespace TetrioVirtualEnvironment.System
 				return;
 			}
 
-			if (gameData.Falling.Type == (int)MinoKind.O)
+			if (gameData.Falling.Type == MinoKind.O)
 				return;
 
 			var kicktable = Environment.ConstData.KICKSET_SRSPLUS[nowminoNewminoRotation];
 
-			if (gameData.Falling.Type == (int)MinoKind.I)
+			if (gameData.Falling.Type == MinoKind.I)
 				kicktable = Environment.ConstData.KICKSET_SRSPLUSI[nowminoNewminoRotation];
 
 			for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
@@ -105,7 +105,7 @@ namespace TetrioVirtualEnvironment.System
 					newMinoYPos = gameData.Falling.Y + kicktableTest.y - gameData.Falling.Aoy;
 				}
 
-				if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type,
+				if (JudgeSystem.IsLegalAtPos((MinoKind)gameData.Falling.Type,
 					gameData.Falling.X + (int)kicktableTest.x - gameData.Falling.Aox,
 					newMinoYPos, rotation, gameData.Board))
 				{

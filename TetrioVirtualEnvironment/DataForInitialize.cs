@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TetrReplayLoader.JsonClass;
+using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -18,7 +19,7 @@ namespace TetrioVirtualEnvironment
 			Garbages = null;
 		}
 
-		public DataForInitialize(int[] board, int hold, int current, int[] next, IgeData[]? garbages)
+		public DataForInitialize(MinoKind[] board, MinoKind hold, MinoKind current, MinoKind[] next, IgeData[]? garbages)
 		{
 			Board = board;
 			Hold = hold;
@@ -27,10 +28,10 @@ namespace TetrioVirtualEnvironment
 			Garbages = new List<IgeData>(garbages);
 		}
 
-		public int[]? Board { get; }
-		public int? Hold { get; }
-		public int? Current { get; }
-		public int[]? Next { get; }
+		public MinoKind[]? Board { get; }
+		public MinoKind? Hold { get; }
+		public MinoKind? Current { get; }
+		public MinoKind[]? Next { get; }
 		public List<IgeData?> Garbages { get; }
 
 	}

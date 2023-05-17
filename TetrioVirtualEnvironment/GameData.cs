@@ -22,7 +22,7 @@ namespace TetrioVirtualEnvironment
 			int nextSkipCount, DataForInitialize dataForInitialize)
 		{
 
-			Next = new Queue<int>();
+			Next = new Queue<MinoKind?>();
 			Hold = null;
 			ImpendingDamages = new List<IgeData?>();
 			NextBag = new List<int>();
@@ -78,17 +78,17 @@ namespace TetrioVirtualEnvironment
 
 			if (data.Board == null)
 			{
-				Board = new int[FIELD_SIZE];
-				Array.Fill(Board, (int)MinoKind.Empty);
+				Board = new MinoKind?[FIELD_SIZE];
+				Array.Fill(Board, null);
 			}
 			else
 			{
-				Board = (int[]?)data.Board.Clone();
+				Board = (MinoKind?[])data.Board.Clone();
 			}
 
 
-			if (envMode == NextGenerateKind.Array && data.Current != (int)MinoKind.Empty)
-				Next.Enqueue((int)data.Current);
+			if (envMode == NextGenerateKind.Array && data.Current !=null)
+				Next.Enqueue(data.Current);
 
 			if (data.Next != null)
 			{
@@ -99,18 +99,18 @@ namespace TetrioVirtualEnvironment
 			{
 				if (envMode == NextGenerateKind.Array)
 				{
-					if (data.Current != (int)MinoKind.Empty)
-						Next.Enqueue((int)data.Current);
+					if (data.Current != null)
+						Next.Enqueue(data.Current);
 				}
 				else if (envMode == NextGenerateKind.Seed)
 				{
 					if (initGameData.options?.nextcount == null)
 						throw new Exception("nextCount is null");
 
-					Next = new Queue<int>();
+					Next = new Queue<MinoKind?>();
 
 					for (int nextInitIndex = 0; nextInitIndex < (int)initGameData.options?.nextcount; nextInitIndex++)
-						Next.Enqueue((int)MinoKind.None);
+						Next.Enqueue(null);
 
 					classManager.Environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
 
@@ -124,7 +124,7 @@ namespace TetrioVirtualEnvironment
 				}
 			}
 
-			if (data.Hold != null && data.Hold != (int)MinoKind.Empty)
+			if (data.Hold != null && data.Hold != null)
 				Hold = data.Hold;
 
 			if (data.Garbages != null)
@@ -133,9 +133,9 @@ namespace TetrioVirtualEnvironment
 
 
 		public string? SpinBonuses { get; private set; }
-		public int[] Board { get; internal set; }
+		public MinoKind?[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }
-		public Queue<int> Next { get; private set; }
+		public Queue<MinoKind?> Next { get; private set; }
 		public List<int> NextBag { get; private set; }
 		public Options Options { get; private set; }
 		public double SubFrame { get; internal set; }
@@ -150,7 +150,7 @@ namespace TetrioVirtualEnvironment
 		public bool SoftDrop { get; internal set; }
 		public Falling Falling { get; private set; }
 		public bool HoldLocked { get; internal set; }
-		public int? Hold { get; internal set; }
+		public MinoKind? Hold { get; internal set; }
 		public double Gravity { get; internal set; }
 		public int FallingRotations { get; internal set; }
 		public int TotalRotations { get; internal set; }

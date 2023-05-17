@@ -314,7 +314,7 @@ namespace TetrioVirtualEnvironment
 			Array,
 			Seed
 		}
-		public enum MinoKind : sbyte
+		public enum MinoKind : byte
 		{
 			Z,
 			L,
@@ -323,9 +323,7 @@ namespace TetrioVirtualEnvironment
 			I,
 			J,
 			T,
-			Garbage,
-			Empty,
-			None = -1
+			Garbage
 		}
 
 		/// <summary>
@@ -946,7 +944,7 @@ namespace TetrioVirtualEnvironment
 
 			if (!ClassManager.GameData.Options.InfiniteMovement &&
 				ClassManager.GameData.Falling.LockResets >= (int)ClassManager.GameData.Options.LockResets &&
-				!JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X,
+				!JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X,
 				ClassManager.GameData.Falling.Y + 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 			{
 				subframeGravity = 20;
@@ -999,8 +997,8 @@ namespace TetrioVirtualEnvironment
 			if (yPos2 % 1 == 0)
 				yPos2 -= 0.00002;
 
-			if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, yPos1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board) &&
-				JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, yPos2, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+			if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, yPos1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board) &&
+				JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, yPos2, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 			{
 				var highestY = ClassManager.GameData.Falling.HighestY;
 				yPos2 = ClassManager.GameData.Falling.Y;
@@ -1034,10 +1032,10 @@ namespace TetrioVirtualEnvironment
 			//ミノを盤面に適用
 			if (!emptyDrop)
 			{
-				foreach (var pos in ConstData.TETRIMINOS_SHAPES[ClassManager.GameData.Falling.Type][ClassManager.GameData.Falling.R])
+				foreach (var pos in ConstData.TETRIMINOS_SHAPES[(int)ClassManager.GameData.Falling.Type][ClassManager.GameData.Falling.R])
 				{
-					ClassManager.GameData.Board[(int)((pos.x + ClassManager.GameData.Falling.X - ConstData.TETRIMINO_DIFFS[ClassManager.GameData.Falling.Type].x) +
-						(int)(pos.y + ClassManager.GameData.Falling.Y - ConstData.TETRIMINO_DIFFS[ClassManager.GameData.Falling.Type].y) * 10)] = ClassManager.GameData.Falling.Type;
+					ClassManager.GameData.Board[(int)((pos.x + ClassManager.GameData.Falling.X - ConstData.TETRIMINO_DIFFS[(int)ClassManager.GameData.Falling.Type].x) +
+						(int)(pos.y + ClassManager.GameData.Falling.Y - ConstData.TETRIMINO_DIFFS[(int)ClassManager.GameData.Falling.Type].y) * 10)] = ClassManager.GameData.Falling.Type;
 				}
 
 				if (!sValue && ClassManager.GameData.Handling.SafeLock > 0)
@@ -1073,12 +1071,12 @@ namespace TetrioVirtualEnvironment
 			switch (action)
 			{
 				case Action.MoveRight:
-					if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X + 1, ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+					if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X + 1, ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 						ClassManager.GameData.Falling.X++;
 					break;
 
 				case Action.MoveLeft:
-					if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X - 1, ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+					if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X - 1, ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 						ClassManager.GameData.Falling.X--;
 					break;
 
@@ -1114,7 +1112,7 @@ namespace TetrioVirtualEnvironment
 				case Action.QuickSoftdrop:
 					while (true)
 					{
-						if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y + 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+						if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y + 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 							ClassManager.GameData.Falling.Y++;
 						else
 							break;
@@ -1122,12 +1120,12 @@ namespace TetrioVirtualEnvironment
 					break;
 
 				case Action.MoveUp:
-					if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y - 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+					if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y - 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 						ClassManager.GameData.Falling.Y--;
 					break;
 
 				case Action.MoveDown:
-					if (JudgeSystem.IsLegalAtPos(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y + 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
+					if (JudgeSystem.IsLegalAtPos((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, ClassManager.GameData.Falling.Y + 1, ClassManager.GameData.Falling.R, ClassManager.GameData.Board))
 						ClassManager.GameData.Falling.Y++;
 					break;
 
@@ -1165,7 +1163,7 @@ namespace TetrioVirtualEnvironment
 				bool flag = true;
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
-					if (ClassManager.GameData.Board[x + y * 10] == (int)MinoKind.Empty)
+					if (ClassManager.GameData.Board[x + y * 10] == null)
 					{
 						flag = false;
 						break;
@@ -1203,19 +1201,19 @@ namespace TetrioVirtualEnvironment
 		public int GetFallestPosDiff()
 		{
 
-			return GetFallestPosDiff(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, (int)ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R);
+			return GetFallestPosDiff((MinoKind)ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, (int)ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R);
 
 		}
 
-		public int GetFallestPosDiff(int type, int x, int y, int r)
+		public int GetFallestPosDiff(MinoKind? type, int x, int y, int r)
 		{
-			if (type == -1)
+			if (type == null)
 				return 0;
 
 			int testY = 1;
 			while (true)
 			{
-				if (JudgeSystem.IsLegalAtPos(type, x, y + testY,
+				if (JudgeSystem.IsLegalAtPos((MinoKind)type, x, y + testY,
 				   r, ClassManager.GameData.Board))
 					testY++;
 				else
@@ -1234,14 +1232,14 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="value">y座標</param>
 		/// <param name="field">盤面</param>
-		private void DownLine(int value, int[] field)
+		private void DownLine(int value, MinoKind?[] field)
 		{
 			for (int y = value; y >= 0; y--)
 			{
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
 					if (y - 1 == -1)
-						field[x + y * 10] = (int)(MinoKind.Empty);
+						field[x + y * 10] = null;
 					else
 						field[x + y * 10] = field[x + (y - 1) * 10];
 				}
@@ -1274,12 +1272,12 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		internal int RefreshNext(Queue<int> nextQueue, bool noszo)
+		internal MinoKind? RefreshNext(Queue<MinoKind?> nextQueue, bool noszo)
 		{
 			GeneratedRngCount++;
 
-			int newType;
-				newType = nextQueue.Dequeue();
+			MinoKind? newType;
+			newType = nextQueue.Dequeue();
 
 
 			if (ClassManager.GameData.NextBag.Count == 0)
@@ -1311,7 +1309,7 @@ namespace TetrioVirtualEnvironment
 			}
 
 
-			nextQueue.Enqueue(ClassManager.GameData.NextBag[0]);
+			nextQueue.Enqueue((MinoKind?)ClassManager.GameData.NextBag[0]);
 			ClassManager.GameData.NextBag.RemoveAt(0);
 			return newType;
 		}

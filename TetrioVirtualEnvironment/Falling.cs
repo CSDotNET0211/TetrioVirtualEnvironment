@@ -20,7 +20,7 @@ namespace TetrioVirtualEnvironment
 			X = 4;
 			Y = 14;
 			R = 0;
-			Type = -1;
+			Type =null;
 			HighestY = 14;
 			Last = null;
 			LastKick = 0;
@@ -42,7 +42,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newtype"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(int? newtype, bool isHold, NextGenerateKind environmentMode)
+		public void Init(MinoKind? newtype, bool isHold, NextGenerateKind environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -59,7 +59,7 @@ namespace TetrioVirtualEnvironment
 					}
 					else
 					{
-						Type = (int)MinoKind.Empty;
+						Type = null;
 						return;
 					}
 
@@ -69,7 +69,7 @@ namespace TetrioVirtualEnvironment
 					Type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
 			}
 			else
-				Type = (int)newtype;
+				Type = newtype;
 
 			Aox = 0;
 			Aoy = 0;
@@ -105,7 +105,7 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!JudgeSystem.IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
+			if (!JudgeSystem.IsLegalAtPos((MinoKind)Type, X, Y, R, GameDataInstance.Board) ||
 				(!GameDataInstance.Options.NoLockout && HighestYisOver20()))
 			{
 				EnvironmentInstance.IsDead = true;
@@ -118,8 +118,8 @@ namespace TetrioVirtualEnvironment
 
 		public bool HighestYisOver20()
 		{
-			var positions = ConstData.TETRIMINOS_SHAPES[Type][R];
-			var diff = ConstData.TETRIMINO_DIFFS[Type];
+			var positions = ConstData.TETRIMINOS_SHAPES[(int)Type][R];
+			var diff = ConstData.TETRIMINO_DIFFS[(int)Type];
 
 			foreach (var position in positions)
 			{
@@ -133,7 +133,7 @@ namespace TetrioVirtualEnvironment
 
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
-			if (pos.type != -1)
+			if (pos.type != null)
 				Type = pos.type;
 
 			if (pos.x != -1)
@@ -149,7 +149,7 @@ namespace TetrioVirtualEnvironment
 		//DOTO:アクセスすべてできないようにするべき、ゲッターかなんか用意
 		public Environment EnvironmentInstance { get; }
 		public GameData GameDataInstance { get; }
-		public int Type { get; private set; }
+		public MinoKind? Type { get; private set; }
 		public int X { get; internal set; }
 		public int Aox { get; internal set; }
 		public double Y { get; internal set; }
