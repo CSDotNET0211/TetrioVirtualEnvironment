@@ -75,14 +75,14 @@ namespace TetrioVirtualEnvironment.System
 			}
 		}
 
-		internal static bool GetAttackPower(int clearLineCount, string? isTspin, ClassManager classManager)
+		internal static bool GetAttackPower(int clearLineCount, string? isTspin, GameData gameData,Stats stats)
 		{
 			var isBTB = false;
 
 			if (clearLineCount > 0)
 			{
-				classManager.Stats.Combo++;
-				classManager.Stats.TopCombo = Math.Max(classManager.Stats.Combo, classManager.Stats.TopCombo);
+				stats.Combo++;
+				stats.TopCombo = Math.Max(stats.Combo, stats.TopCombo);
 
 				if (clearLineCount == 4)
 					isBTB = true;
@@ -94,20 +94,20 @@ namespace TetrioVirtualEnvironment.System
 
 				if (isBTB)
 				{
-					classManager.Stats.BTB++;
-					classManager.Stats.TopBTB = Math.Max(classManager.Stats.BTB, classManager.Stats.TopBTB);
+					stats.BTB++;
+					stats.TopBTB = Math.Max(stats.BTB, stats.TopBTB);
 				}
 				else
 				{
-					classManager.Stats.BTB = 0;
+					stats.BTB = 0;
 
 				}
 
 			}
 			else
 			{
-				classManager.Stats.Combo = 0;
-				classManager.Stats.CurrentComboPower = 0;
+				stats.Combo = 0;
+				stats.CurrentComboPower = 0;
 			}
 
 
@@ -156,19 +156,19 @@ namespace TetrioVirtualEnvironment.System
 			}
 
 
-			if (clearLineCount > 0 && classManager. Stats.BTB > 1)
+			if (clearLineCount > 0 && stats.BTB > 1)
 			{
-				if (classManager.GameData.Options.BTBChaining)
+				if (gameData.Options.BTBChaining)
 				{
 					double tempValue;
-					if (classManager.Stats.BTB - 1 == 1)
+					if (stats.BTB - 1 == 1)
 						tempValue = 0;
 					else
-						tempValue = 1 + (Math.Log((classManager.Stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+						tempValue = 1 + (Math.Log((stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
 
 					var btb_bonus = ConstValue.Garbage.BACKTOBACK_BONUS *
-						(Math.Floor(1 + Math.Log((classManager.Stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+						(Math.Floor(1 + Math.Log((stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
 					garbageValue += btb_bonus;
 
@@ -177,9 +177,9 @@ namespace TetrioVirtualEnvironment.System
 						//AddFire
 					}
 
-					if ((int)btb_bonus > classManager.GameData.CurrentBTBChainPower)
+					if ((int)btb_bonus > gameData.CurrentBTBChainPower)
 					{
-						classManager.GameData.CurrentBTBChainPower = (int)btb_bonus;
+						gameData.CurrentBTBChainPower = (int)btb_bonus;
 					}
 
 
@@ -190,45 +190,45 @@ namespace TetrioVirtualEnvironment.System
 			}
 			else
 			{
-				if (clearLineCount > 0 && classManager.Stats.BTB <= 1)
-					classManager.GameData.CurrentBTBChainPower = 0;
+				if (clearLineCount > 0 && stats.BTB <= 1)
+					gameData.CurrentBTBChainPower = 0;
 			}
 
-			if (classManager.Stats.Combo > 1)
+			if (stats.Combo > 1)
 			{
-				garbageValue *= 1 + ConstValue.Garbage.COMBO_BONUS * (classManager.Stats.Combo - 1);
+				garbageValue *= 1 + ConstValue.Garbage.COMBO_BONUS * (stats.Combo - 1);
 			}
 
-			if (classManager.Stats.Combo > 2)
+			if (stats.Combo > 2)
 			{
 				garbageValue = Math.Max(Math.Log(ConstValue.Garbage.COMBO_MINIFIER *
-					(classManager.Stats.Combo - 1) * ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
+					(stats.Combo - 1) * ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
 
-			int totalPower = (int)(garbageValue * classManager.GameData.Options.GarbageMultiplier);
-			if (classManager.Stats.Combo > 2)
-				classManager.Stats.CurrentComboPower = Math.Max(classManager.Stats.CurrentComboPower, totalPower);
+			int totalPower = (int)(garbageValue * gameData.Options.GarbageMultiplier);
+			if (stats.Combo > 2)
+				stats.CurrentComboPower = Math.Max(stats.CurrentComboPower, totalPower);
 
-			if (clearLineCount > 0 && classManager.Stats.Combo > 1 && classManager.Stats.CurrentComboPower >= 7)
+			if (clearLineCount > 0 && stats.Combo > 1 && stats.CurrentComboPower >= 7)
 			{
 
 			}
 
-			switch (classManager.GameData.Options.GarbageBlocking)
+			switch (gameData.Options.GarbageBlocking)
 			{
 				case "combo blocking":
 					if (clearLineCount > 0)
-						FightLines(totalPower, classManager.GameData);
+						FightLines(totalPower, gameData);
 					return clearLineCount > 0;
 
 				case "limited blocking":
 					if (clearLineCount > 0)
-						FightLines(totalPower, classManager.GameData);
+						FightLines(totalPower, gameData);
 					return false;
 
-				case "none":
-					Offence(totalPower, classManager.GameData);
+				case "none":	
+					Offence(totalPower, gameData);
 					return false;
 
 				default: throw new Exception();

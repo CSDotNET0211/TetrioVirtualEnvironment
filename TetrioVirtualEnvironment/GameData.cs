@@ -18,9 +18,10 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <exception cref="Exception"></exception>
-		public void Init(NextGenerateKind envMode, EventFullData eventFull, ClassManager classManager,
+		public void Init(NextGenerateKind envMode, EventFullData eventFull, GameData gameData, Environment environment,
 			int nextSkipCount, DataForInitialize dataForInitialize)
 		{
+			gameData = this;
 
 			Next = new Queue<MinoKind?>();
 			Hold = null;
@@ -41,19 +42,19 @@ namespace TetrioVirtualEnvironment
 			LastShift = 0;
 			LDasIter = 0;
 			RDasIter = 0;
-			Falling = new Falling(classManager.Environment, this);
+			Falling = new Falling(environment, this);
 			Gravity = (double)(eventFull.options.g);
 			SpinBonuses = eventFull.options.spinbonuses;
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
-			classManager.Environment.Rng.Init(eventFull.options.seed);
+			environment.Rng.Init(eventFull.options.seed);
 
-			Initialize(envMode, dataForInitialize, eventFull, nextSkipCount, classManager);
+			Initialize(envMode, dataForInitialize, eventFull, nextSkipCount, environment);
 
 			InitHandling(eventFull);
 
 			if (envMode == NextGenerateKind.Array)
-				Falling.Init(null, false, classManager.Environment.NextGenerateMode);
+				Falling.Init(null, false, environment.NextGenerateMode);
 		}
 
 		private void InitHandling(EventFullData eventFull)
@@ -69,7 +70,7 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, ClassManager classManager)
+		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, Environment environment)
 		{
 
 			void InitBoard(DataForInitialize initData)
@@ -106,15 +107,15 @@ namespace TetrioVirtualEnvironment
 					for (int nextInitIndex = 0; nextInitIndex < (int)initGameData.options?.nextcount; nextInitIndex++)
 						Next.Enqueue(null);
 
-					classManager.Environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
+					environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
 
 					//初回生成はszoフラグを考慮して上で先行して行っているため、一通り生成したものを循環させるには本来の数-1する
 					for (int i = 0; i < Next.Count - 1; i++)
-						classManager.Environment.RefreshNext(Next, false);
+						environment.RefreshNext(Next, false);
 
 					//ネクストの乱数を指定した位置まで回してシフトさせる
-					while (nextSkipCount > classManager.Environment.GeneratedRngCount)
-						classManager.Environment.RefreshNext(Next, false);
+					while (nextSkipCount > environment.GeneratedRngCount)
+						environment.RefreshNext(Next, false);
 				}
 			}
 
@@ -122,7 +123,7 @@ namespace TetrioVirtualEnvironment
 			InitNext(data, envMode);
 
 
-			if (data.Hold != null && data.Hold != null)
+			if (data.Hold != null)
 				Hold = data.Hold;
 
 			if (data.Garbages != null)
