@@ -325,7 +325,8 @@ namespace TetrioVirtualEnvironment
 			I,
 			J,
 			T,
-			Garbage
+			Garbage,
+			Empty
 		}
 
 		/// <summary>
@@ -1154,7 +1155,7 @@ namespace TetrioVirtualEnvironment
 				bool flag = true;
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
-					if (GameData.Board[x + y * 10] == null)
+					if (ClassManager.GameData.Board[x + y * 10] == MinoKind.Empty)
 					{
 						flag = false;
 						break;
@@ -1192,20 +1193,20 @@ namespace TetrioVirtualEnvironment
 		public int GetFallestPosDiff()
 		{
 
-			return GetFallestPosDiff((MinoKind)GameData.Falling.Type, GameData.Falling.X, (int)GameData.Falling.Y, GameData.Falling.R);
+			return GetFallestPosDiff(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, (int)ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R);
 
 		}
 
-		public int GetFallestPosDiff(MinoKind? type, int x, int y, int r)
+		public int GetFallestPosDiff(MinoKind type, int x, int y, int r)
 		{
-			if (type == null)
+			if (type == MinoKind.Empty)
 				return 0;
 
 			int testY = 1;
 			while (true)
 			{
-				if (JudgeSystem.IsLegalAtPos((MinoKind)type, x, y + testY,
-				   r, GameData.Board))
+				if (JudgeSystem.IsLegalAtPos(type, x, y + testY,
+				   r, ClassManager.GameData.Board))
 					testY++;
 				else
 				{
@@ -1223,14 +1224,14 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="value">y座標</param>
 		/// <param name="field">盤面</param>
-		private void DownLine(int value, MinoKind?[] field)
+		private void DownLine(int value, MinoKind[] field)
 		{
 			for (int y = value; y >= 0; y--)
 			{
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
 					if (y - 1 == -1)
-						field[x + y * 10] = null;
+						field[x + y * 10] = MinoKind.Empty;
 					else
 						field[x + y * 10] = field[x + (y - 1) * 10];
 				}
@@ -1263,12 +1264,11 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		internal MinoKind? RefreshNext(Queue<MinoKind?> nextQueue, bool noszo)
+		internal MinoKind RefreshNext(Queue<MinoKind> nextQueue, bool noszo)
 		{
 			GeneratedRngCount++;
 
-			MinoKind? newType;
-			newType = nextQueue.Dequeue();
+			var newType = nextQueue.Dequeue();
 
 
 			if (GameData.NextBag.Count == 0)
@@ -1300,8 +1300,8 @@ namespace TetrioVirtualEnvironment
 			}
 
 
-			nextQueue.Enqueue((MinoKind?)GameData.NextBag[0]);
-			GameData.NextBag.RemoveAt(0);
+			nextQueue.Enqueue((MinoKind)ClassManager.GameData.NextBag[0]);
+			ClassManager.GameData.NextBag.RemoveAt(0);
 			return newType;
 		}
 

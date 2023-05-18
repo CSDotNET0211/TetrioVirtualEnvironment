@@ -5,9 +5,9 @@ namespace TetrReplayLoader.JsonClass.Event
 {
     public  class Event
     {
-        public int? id { get; set; } = null;
-        public int? frame { get; set; } = null;
-        public string? type { get; set; } = null;
-        public object? data { get; set; } = null;
+        public int id { get; set; }
+        public int frame { get; set; } 
+        public string type { get; set; } 
+        public object data { get; set; } 
     }
 }

@@ -237,13 +237,13 @@ namespace TetrioVirtualEnvironment.System
 
 		internal static bool PushGarbageLine(int line, GameData gameData,bool falseValue = false, int whatIsThis = 68)
 		{
-			var newBoardList = new List<MinoKind?>();
-			newBoardList.AddRange((MinoKind?[])gameData.Board.Clone());
+			var newBoardList = new List<MinoKind>();
+			newBoardList.AddRange((MinoKind[])gameData.Board.Clone());
 
 			for (int x = 0; x < FIELD_WIDTH; x++)
 			{
 				//x+y*10
-				if (newBoardList[x] != null)
+				if (newBoardList[x] != MinoKind.Empty)
 					return false;
 			}
 
@@ -251,12 +251,12 @@ namespace TetrioVirtualEnvironment.System
 			for (int x = 0; x < FIELD_WIDTH; x++)
 				newBoardList.RemoveAt(x);
 
-			var RValueList = new List<MinoKind?>();
+			var RValueList = new List<MinoKind>();
 
 			for (var tIndex = 0; tIndex < FIELD_WIDTH; tIndex++)
 			{
 				if (tIndex == line)
-					RValueList.Add(null);
+					RValueList.Add(MinoKind.Empty);
 				else
 					RValueList.Add(MinoKind.Garbage);
 			}

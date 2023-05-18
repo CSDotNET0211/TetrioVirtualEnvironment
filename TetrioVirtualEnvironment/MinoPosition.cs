@@ -25,7 +25,7 @@ namespace TetrioVirtualEnvironment
 			this.r = falling.R;
 		}
 
-	public MinoKind? type;
+	public MinoKind type;
 		public int x;
 		public int y;
 		public int r;

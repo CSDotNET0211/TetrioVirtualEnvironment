@@ -106,9 +106,9 @@ void Print(Replay replay)
         output += "Player" + (playerIndex + 1) + "\r\n";
         output += "CurrentFrame:";
         output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
-        var tempfield = (MinoKind?[])replay.Environments[playerIndex].GameData.Board.Clone();
+        var tempfield = (MinoKind[])replay.Environments[playerIndex].GameData.Board.Clone();
 
-        if (replay.Environments[playerIndex].GameData.Falling.Type != null)
+        if (replay.Environments[playerIndex].GameData.Falling.Type != MinoKind.Empty)
             foreach (var pos in Environment.ConstData.TETRIMINOS_SHAPES[(int)replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
             {
                 tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - Environment.ConstData.TETRIMINO_DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].x) +
@@ -120,7 +120,7 @@ void Print(Replay replay)
         {
             for (int x = 0; x < 10; x++)
             {
-                if (tempfield[x + y * 10] == null)
+                if (tempfield[x + y * 10] == MinoKind.Empty)
                     output += "□";
                 else
                     output += "■";

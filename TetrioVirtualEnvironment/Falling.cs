@@ -20,7 +20,7 @@ namespace TetrioVirtualEnvironment
 			X = 4;
 			Y = 14;
 			R = 0;
-			Type =null;
+			Type = MinoKind.Empty;
 			HighestY = 14;
 			Last = null;
 			LastKick = 0;
@@ -49,7 +49,7 @@ namespace TetrioVirtualEnvironment
 			LockResets = 0;
 			Floored = false;
 
-			if (newtype == null)
+			if (newtype == null||newtype==MinoKind.Empty)
 			{
 				if (environmentMode == NextGenerateKind.Array)
 				{
@@ -59,7 +59,7 @@ namespace TetrioVirtualEnvironment
 					}
 					else
 					{
-						Type = null;
+						Type = MinoKind.Empty;
 						return;
 					}
 
@@ -69,7 +69,7 @@ namespace TetrioVirtualEnvironment
 					Type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
 			}
 			else
-				Type = newtype;
+				Type = (MinoKind)newtype;
 
 			Aox = 0;
 			Aoy = 0;
@@ -105,7 +105,7 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!JudgeSystem.IsLegalAtPos((MinoKind)Type, X, Y, R, GameDataInstance.Board) ||
+			if (!JudgeSystem.IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
 				(!GameDataInstance.Options.NoLockout && HighestYisOver20()))
 			{
 				EnvironmentInstance.IsDead = true;
@@ -133,7 +133,7 @@ namespace TetrioVirtualEnvironment
 
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
-			if (pos.type != null)
+			if (pos.type != MinoKind.Empty)
 				Type = pos.type;
 
 			if (pos.x != -1)
@@ -149,7 +149,7 @@ namespace TetrioVirtualEnvironment
 		//DOTO:アクセスすべてできないようにするべき、ゲッターかなんか用意
 		public Environment EnvironmentInstance { get; }
 		public GameData GameDataInstance { get; }
-		public MinoKind? Type { get; private set; }
+		public MinoKind Type { get; private set; }
 		public int X { get; internal set; }
 		public int Aox { get; internal set; }
 		public double Y { get; internal set; }

@@ -13,9 +13,9 @@ namespace TetrioVirtualEnvironment
 		public DataForInitialize()
 		{
 			Board = null;
-			Hold = null;
+			Hold = MinoKind.Empty;
 			Next = null;
-			Current = null;
+			Current = MinoKind.Empty;
 			Garbages = null;
 		}
 
@@ -28,10 +28,10 @@ namespace TetrioVirtualEnvironment
 			Garbages = new List<IgeData?>(garbages);
 		}
 
-		public MinoKind[]? Board { get; }
-		public MinoKind? Hold { get; }
-		public MinoKind? Current { get; }
-		public MinoKind[]? Next { get; }
+		public MinoKind[] Board { get; }
+		public MinoKind Hold { get; }
+		public MinoKind Current { get; }
+		public MinoKind[] Next { get; }
 		public List<IgeData?>? Garbages { get; }
 
 	}

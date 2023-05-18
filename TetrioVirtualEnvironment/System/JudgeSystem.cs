@@ -107,13 +107,13 @@ namespace TetrioVirtualEnvironment.System
 		/// <param name="y">absolute position</param>
 		/// <param name="field"></param>
 		/// <returns>Is empty</returns>
-		internal static bool IsEmptyPos(int x, int y, IReadOnlyList<MinoKind?> field)
+		internal static bool IsEmptyPos(int x, int y, IReadOnlyList<MinoKind> field)
 		{
 			if (!(x is >= 0 and < FIELD_WIDTH &&
 				  y is >= 0 and < FIELD_HEIGHT))
 				return false;
 
-			return field[x + y * 10] == null;
+			return field[x + y * 10] == MinoKind.Empty;
 		}
 
 		/// <summary>
@@ -161,7 +161,7 @@ namespace TetrioVirtualEnvironment.System
 		/// <param name="rotation"></param>
 		/// <param name="field"></param>
 		/// <returns></returns>
-		public static bool IsLegalAtPos(MinoKind type, int x, double y, int rotation, IReadOnlyList<MinoKind?> field)
+		public static bool IsLegalAtPos(MinoKind type, int x, double y, int rotation, IReadOnlyList<MinoKind> field)
 		{
 			var positions = ConstData.TETRIMINOS_SHAPES[(int)type][rotation];
 			var diff = ConstData.TETRIMINO_DIFFS[(int)type];
@@ -170,7 +170,7 @@ namespace TetrioVirtualEnvironment.System
 			{
 				if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < FIELD_WIDTH &&
 				  position.y + y - diff.y >= 0 && position.y + y - diff.y < FIELD_HEIGHT &&
-					 field[(int)position.x + x - (int)diff.x + (int)(position.y + y - (int)diff.y) * 10] == null))
+					 field[(int)position.x + x - (int)diff.x + (int)(position.y + y - (int)diff.y) * 10] == MinoKind.Empty))
 					return false;
 			}
 
@@ -188,7 +188,7 @@ namespace TetrioVirtualEnvironment.System
 
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
-					if (gameData.Board[x + y * 10] != null)
+					if (gameData.Board[x + y * 10] != MinoKind.Empty)
 						return;
 
 				}
