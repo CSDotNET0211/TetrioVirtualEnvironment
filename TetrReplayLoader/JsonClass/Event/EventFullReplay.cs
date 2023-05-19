@@ -2,7 +2,12 @@
 {
 	public class EventFullReplay : Event
 	{
-		public EventFullReplayData? data { get; set; } = null;
+		public EventFullReplay(EventFullReplayData data) : base(null, null, null)
+		{
+			this.data = data;
+		}
+
+		public new EventFullReplayData data { get; set; }
 	}
 	public class EventFullReplayData
 	{

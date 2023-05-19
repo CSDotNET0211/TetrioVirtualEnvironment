@@ -3,8 +3,12 @@ namespace TetrReplayLoader.JsonClass.Event
 {
 	public class EventFull : Event
 	{
+		public EventFull(int? id,int frame,string type, EventFullData data) : base(id,frame,type)
+		{
+			this.data = data;
+		}
 
-		public EventFullData? data { get; set; } = null;
+		public new EventFullData data { get; set; }
 	}
 
 	public class EventFullData

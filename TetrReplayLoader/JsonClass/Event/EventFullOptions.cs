@@ -1,9 +1,14 @@
 ﻿
 namespace TetrReplayLoader.JsonClass.Event
 {
-	public class EventFullOptions:Event
+	public class EventFullOptions : Event
 	{
-		public EventFullGameData? data { get; set; } = null;
+		public EventFullOptions(EventFullGameData data) : base(null, null, null)
+		{
+			this.data = data;
+		}
+
+		public new EventFullGameData data { get; set; }
 	}
 
 	public class EventFullOptionsData
@@ -50,7 +55,7 @@ namespace TetrReplayLoader.JsonClass.Event
 		public bool? clutch { get; set; } = null;
 		public object? passthrough { get; set; } = null;
 		public bool? nolockout { get; set; } = null;
-		public string? garbageblocking { get; set; }=null;
-		public double? garbagemultiplier { get; set; }=null;
+		public string? garbageblocking { get; set; } = null;
+		public double? garbagemultiplier { get; set; } = null;
 	}
 }

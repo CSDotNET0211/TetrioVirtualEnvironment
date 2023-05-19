@@ -56,6 +56,9 @@ namespace TetrReplayLoader.JsonClass
 
 			foreach (var @event in rawEvent)
 			{
+				if (@event == null)
+					throw new Exception();
+
 				switch (@event.type)
 				{
 					case "start":
@@ -63,54 +66,52 @@ namespace TetrReplayLoader.JsonClass
 						break;
 
 					case "end":
-						events.Add(new EventEnd()
-						{
-							data = JsonSerializer.Deserialize<EventEndData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
+						events.Add(new EventEnd
+						(
+							@event.id,
+							(int)@event.frame,
+							@event.type,
+							JsonSerializer.Deserialize<EventEndData>(@event.data.ToString())
+						));
 						break;
 
 					case "full":
-						events.Add(new EventFull()
-						{
-							data = JsonSerializer.Deserialize<EventFullData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
+						events.Add(new EventFull
+						(
+							@event.id,
+							(int)@event.frame,
+							@event.type,
+							 JsonSerializer.Deserialize<EventFullData>(@event.data.ToString())
+						));
 						break;
 
 					case "keydown":
 					case "keyup":
-						events.Add(new EventKeyInput()
-						{
-							data = JsonSerializer.Deserialize<EventKeyInputData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
+						events.Add(new EventKeyInput
+						(
+							@event.id,
+							(int)@event.frame,
+							@event.type,
+							JsonSerializer.Deserialize<EventKeyInputData>(@event.data.ToString())
+						));
 						break;
 
 					case "targets":
-							events.Add(new EventTargets()
-						{
-							data = JsonSerializer.Deserialize<EventTargetsData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
+						events.Add(new EventTargets(
+							@event.id,
+							 (int)@event.frame,
+							 @event.type,
+							 JsonSerializer.Deserialize<EventTargetsData>(@event.data.ToString())
+						));
 						break;
 
 					case "ige":
-						events.Add(new EventIge()
-						{
-							data = JsonSerializer.Deserialize<EventIgeData>(@event.data.ToString()),
-							type = @event.type,
-							frame = @event.frame,
-							id = @event.id,
-						});
+						events.Add(new EventIge(
+							@event.id,
+							(int)@event.frame,
+							@event.type,
+							JsonSerializer.Deserialize<EventIgeData?>(@event.data.ToString())
+						));
 						break;
 
 					default:

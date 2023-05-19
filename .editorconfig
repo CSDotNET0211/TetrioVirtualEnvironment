@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CS8604: Null 参照引数の可能性があります。
+dotnet_diagnostic.CS8604.severity = suggestion
