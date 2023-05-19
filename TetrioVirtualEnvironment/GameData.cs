@@ -123,7 +123,7 @@ namespace TetrioVirtualEnvironment
 			InitNext(data, envMode);
 
 
-			if (data.Hold != MinoKind.Empty)
+		//	if (data.Hold != null)
 				Hold = data.Hold;
 
 			if (data.Garbages != null)

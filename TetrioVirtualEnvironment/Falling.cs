@@ -20,7 +20,7 @@ namespace TetrioVirtualEnvironment
 			X = 4;
 			Y = 14;
 			R = 0;
-			Type = MinoKind.Empty;
+			Type =MinoKind.Empty;
 			HighestY = 14;
 			Last = null;
 			LastKick = 0;
@@ -39,17 +39,17 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="newtype"></param>
+		/// <param name="newType"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(MinoKind? newtype, bool isHold, NextGenerateKind environmentMode)
+		public void Init(MinoKind? newType, bool isHold, NextGenerateKind environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
 			LockResets = 0;
 			Floored = false;
 
-			if (newtype == null||newtype==MinoKind.Empty)
+			if (newType == null||newType==MinoKind.Empty)
 			{
 				if (environmentMode == NextGenerateKind.Array)
 				{
@@ -69,7 +69,7 @@ namespace TetrioVirtualEnvironment
 					Type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
 			}
 			else
-				Type = (MinoKind)newtype;
+				Type = (MinoKind)newType;
 
 			Aox = 0;
 			Aoy = 0;
@@ -93,7 +93,7 @@ namespace TetrioVirtualEnvironment
 			if (isHold)
 				GameDataInstance.HoldLocked = true;
 			else
-				GameDataInstance.HoldLocked = newtype != null;
+				GameDataInstance.HoldLocked = newType != null;
 
 			if (Clamped && GameDataInstance.Handling.DCD > 0)
 			{
