@@ -26,7 +26,7 @@ namespace TetrioVirtualEnvironment
 			Next = new Queue<MinoKind>();
 			Hold = MinoKind.Empty;
 			ImpendingDamages = new List<IgeData?>();
-			NextBag = new List<int>();
+			NextBag = new List<MinoKind>();
 			WaitingFrames = new List<WaitingFrameData>();
 			InteractionID = 0;
 			Targets = new List<string>();
@@ -135,7 +135,7 @@ namespace TetrioVirtualEnvironment
 		public MinoKind[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }
 		public Queue<MinoKind> Next { get; private set; }
-		public List<int> NextBag { get; private set; }
+		public List<MinoKind> NextBag { get; private set; }
 		public Options Options { get; private set; }
 		public double SubFrame { get; internal set; }
 		public bool LShift { get; internal set; }

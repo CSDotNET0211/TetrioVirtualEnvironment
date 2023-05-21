@@ -217,7 +217,7 @@ namespace TetrioVirtualEnvironment
 			/// <summary>
 			/// for next generating
 			/// </summary>
-			internal static readonly int[] MINOTYPES = { (int)MinoKind.Z, (int)MinoKind.L, (int)MinoKind.O, (int)MinoKind.S, (int)MinoKind.I, (int)MinoKind.J, (int)MinoKind.T, };
+			internal static readonly MinoKind[] MINOTYPES = { (int)MinoKind.Z, MinoKind.L, MinoKind.O, MinoKind.S, MinoKind.I, MinoKind.J, MinoKind.T, };
 			/// <summary>
 			/// Kickset of SRS+
 			/// </summary>
@@ -396,7 +396,7 @@ namespace TetrioVirtualEnvironment
 			CurrentFrame = 0;
 			CurrentIndex = 0;
 
-			GameData.Init(envMode, envData, GameData,this, nextSkipCount, dataForInitialize);
+			GameData.Init(envMode, envData, GameData, this, nextSkipCount, dataForInitialize);
 
 		}
 
@@ -1038,7 +1038,7 @@ namespace TetrioVirtualEnvironment
 			var isTspin = JudgeSystem.IsTspin(GameData);
 			var clearedLineCount = ClearLines();
 
-			var announceLine = GarbageSystem.GetAttackPower(clearedLineCount, isTspin, GameData,Stats);
+			var announceLine = GarbageSystem.GetAttackPower(clearedLineCount, isTspin, GameData, Stats);
 			JudgeSystem.IsBoardEmpty(GameData);
 
 			if (!announceLine)
@@ -1155,7 +1155,7 @@ namespace TetrioVirtualEnvironment
 				bool flag = true;
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
-					if (ClassManager.GameData.Board[x + y * 10] == MinoKind.Empty)
+					if (GameData.Board[x + y * 10] == MinoKind.Empty)
 					{
 						flag = false;
 						break;
@@ -1176,10 +1176,10 @@ namespace TetrioVirtualEnvironment
 
 		}
 
-		public static Vector2[] GetMinoPos(int type, int x, int y, int r)
+		public static Vector2[] GetMinoPos(MinoKind type, int x, int y, int r)
 		{
-			var positions = (Vector2[])ConstData.TETRIMINOS_SHAPES[type][r].Clone();
-			var diff = ConstData.TETRIMINO_DIFFS[type];
+			var positions = (Vector2[])ConstData.TETRIMINOS_SHAPES[(int)type][r].Clone();
+			var diff = ConstData.TETRIMINO_DIFFS[(int)type];
 
 			for (int i = 0; i < positions.Length; i++)
 			{
@@ -1193,7 +1193,7 @@ namespace TetrioVirtualEnvironment
 		public int GetFallestPosDiff()
 		{
 
-			return GetFallestPosDiff(ClassManager.GameData.Falling.Type, ClassManager.GameData.Falling.X, (int)ClassManager.GameData.Falling.Y, ClassManager.GameData.Falling.R);
+			return GetFallestPosDiff(GameData.Falling.Type, GameData.Falling.X, (int)GameData.Falling.Y, GameData.Falling.R);
 
 		}
 
@@ -1206,7 +1206,7 @@ namespace TetrioVirtualEnvironment
 			while (true)
 			{
 				if (JudgeSystem.IsLegalAtPos(type, x, y + testY,
-				   r, ClassManager.GameData.Board))
+				   r, GameData.Board))
 					testY++;
 				else
 				{
@@ -1273,7 +1273,7 @@ namespace TetrioVirtualEnvironment
 
 			if (GameData.NextBag.Count == 0)
 			{
-				var array = (int[])ConstData.MINOTYPES.Clone();
+				var array = (MinoKind[])ConstData.MINOTYPES.Clone();
 				Rng.ShuffleArray(array);
 				GameData.NextBag.AddRange(array);
 			}
@@ -1282,15 +1282,14 @@ namespace TetrioVirtualEnvironment
 			{
 				while (true)
 				{
-					if (GameData.NextBag[0] == (int)MinoKind.S ||
-						 GameData.NextBag[0] == (int)MinoKind.Z ||
-						GameData.NextBag[0] == (int)MinoKind.O)
+					if (GameData.NextBag[0] == MinoKind.S ||
+						 GameData.NextBag[0] == MinoKind.Z ||
+						GameData.NextBag[0] == MinoKind.O)
 					{
 						var temp = GameData.NextBag[0];
 						for (int i = 0; i < GameData.NextBag.Count - 1; i++)
-						{
 							GameData.NextBag[i] = GameData.NextBag[i + 1];
-						}
+
 						GameData.NextBag[^1] = temp;
 					}
 					else
@@ -1300,8 +1299,8 @@ namespace TetrioVirtualEnvironment
 			}
 
 
-			nextQueue.Enqueue((MinoKind)ClassManager.GameData.NextBag[0]);
-			ClassManager.GameData.NextBag.RemoveAt(0);
+			nextQueue.Enqueue(GameData.NextBag[0]);
+			GameData.NextBag.RemoveAt(0);
 			return newType;
 		}
 
