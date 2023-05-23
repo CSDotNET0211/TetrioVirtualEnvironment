@@ -125,10 +125,10 @@ namespace TetrioVirtualEnvironment.System
 		/// <param name="y"></param>
 		/// <param name="rotation"></param>
 		/// <returns></returns>
-		public static bool IsLegalField(int type, int x, double y, int rotation)
+		public static bool IsLegalField(MinoKind type, int x, double y, int rotation)
 		{
-			var positions = ConstData.TETRIMINOS_SHAPES[type][rotation];
-			var diff = ConstData.TETRIMINO_DIFFS[type];
+			var positions = ConstData.TETRIMINOS_SHAPES[(int)type][rotation];
+			var diff = ConstData.TETRIMINO_DIFFS[(int)type];
 
 			foreach (var position in positions)
 			{

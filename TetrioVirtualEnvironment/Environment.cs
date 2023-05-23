@@ -275,10 +275,10 @@ namespace TetrioVirtualEnvironment
 		public bool InfinityHold { get; set; } = false;
 		public string? Username { get; }
 
-		public List<int> GarbageIDs { get; internal set; }
+		public List<int>? GarbageIDs { get; internal set; }
 
-		public GameData GameData = null;
-		public Stats Stats = null;
+		public GameData GameData;
+		public Stats Stats;
 
 		/// <summary>
 		/// RNG Generator
