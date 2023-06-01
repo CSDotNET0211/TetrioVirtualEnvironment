@@ -8,7 +8,7 @@ using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment.System
 {
-	public class JudgeSystem : ISystem
+	public class JudgeSystem
 	{
 		internal static string? IsTspin(GameData gameData)
 		{
@@ -123,7 +123,7 @@ namespace TetrioVirtualEnvironment.System
 		/// <param name="type"></param>
 		/// <param name="x"></param>
 		/// <param name="y"></param>
-		/// <param name="rotation"></param>
+		/// <param name="rotation"></param>n 
 		/// <returns></returns>
 		public static bool IsLegalField(MinoKind type, int x, double y, int rotation)
 		{

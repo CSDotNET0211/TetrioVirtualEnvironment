@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TetrioVirtualEnvironment.Interface
 {
-	internal interface ISystem
+	internal interface ITspin
 	{
 	}
 }

@@ -69,6 +69,20 @@ namespace TetrioVirtualEnvironment
 			for (int i = 0; i < array.Length; i++)
 				resultArray[i] = (int)array[i];
 		}
+
+		public static int[] ToIntArray(this Vector2[] array)
+		{
+			int[] resultArray = new int[array.Length * 2];
+
+			for (int i = 0; i < array.Length; i++)
+			{
+				resultArray[i * 2] = (int)array[i].x;
+				resultArray[i * 2 + 1] = (int)array[i].y;
+			}
+
+			return resultArray;
+		}
+
 	}
 
 }

@@ -58,6 +58,7 @@ namespace TetrioVirtualEnvironment.System
 				foreach (var target in gameData.Targets)
 				{
 					var interactionID = ++gameData.InteractionID;
+
 					if (gameData.Options.Passthrough is "zero" or "consistent")
 					{
 						if (!gameData.GarbageActnowledgements.Outgoing.ContainsKey(target))

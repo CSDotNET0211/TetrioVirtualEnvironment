@@ -7,6 +7,16 @@ namespace TetrioVirtualEnvironment
 {
 	public class Falling
 	{
+		public enum LastRotationKind
+		{
+			None,
+			Right,
+			Left,
+			Vertical,
+			Horizontal,
+		}
+
+
 		public Falling(Environment environment, GameData gameData)
 		{
 			Sleep = true;
@@ -20,11 +30,11 @@ namespace TetrioVirtualEnvironment
 			X = 4;
 			Y = 14;
 			R = 0;
-			Type =MinoKind.Empty;
+			Type = MinoKind.Empty;
 			HighestY = 14;
 			Last = null;
 			LastKick = 0;
-			LastRotation = "none";
+			LastRotation = LastRotationKind.None;
 			Irs = 0;
 			Ihs = 0;
 			Aox = 0;
@@ -49,7 +59,7 @@ namespace TetrioVirtualEnvironment
 			LockResets = 0;
 			Floored = false;
 
-			if (newType == null||newType==MinoKind.Empty)
+			if (newType == null || newType == MinoKind.Empty)
 			{
 				if (environmentMode == NextGenerateKind.Array)
 				{
@@ -165,7 +175,7 @@ namespace TetrioVirtualEnvironment
 		/// Last move
 		/// </summary>
 		public string Last { get; internal set; }
-		public string LastRotation { get; internal set; }
+		public LastRotationKind LastRotation { get; internal set; }
 		public string? SpinType { get; internal set; }
 		public int LastKick { get; internal set; }
 		public bool Clamped { get; internal set; }

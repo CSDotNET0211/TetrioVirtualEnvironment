@@ -14,42 +14,42 @@ namespace TetrioVirtualEnvironment.System
 
 		internal static void RotatePiece(int rotation, GameData gameData)
 		{
-			var nowminoRotation = gameData.Falling.R;
-			var nowminoNewminoRotation = nowminoRotation.ToString() + rotation.ToString();
+			var currentMinoRotation = gameData.Falling.R;
+			var currentMinoNewRotation = currentMinoRotation.ToString() + rotation.ToString();
 			var oValue = 0;
-			var lastRotation = "none";
+			Falling.LastRotationKind lastRotation =Falling.LastRotationKind.None;
 
-			if (rotation < nowminoRotation)
+			if (rotation < currentMinoRotation)
 			{
 				oValue = 1;
-				lastRotation = "right";
+				lastRotation =Falling.LastRotationKind.Right;
 			}
 			else
 			{
 				oValue = -1;
-				lastRotation = "left";
+				lastRotation = Falling.LastRotationKind.Left;
 			}
 
-			if (rotation == 0 && nowminoRotation == 3)
+			if (rotation == 0 && currentMinoRotation == 3)
 			{
 				oValue = 1;
-				lastRotation = "right";
+				lastRotation =Falling.LastRotationKind.Right;
 			}
 
-			if (rotation == 3 && nowminoRotation == 3)
+			if (rotation == 3 && currentMinoRotation == 3)
 			{
 				oValue = -1;
-				lastRotation = "left";
+				lastRotation =Falling.LastRotationKind.Left;
 			}
 
-			if (rotation == 2 && nowminoRotation == 0)
-				lastRotation = "vertical";
-			if (rotation == 0 && nowminoRotation == 2)
-				lastRotation = "vertical";
-			if (rotation == 3 && nowminoRotation == 1)
-				lastRotation = "horizontal";
-			if (rotation == 1 && nowminoRotation == 3)
-				lastRotation = "horizontal";
+			if (rotation == 2 && currentMinoRotation == 0)
+				lastRotation = Falling.LastRotationKind.Vertical;
+			if (rotation == 0 && currentMinoRotation == 2)
+				lastRotation = Falling.LastRotationKind.Vertical;
+			if (rotation == 3 && currentMinoRotation == 1)
+				lastRotation = Falling.LastRotationKind.Horizontal;
+			if (rotation == 1 && currentMinoRotation == 3)
+				lastRotation = Falling.LastRotationKind.Horizontal;
 
 			if (JudgeSystem.IsLegalAtPos((MinoKind)gameData.Falling.Type,
 				gameData.Falling.X - gameData.Falling.Aox,
@@ -87,10 +87,10 @@ namespace TetrioVirtualEnvironment.System
 			if (gameData.Falling.Type == MinoKind.O)
 				return;
 
-			var kicktable = Environment.ConstData.KICKSET_SRSPLUS[nowminoNewminoRotation];
+			var kicktable = Environment.ConstData.KICKSET_SRSPLUS[currentMinoNewRotation];
 
 			if (gameData.Falling.Type == MinoKind.I)
-				kicktable = Environment.ConstData.KICKSET_SRSPLUSI[nowminoNewminoRotation];
+				kicktable = Environment.ConstData.KICKSET_SRSPLUSI[currentMinoNewRotation];
 
 			for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 			{
