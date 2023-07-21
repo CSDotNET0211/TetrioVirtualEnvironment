@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment;
+using TetrioVirtualEnvironment.Constants;
 using TetrioVirtualEnvironment.System;
 using static TetrioVirtualEnvironment.Environment;
 
@@ -7,6 +8,21 @@ namespace TetrioVirtualEnvironment
 {
 	public class Falling
 	{
+		public enum SpinTypeKind
+		{
+			Null,
+			Normal,
+			Mini
+		}
+
+		public enum LastKind
+		{
+			None,
+			Rotate,
+			Move,
+			Fall
+		}
+
 		public enum LastRotationKind
 		{
 			None,
@@ -30,9 +46,9 @@ namespace TetrioVirtualEnvironment
 			X = 4;
 			Y = 14;
 			R = 0;
-			Type = MinoKind.Empty;
+			Type = Tetrimino.MinoType.Empty;
 			HighestY = 14;
-			Last = null;
+			Last = LastKind.None;
 			LastKick = 0;
 			LastRotation = LastRotationKind.None;
 			Irs = 0;
@@ -45,21 +61,20 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="newType"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(MinoKind? newType, bool isHold, NextGenerateKind environmentMode)
+		public void Init(Tetrimino.MinoType? newType, bool isHold, NextGenerateKind environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
 			LockResets = 0;
 			Floored = false;
 
-			if (newType == null || newType == MinoKind.Empty)
+			if (newType == null || newType == Tetrimino.MinoType.Empty)
 			{
 				if (environmentMode == NextGenerateKind.Array)
 				{
@@ -69,17 +84,15 @@ namespace TetrioVirtualEnvironment
 					}
 					else
 					{
-						Type = MinoKind.Empty;
+						Type = Tetrimino.MinoType.Empty;
 						return;
 					}
-
-
 				}
 				else
 					Type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
 			}
 			else
-				Type = (MinoKind)newType;
+				Type = (Tetrimino.MinoType)newType;
 
 			Aox = 0;
 			Aoy = 0;
@@ -88,9 +101,9 @@ namespace TetrioVirtualEnvironment
 			HighestY = 20 - 2;
 			R = 0;
 
-			SpinType = null;
+			SpinType = SpinTypeKind.Null;
 			Sleep = false;
-			Last = null;
+			Last = LastKind.None;
 			GameDataInstance.FallingRotations = 0;
 			GameDataInstance.TotalRotations = 0;
 
@@ -107,16 +120,18 @@ namespace TetrioVirtualEnvironment
 
 			if (Clamped && GameDataInstance.Handling.DCD > 0)
 			{
-				GameDataInstance.LDas = Math.Min(GameDataInstance.LDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+				GameDataInstance.LDas = Math.Min(GameDataInstance.LDas,
+					GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
 				GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
-				GameDataInstance.RDas = Math.Min(GameDataInstance.RDas, GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
+				GameDataInstance.RDas = Math.Min(GameDataInstance.RDas,
+					GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
 				GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
 			}
 
 			Clamped = false;
 
 			if (!JudgeSystem.IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
-				(!GameDataInstance.Options.NoLockout && HighestYisOver20()))
+			    (!GameDataInstance.Options.NoLockout && HighestYisOver20()))
 			{
 				EnvironmentInstance.IsDead = true;
 				Debug.WriteLine("dead");
@@ -128,8 +143,8 @@ namespace TetrioVirtualEnvironment
 
 		public bool HighestYisOver20()
 		{
-			var positions = ConstData.TETRIMINOS_SHAPES[(int)Type][R];
-			var diff = ConstData.TETRIMINO_DIFFS[(int)Type];
+			var positions = Tetrimino.SHAPES[(int)Type][R];
+			var diff = Tetrimino.DIFFS[(int)Type];
 
 			foreach (var position in positions)
 			{
@@ -143,7 +158,7 @@ namespace TetrioVirtualEnvironment
 
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
-			if (pos.type != MinoKind.Empty)
+			if (pos.type != Tetrimino.MinoType.Empty)
 				Type = pos.type;
 
 			if (pos.x != -1)
@@ -156,10 +171,10 @@ namespace TetrioVirtualEnvironment
 				R = pos.r;
 		}
 
-		//DOTO:アクセスすべてできないようにするべき、ゲッターかなんか用意
+		//TODO:アクセスすべてできないようにするべき、ゲッターかなんか用意
 		public Environment EnvironmentInstance { get; }
 		public GameData GameDataInstance { get; }
-		public MinoKind Type { get; private set; }
+		public Tetrimino.MinoType Type { get; private set; }
 		public int X { get; internal set; }
 		public int Aox { get; internal set; }
 		public double Y { get; internal set; }
@@ -171,12 +186,14 @@ namespace TetrioVirtualEnvironment
 		public bool ForceLock { get; internal set; }
 		public bool Sleep { get; internal set; }
 		public bool DeepSleep { get; }
+
 		/// <summary>
 		/// Last move
 		/// </summary>
-		public string Last { get; internal set; }
+		public LastKind Last { get; internal set; }
+
 		public LastRotationKind LastRotation { get; internal set; }
-		public string? SpinType { get; internal set; }
+		public SpinTypeKind SpinType { get; internal set; }
 		public int LastKick { get; internal set; }
 		public bool Clamped { get; internal set; }
 		public int LockResets { get; internal set; }
@@ -184,6 +201,4 @@ namespace TetrioVirtualEnvironment
 		public bool Floored { get; internal set; }
 		public double HighestY { get; internal set; }
 	}
-
-
 }

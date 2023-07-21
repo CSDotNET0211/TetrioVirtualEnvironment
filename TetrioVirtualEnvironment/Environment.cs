@@ -3,6 +3,7 @@ using System.Dynamic;
 using System.Numerics;
 using System.Security.Claims;
 using System.Text.Json;
+using TetrioVirtualEnvironment.Constants;
 using TetrioVirtualEnvironment.System;
 using TetrReplayLoader;
 using TetrReplayLoader.JsonClass;
@@ -12,288 +13,41 @@ namespace TetrioVirtualEnvironment
 {
 	public class Environment
 	{
-		public class ConstData
-		{
-			/// <summary>
-			/// This is used to judge spin bonus.
-			/// Basically, used as Tspin.
-			/// AllSpin uses all data.
-			/// </summary>
-			internal static readonly Vector2[][][] CORNER_TABLE =
-			  {
-              //Z
-              new[]
-			  {
-				new[]{
-					new Vector2(-2, -1), new Vector2(1, -1), new Vector2(2, 0), new Vector2(-1, 0)
-				},
-				  new[] {
-					new Vector2(0, -1), new Vector2(1, -2), new Vector2(0, 2), new Vector2(1, 2)
-				},
-				  new[] {
-					new Vector2(-2, 0), new Vector2(1, 0), new Vector2(2, 1), new Vector2(-1, 1)
-				},
-				  new[] {
-					new Vector2(-1, -1), new Vector2(0, -2), new Vector2(0, 1), new Vector2(-1, 2)
-				},
-			  },
-
-                //L
-              new[]
-			  {
-				  new[] {
-					  new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, 1), new Vector2(-1, 1)
-				  },
-				  new[] {
-					  new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 0), new Vector2(-1, 1)
-				  },
-				  new[] {
-					  new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(0, 1)
-				  },
-				  new[] {
-					  new Vector2(-1, 0), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1)
-				  },
-			  },
-
-              
-              //S
-              new[]
-			  {
-					new[] {
-						  new Vector2(-1, -1), new Vector2(2, -1), new Vector2(1,0), new Vector2(-2, 0)
-					},
-					new[] {
-						   new Vector2(0, -2), new Vector2(1, -1), new Vector2(1, 2), new Vector2(0, 1)
-					},
-					new[] {
-						 new Vector2(-1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(-2,1)
-					},
-				   new[] {
-					new Vector2(-1,-2), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 2)
-					},
-			  },
-              
-              //J
-              new[]
-			  {
-					new[] { new Vector2(0, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
-					new[] { new Vector2(-1, -1), new Vector2(1, 0), new Vector2(1, 1), new Vector2(-1, 1) },
-					new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(0, 1), new Vector2(-1, 1) },
-					new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 0) },
-			  },
-              
-              //T
-              new[]
-			  {
-				   new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
-				   new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
-				   new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
-				   new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) },
-				   },
-
-
-
-
-
-		};
-
-			internal static readonly Vector2[][] CORNER_ADDITIONAL_TABLE =
-				   {
-				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
-				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
-				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
-				   new[] { new Vector2(3, 0), new Vector2(0, 1), new Vector2(1, 2), new Vector2(2, 3) },
-			   };
-			/// <summary>
-			/// Tetrimino Array
-			/// </summary>
-			public static readonly Vector2[][][] TETRIMINOS_SHAPES =
-			  {
-              //Z
-              new[]
-			  {
-				new[]{
-					new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1)
-				},
-				  new[] {
-					new Vector2(2, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2)
-				},
-				  new[] {
-					new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2)
-				},
-				  new[] {
-					new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2)
-				},
-			  },
-
-                //L
-              new[]
-			  {
-				  new[] {
-					  new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1)
-				  },
-				  new[] {
-					  new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(2, 2)
-				  },
-				  new[] {
-					  new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2)
-				  },
-				  new[] {
-					  new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2)
-				  },
-			  },
-
-                //O
-              new[]
-			  {
-					 new[] {
-						 new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
-					 },
-					new[] {
-						new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
-					},
-					 new[]
-					 { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
-					 },
-				   new[] {
-					   new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1)
-				   },
-			  },
-              
-              //S
-              new[]
-			  {
-					new[] {
-						  new Vector2(1, 0), new Vector2(2, 0), new Vector2(0, 1), new Vector2(1, 1)
-					},
-					new[] {
-						   new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2)
-					},
-					new[] {
-						 new Vector2(1, 1), new Vector2(2, 1), new Vector2(0, 2), new Vector2(1, 2)
-					},
-				   new[] {
-					new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2)
-					},
-			  },
-              
-              //I
-              new[]
-			  {
-					new[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(3, 1) },
-					new[] { new Vector2(2, 0), new Vector2(2, 1), new Vector2(2, 2), new Vector2(2, 3) },
-					new[] { new Vector2(0, 2), new Vector2(1, 2), new Vector2(2, 2), new Vector2(3, 2) },
-					new[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 2), new Vector2(1, 3) },
-			  },
-              
-              
-              //J
-              new[]
-			  {
-					new[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) },
-					new[] { new Vector2(1, 0), new Vector2(2, 0), new Vector2(1, 1), new Vector2(1, 2) },
-					new[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(2, 2) },
-					new[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 2), new Vector2(1, 2) },
-			  },
-              
-              //T
-              new[]
-			  {
-				   new[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1) },
-				   new[] { new Vector2(1, 0), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) },
-				   new[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(2, 1), new Vector2(1, 2) },
-				   new[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 2) },
-			  },
-
-
-
-
-
-		};
-			/// <summary>
-			/// Diff Position for Fix Tetrimino Position
-			/// </summary>
-			public static readonly Vector2[] TETRIMINO_DIFFS = { new(1, 1), new(1, 1), new(0, 1), new(1, 1), new(1, 1), new(1, 1), new(1, 1) };
-			/// <summary>
-			/// for next generating
-			/// </summary>
-			internal static readonly MinoKind[] MINOTYPES = { (int)MinoKind.Z, MinoKind.L, MinoKind.O, MinoKind.S, MinoKind.I, MinoKind.J, MinoKind.T, };
-			/// <summary>
-			/// Kickset of SRS+
-			/// </summary>
-			internal static Dictionary<string, Vector2[]> KICKSET_SRSPLUS { get; } = new()
-		{
-			{"01", new[] { new Vector2(-1,0),new Vector2(-1,-1),new Vector2(0,2),new Vector2(-1,2),}},
-			{"10", new[] { new Vector2(1,0),new Vector2(1,1),new Vector2(0,-2),new Vector2(1,-2),}},
-			{"12", new[] { new Vector2(1,0),new Vector2(1,1),new Vector2(0,-2),new Vector2(1,-2),}},
-			{"21", new[] { new Vector2(-1,0),new Vector2(-1,-1),new Vector2(0,2),new Vector2(-1,2),}},
-			{"23", new[] { new Vector2(1,0),new Vector2(1,-1),new Vector2(0,2),new Vector2(1,2),}},
-			{"32", new[] { new Vector2(-1,0),new Vector2(-1,1),new Vector2(0,-2),new Vector2(-1,-2),}},
-			{"30", new[] { new Vector2(-1,0),new Vector2(-1,1),new Vector2(0,-2),new Vector2(-1,-2),}},
-			{"03", new[] { new Vector2(1,0),new Vector2(1,-1),new Vector2(0,2),new Vector2(1,2),}},
-			{"02", new[] { new Vector2(0,-1),new Vector2(1,-1),new Vector2(-1,-1),new Vector2(1,0),new Vector2(-1,0),}},
-			{"13", new[] { new Vector2(1,0),new Vector2(1,-2),new Vector2(1,-1),new Vector2(0,-2),new Vector2(0,-1),}},
-			{"20", new[] { new Vector2(0,1),new Vector2(-1,1),new Vector2(1,1),new Vector2(-1,0),new Vector2(1,0),}},
-			{"31", new[] { new Vector2(-1,0),new Vector2(-1,-2),new Vector2(-1,-1),new Vector2(0,-2),new Vector2(0,-1),}}
-		};
-			/// <summary>
-			/// Kickset of SRS+ I-piece
-			/// </summary>
-			internal static Dictionary<string, Vector2[]> KICKSET_SRSPLUSI { get; } = new()
-		{
-		{"01",new[]{new Vector2(1,0),new Vector2(-2,0),new Vector2(-2,1),new Vector2(1,-2),}},
-		{"10",new[]{new Vector2(-1,0),new Vector2(2,0),new Vector2(-1,2),new Vector2(2,-1),}},
-		{"12",new[]{new Vector2(-1,0),new Vector2(2,0),new Vector2(-1,-2),new Vector2(2,1),}},
-		{"21",new[]{new Vector2(-2,0),new Vector2(1,0),new Vector2(-2,-1),new Vector2(1,2),}},
-		{"23",new[]{new Vector2(2,0),new Vector2(-1,0),new Vector2(2,-1),new Vector2(-1,2),}},
-		{"32",new[]{new Vector2(1,0),new Vector2(-2,0),new Vector2(1,-2),new Vector2(-2,1),}},
-		{"30",new[]{new Vector2(1,0),new Vector2(-2,0),new Vector2(1,2),new Vector2(-2,-1),}},
-		{"03",new[]{new Vector2(-1,0),new Vector2(2,0),new Vector2(2,1),new Vector2(-1,-2),}},
-		{"02",new[]{new Vector2(0,-1)}},
-		{"13",new[]{new Vector2(1,0)}},
-		{"20",new[]{new Vector2(0,1)}},
-		{"31",new[]{new Vector2(-1,0)}},
-		};
-		}
-
 		public const int FIELD_WIDTH = 10;
 		public const int FIELD_HEIGHT = 40;
-
 		public static int FIELD_SIZE => FIELD_WIDTH * FIELD_HEIGHT;
+
 
 		// --- events ---
 		public event EventHandler? OnPiecePlaced;
 		public event EventHandler? OnPieceCreated;
 
-		// --- public propety ---
-		//DOTO: これとかapmに関する情報は関数でも作る pressedkeylist中身あったっけ
-		/// <summary>
-		/// Pressed key data
-		/// </summary>
-		public List<string> PressedKeyList { get; private set; } = new();
+
 		public int GeneratedRngCount { get; private set; }
-		public bool InfinityHold { get; set; } = false;
+		private bool InfinityHold { get; } = false;
 		public string? Username { get; }
 
-		public List<int>? GarbageIDs { get; internal set; }
+		private List<int>? GarbageIDs { get; set; }
 
-		public GameData GameData;
-		public Stats Stats;
+		public GameData GameData { get; private set; }
+		public Stats Stats { get; private set; }
 
 		/// <summary>
 		/// RNG Generator
 		/// </summary>
 		public Rng Rng { get; } = new();
+
 		public NextGenerateKind NextGenerateMode { get; }
 		public int NextSkipCount;
+
+
 		/// <summary>
 		/// for process events at same frame.
 		/// </summary>
 		public int CurrentIndex { get; private set; }
+
 		public int CurrentFrame { get; private set; }
-
 		public bool IsDead { get; internal set; } = false;
-
 
 
 		/// <summary>
@@ -301,9 +55,9 @@ namespace TetrioVirtualEnvironment
 		/// full event is first event after game started existing in ttr/ttrm.
 		/// </summary>
 		internal EventFullData EventFull { get; }
+
 		/// <summary>
-		/// initialize game data. it is used in NextGenerateKind is Array.
-		/// 
+		/// initialize game data.
 		/// </summary>
 		internal DataForInitialize DataForInitialize { get; }
 
@@ -316,18 +70,7 @@ namespace TetrioVirtualEnvironment
 			Array,
 			Seed
 		}
-		public enum MinoKind : byte
-		{
-			Z,
-			L,
-			O,
-			S,
-			I,
-			J,
-			T,
-			Garbage,
-			Empty
-		}
+
 
 		/// <summary>
 		/// for AI moving
@@ -362,9 +105,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="username"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		public Environment(EventFullData envData, NextGenerateKind envMode, string? username, DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
+		public Environment(EventFullData envData, NextGenerateKind envMode, string? username, bool infinityHold = false,
+			DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
 		{
-
 			dataForInitialize ??= new DataForInitialize();
 
 
@@ -375,7 +118,6 @@ namespace TetrioVirtualEnvironment
 			NextSkipCount = nextSkipCount;
 
 			ResetGame(envData, envMode, dataForInitialize, nextSkipCount);
-
 		}
 
 		/// <summary>
@@ -385,7 +127,8 @@ namespace TetrioVirtualEnvironment
 		/// <param name="envMode"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		internal void ResetGame(EventFullData envData, NextGenerateKind envMode, DataForInitialize dataForInitialize, int nextSkipCount = 0)
+		internal void ResetGame(EventFullData envData, NextGenerateKind envMode, DataForInitialize dataForInitialize,
+			int nextSkipCount = 0)
 		{
 			GameData = new GameData();
 			Stats = new Stats();
@@ -397,33 +140,6 @@ namespace TetrioVirtualEnvironment
 			CurrentIndex = 0;
 
 			GameData.Init(envMode, envData, GameData, this, nextSkipCount, dataForInitialize);
-
-		}
-
-
-		/// <summary>
-		/// KeyInput for Self Control
-		/// </summary>
-		/// <param name="keyEvent"></param>
-		/// <param name="keyKind"></param>
-		public void InputKeyEvent(KeyEvent keyEvent, Action keyKind)
-		{
-			if (NextGenerateMode == NextGenerateKind.Array)
-				if (keyKind == Action.Hold)
-				{
-
-				}
-				else
-					return;
-
-			if (keyEvent == KeyEvent.KeyUp)
-			{
-
-			}
-			else if (keyEvent == KeyEvent.KeyDown)
-			{
-
-			}
 		}
 
 
@@ -444,8 +160,7 @@ namespace TetrioVirtualEnvironment
 				{
 					GameData.LShift = true;
 					GameData.LastShift = -1;
-					GameData.LDas = @event.hoisted ?
-						GameData.Handling.DAS - GameData.Handling.DCD : 0;
+					GameData.LDas = @event.hoisted ? GameData.Handling.DAS - GameData.Handling.DCD : 0;
 					if (GameData.Options.Version >= 12)
 						GameData.LDasIter = GameData.Handling.ARR;
 
@@ -500,8 +215,9 @@ namespace TetrioVirtualEnvironment
 							e -= 4;
 						RotateSystem.RotatePiece(e, GameData);
 					}
+
 					if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop &&
-						GameData.Falling.SafeLock == 0)
+					    GameData.Falling.SafeLock == 0)
 					{
 						FallEvent(int.MaxValue, 1);
 					}
@@ -511,12 +227,11 @@ namespace TetrioVirtualEnvironment
 						if (!GameData.HoldLocked || InfinityHold)
 						{
 							if ((GameData.Options.DisplayHold == null ||
-							(bool)GameData.Options.DisplayHold))
+							     (bool)GameData.Options.DisplayHold))
 								SwapHold();
 						}
 					}
 				}
-
 			}
 			else if (type == "keyup")
 			{
@@ -557,12 +272,8 @@ namespace TetrioVirtualEnvironment
 
 				if (@event.key == "softDrop")
 					GameData.SoftDrop = false;
-
-
 			}
 		}
-
-
 
 
 		/// <summary>
@@ -587,18 +298,16 @@ namespace TetrioVirtualEnvironment
 			ExcuteWaitingFrames();
 
 
-
 			if (GameData.Options.GravityIncrease > 0 &&
-				CurrentFrame > GameData.Options.GravityMargin)
+			    CurrentFrame > GameData.Options.GravityMargin)
 				GameData.Gravity += GameData.Options.GravityIncrease / 60;
 
 			if (GameData.Options.GarbageIncrease > 0 &&
-				CurrentFrame > GameData.Options.GarbageMargin)
+			    CurrentFrame > GameData.Options.GarbageMargin)
 				GameData.Options.GarbageMultiplier += GameData.Options.GarbageIncrease / 60;
 
 			if (GameData.Options.GarbageCapIncrease > 0)
 				GameData.Options.GarbageCap += GameData.Options.GarbageCapIncrease / 60;
-
 
 
 			return true;
@@ -616,7 +325,6 @@ namespace TetrioVirtualEnvironment
 			{
 				if (events[CurrentIndex].frame == CurrentFrame)
 				{
-
 					switch (events[CurrentIndex].type)
 					{
 						case "start":
@@ -679,10 +387,13 @@ namespace TetrioVirtualEnvironment
 									case "garbage":
 										string? idValue;
 										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.data.sender_id != null ? garbageEvent.data.data.sender_id.Substring(0, 24) : null;
+											idValue = garbageEvent.data.data.sender_id != null
+												? garbageEvent.data.data.sender_id.Substring(0, 24)
+												: null;
 										else
 											idValue = garbageEvent.data.data.sender_id;
-										StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender, idValue, garbageEvent.data.data.cid);
+										StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+											idValue, garbageEvent.data.data.cid);
 
 										break;
 								}
@@ -695,18 +406,20 @@ namespace TetrioVirtualEnvironment
 									case "garbage":
 										string idValue;
 										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.data.sender_id != null ? garbageEvent.data.data.sender_id.Substring(0, 24) : null;
+											idValue = garbageEvent.data.data.sender_id != null
+												? garbageEvent.data.data.sender_id.Substring(0, 24)
+												: null;
 										else
 											idValue = garbageEvent.data.data.sender_id;
 
-										IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender, idValue, garbageEvent.data.data.cid);
+										IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+											idValue, garbageEvent.data.data.cid);
 										break;
 								}
 							}
 
 							if (garbageEvent.data.data.type == "kev")
 							{
-
 							}
 
 							break;
@@ -734,9 +447,7 @@ namespace TetrioVirtualEnvironment
 
 		private void IncomingAttack(GarbageData data, string? sender = null, string? id1 = null, int? id2 = null)
 		{
-
-
-			if (GameData.Options.Passthrough == "consistent")
+			if (GameData.Options.Passthrough == Options.PassthroughKind.Consistent)
 			{
 				data.amt = GetAmt(data, id1);
 			}
@@ -747,10 +458,7 @@ namespace TetrioVirtualEnvironment
 
 				if (data.amt <= 0)
 					return;
-
-
 			}
-
 
 
 			WaitFrames(GameData.Options.GarbageSpeed, "incoming-attack-hit", new IgeData()
@@ -792,12 +500,10 @@ namespace TetrioVirtualEnvironment
 					ExcuteWaitingFrame(GameData.WaitingFrames[waitingFrameIndex]);
 					GameData.WaitingFrames.RemoveAt(waitingFrameIndex);
 				}
-
-
 			}
 		}
 
-		private void ExcuteWaitingFrame(WaitingFrameData data)
+		private void ExcuteWaitingFrame(in WaitingFrameData data)
 		{
 			if (data.type == "incoming-attack-hit")
 			{
@@ -851,7 +557,7 @@ namespace TetrioVirtualEnvironment
 		{
 			var amt_value = data.amt;
 
-			if (GameData.Options.Passthrough == "zero")
+			if (GameData.Options.Passthrough == Options.PassthroughKind.Zero)
 			{
 				amt_value = GetAmt(data, id1);
 			}
@@ -870,16 +576,11 @@ namespace TetrioVirtualEnvironment
 					cid = id2
 				});
 			}
-
-
 		}
 
 		private int GetAmt(GarbageData data, string? id = null)
 		{
-			if (!GameData.GarbageActnowledgements.Incoming.ContainsKey(id))
-				GameData.GarbageActnowledgements.Incoming.Add(id, data.iid);
-			else
-				GameData.GarbageActnowledgements.Incoming[id] = data.iid;
+			GameData.GarbageActnowledgements.Incoming[id] = data.iid;
 
 			var amtValue = data.amt;
 
@@ -896,7 +597,6 @@ namespace TetrioVirtualEnvironment
 					amtValue -= minValue;
 
 
-
 					if (outgoing.amt > 0)
 						newArray.Add(outgoing);
 				}
@@ -906,7 +606,6 @@ namespace TetrioVirtualEnvironment
 
 			return amtValue;
 		}
-
 
 
 		private void FallEvent(int? value, double subFrameDiff)
@@ -926,8 +625,8 @@ namespace TetrioVirtualEnvironment
 				else
 				{
 					subframeGravity *= GameData.Handling.SDF;
-					subframeGravity = Math.Max(subframeGravity, GameData.Options.Version >= 13 ?
-						0.05 * GameData.Handling.SDF : 0.42);
+					subframeGravity = Math.Max(subframeGravity,
+						GameData.Options.Version >= 13 ? 0.05 * GameData.Handling.SDF : 0.42);
 				}
 			}
 
@@ -935,9 +634,9 @@ namespace TetrioVirtualEnvironment
 				subframeGravity = (int)value;
 
 			if (!GameData.Options.InfiniteMovement &&
-				GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
-				!JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X,
-				GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
+			    GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
+			    !JudgeSystem.IsLegalAtPos((Tetrimino.MinoType)GameData.Falling.Type, GameData.Falling.X,
+				    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 			{
 				subframeGravity = 20;
 				GameData.Falling.ForceLock = true;
@@ -945,10 +644,10 @@ namespace TetrioVirtualEnvironment
 
 
 			if (!GameData.Options.InfiniteMovement &&
-				GameData.FallingRotations > (int)GameData.Options.LockResets + 15)
+			    GameData.FallingRotations > (int)GameData.Options.LockResets + 15)
 			{
 				subframeGravity += 0.5 * subFrameDiff *
-					(GameData.FallingRotations - ((int)GameData.Options.LockResets + 15));
+				                   (GameData.FallingRotations - ((int)GameData.Options.LockResets + 15));
 			}
 
 			double constSubFrameGravity = subframeGravity;
@@ -967,11 +666,10 @@ namespace TetrioVirtualEnvironment
 				subframeGravity -= Math.Min(1, subframeGravity);
 				if (ceiledValue != Math.Ceiling(GameData.Falling.Y))
 				{
-					GameData.Falling.Last = "fall";
+					GameData.Falling.Last = Falling.LastKind.Fall;
 					if (GameData.SoftDrop)
 					{
 						//ScoreAdd
-
 					}
 				}
 			}
@@ -989,8 +687,10 @@ namespace TetrioVirtualEnvironment
 			if (yPos2 % 1 == 0)
 				yPos2 -= 0.00002;
 
-			if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X, yPos1, GameData.Falling.R, GameData.Board) &&
-				JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X, yPos2, GameData.Falling.R, GameData.Board))
+			if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos1, GameData.Falling.R,
+				    GameData.Board) &&
+			    JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos2, GameData.Falling.R,
+				    GameData.Board))
 			{
 				var highestY = GameData.Falling.HighestY;
 				yPos2 = GameData.Falling.Y;
@@ -1000,7 +700,6 @@ namespace TetrioVirtualEnvironment
 				GameData.Falling.Floored = false;
 				if (Math.Ceiling(yPos1) != Math.Ceiling(yPos2))
 				{
-
 				}
 
 				if (yPos1 > highestY || GameData.Options.InfiniteMovement)
@@ -1024,15 +723,17 @@ namespace TetrioVirtualEnvironment
 			//ミノを盤面に適用
 			if (!emptyDrop)
 			{
-				foreach (var pos in ConstData.TETRIMINOS_SHAPES[(int)GameData.Falling.Type][GameData.Falling.R])
+				foreach (var pos in Tetrimino.SHAPES[(int)GameData.Falling.Type][GameData.Falling.R])
 				{
-					GameData.Board[(int)((pos.x + GameData.Falling.X - ConstData.TETRIMINO_DIFFS[(int)GameData.Falling.Type].x) +
-						(int)(pos.y + GameData.Falling.Y - ConstData.TETRIMINO_DIFFS[(int)GameData.Falling.Type].y) * 10)] = GameData.Falling.Type;
+					GameData.Board[(int)((pos.x + GameData.Falling.X -
+					                      Tetrimino.DIFFS[(int)GameData.Falling.Type].x) +
+					                     (int)(pos.y + GameData.Falling.Y -
+					                           Tetrimino.DIFFS[(int)GameData.Falling.Type].y) * 10)] =
+						GameData.Falling.Type;
 				}
 
 				if (!sValue && GameData.Handling.SafeLock > 0)
 					GameData.Falling.SafeLock = 7;
-
 			}
 
 			var isTspin = JudgeSystem.IsTspin(GameData);
@@ -1048,7 +749,6 @@ namespace TetrioVirtualEnvironment
 			GameData.Falling.Init(null, false, NextGenerateMode);
 
 			OnPiecePlaced?.Invoke(this, EventArgs.Empty);
-
 		}
 
 		internal void CallOnPieceCreated()
@@ -1057,18 +757,19 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-
 		public void UserInput(Action action)
 		{
 			switch (action)
 			{
 				case Action.MoveRight:
-					if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X + 1, GameData.Falling.Y, GameData.Falling.R, GameData.Board))
+					if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X + 1,
+						    GameData.Falling.Y, GameData.Falling.R, GameData.Board))
 						GameData.Falling.X++;
 					break;
 
 				case Action.MoveLeft:
-					if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X - 1, GameData.Falling.Y, GameData.Falling.R, GameData.Board))
+					if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X - 1,
+						    GameData.Falling.Y, GameData.Falling.R, GameData.Board))
 						GameData.Falling.X--;
 					break;
 
@@ -1104,26 +805,29 @@ namespace TetrioVirtualEnvironment
 				case Action.QuickSoftdrop:
 					while (true)
 					{
-						if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
+						if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+							    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 							GameData.Falling.Y++;
 						else
 							break;
 					}
+
 					break;
 
 				case Action.MoveUp:
-					if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y - 1, GameData.Falling.R, GameData.Board))
+					if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+						    GameData.Falling.Y - 1, GameData.Falling.R, GameData.Board))
 						GameData.Falling.Y--;
 					break;
 
 				case Action.MoveDown:
-					if (JudgeSystem.IsLegalAtPos((MinoKind)GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
+					if (JudgeSystem.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+						    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 						GameData.Falling.Y++;
 					break;
 
 				default: throw new Exception();
 			}
-
 		}
 
 		/// <summary>
@@ -1155,7 +859,7 @@ namespace TetrioVirtualEnvironment
 				bool flag = true;
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
-					if (GameData.Board[x + y * 10] == MinoKind.Empty)
+					if (GameData.Board[x + y * 10] == Tetrimino.MinoType.Empty)
 					{
 						flag = false;
 						break;
@@ -1173,13 +877,12 @@ namespace TetrioVirtualEnvironment
 			}
 
 			return list.Count;
-
 		}
 
-		public static Vector2[] GetMinoPos(MinoKind type, int x, int y, int r)
+		public static Vector2[] GetMinoPos(Tetrimino.MinoType type, int x, int y, int r)
 		{
-			var positions = (Vector2[])ConstData.TETRIMINOS_SHAPES[(int)type][r].Clone();
-			var diff = ConstData.TETRIMINO_DIFFS[(int)type];
+			var positions = (Vector2[])Tetrimino.SHAPES[(int)type][r].Clone();
+			var diff = Tetrimino.DIFFS[(int)type];
 
 			for (int i = 0; i < positions.Length; i++)
 			{
@@ -1192,21 +895,20 @@ namespace TetrioVirtualEnvironment
 
 		public int GetFallestPosDiff()
 		{
-
-			return GetFallestPosDiff(GameData.Falling.Type, GameData.Falling.X, (int)GameData.Falling.Y, GameData.Falling.R);
-
+			return GetFallestPosDiff(GameData.Falling.Type, GameData.Falling.X, (int)GameData.Falling.Y,
+				GameData.Falling.R);
 		}
 
-		public int GetFallestPosDiff(MinoKind type, int x, int y, int r)
+		public int GetFallestPosDiff(Tetrimino.MinoType type, int x, int y, int r)
 		{
-			if (type == MinoKind.Empty)
+			if (type == Tetrimino.MinoType.Empty)
 				return 0;
 
 			int testY = 1;
 			while (true)
 			{
 				if (JudgeSystem.IsLegalAtPos(type, x, y + testY,
-				   r, GameData.Board))
+					    r, GameData.Board))
 					testY++;
 				else
 				{
@@ -1224,14 +926,14 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="value">y座標</param>
 		/// <param name="field">盤面</param>
-		private void DownLine(int value, MinoKind[] field)
+		private void DownLine(int value, Tetrimino.MinoType[] field)
 		{
 			for (int y = value; y >= 0; y--)
 			{
 				for (int x = 0; x < FIELD_WIDTH; x++)
 				{
 					if (y - 1 == -1)
-						field[x + y * 10] = MinoKind.Empty;
+						field[x + y * 10] = Tetrimino.MinoType.Empty;
 					else
 						field[x + y * 10] = field[x + (y - 1) * 10];
 				}
@@ -1254,17 +956,16 @@ namespace TetrioVirtualEnvironment
 				GameData.Falling.Floored = true;
 
 
-
 			if (GameData.Falling.Locking > GameData.Options.LockTime ||
-				GameData.Falling.ForceLock ||
-				GameData.Falling.LockResets > GameData.Options.LockResets &&
-				!GameData.Options.InfiniteMovement)
+			    GameData.Falling.ForceLock ||
+			    GameData.Falling.LockResets > GameData.Options.LockResets &&
+			    !GameData.Options.InfiniteMovement)
 			{
 				Lock(value);
 			}
 		}
 
-		internal MinoKind RefreshNext(Queue<MinoKind> nextQueue, bool noszo)
+		internal Tetrimino.MinoType RefreshNext(Queue<Tetrimino.MinoType> nextQueue, bool noszo)
 		{
 			GeneratedRngCount++;
 
@@ -1273,7 +974,7 @@ namespace TetrioVirtualEnvironment
 
 			if (GameData.NextBag.Count == 0)
 			{
-				var array = (MinoKind[])ConstData.MINOTYPES.Clone();
+				var array = (Tetrimino.MinoType[])Tetrimino.MINOTYPES.Clone();
 				Rng.ShuffleArray(array);
 				GameData.NextBag.AddRange(array);
 			}
@@ -1282,9 +983,9 @@ namespace TetrioVirtualEnvironment
 			{
 				while (true)
 				{
-					if (GameData.NextBag[0] == MinoKind.S ||
-						 GameData.NextBag[0] == MinoKind.Z ||
-						GameData.NextBag[0] == MinoKind.O)
+					if (GameData.NextBag[0] == Tetrimino.MinoType.S ||
+					    GameData.NextBag[0] == Tetrimino.MinoType.Z ||
+					    GameData.NextBag[0] == Tetrimino.MinoType.O)
 					{
 						var temp = GameData.NextBag[0];
 						for (int i = 0; i < GameData.NextBag.Count - 1; i++)
@@ -1295,7 +996,6 @@ namespace TetrioVirtualEnvironment
 					else
 						break;
 				}
-
 			}
 
 
@@ -1318,7 +1018,8 @@ namespace TetrioVirtualEnvironment
 				return;
 
 			var ABoolValue = true;
-			int maxReceiveGarbage = false ? 400 : (int)Math.Min(GameData.Options.GarbageCapMax, GameData.Options.GarbageCap);
+			int maxReceiveGarbage =
+				false ? 400 : (int)Math.Min(GameData.Options.GarbageCapMax, GameData.Options.GarbageCap);
 			var oValue = false;
 			var iArray = new List<IgeData>();
 
@@ -1342,7 +1043,7 @@ namespace TetrioVirtualEnvironment
 					rValue = i >= maxReceiveGarbage - 1;
 
 				if (!GarbageSystem.PushGarbageLine(GameData.ImpendingDamages[0].column, GameData, false,
-						(ABoolValue ? 64 : 0) | (rValue ? 4 : 0)))
+					    (ABoolValue ? 64 : 0) | (rValue ? 4 : 0)))
 					break;
 
 				ABoolValue = false;
@@ -1352,17 +1053,9 @@ namespace TetrioVirtualEnvironment
 					GameData.ImpendingDamages.RemoveAt(0);
 					ABoolValue = true;
 				}
-
 			}
 
 			GameData.ImpendingDamages.AddRange(iArray.ToArray());
-
 		}
-
-
-
-
-
-
 	}
 }

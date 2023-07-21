@@ -1,14 +1,28 @@
-﻿using System.Runtime;
-using TetrReplayLoader.JsonClass.Event;
+﻿using TetrReplayLoader.JsonClass.Event;
 
 namespace TetrioVirtualEnvironment
 {
 	public class Options
 	{
+		public enum GarbageBlockingType
+		{
+			ComboBlocking,
+			LimitedBlocking,
+			None
+		}
+
+		public enum PassthroughKind
+		{
+			Full,
+			Limited,
+			Zero,
+			Consistent
+		}
+
 		public Options(EventFullOptionsData options)
 		{
 			GarbageCapMax = options.garbagecapmax ?? 40;
-			Version = (int)options.version;
+			Version = options.version;
 			Seed = (int)options.seed;
 			HasGarbage = options.hasgarbage ?? false;
 			GravityMargin = options.gmargin ?? 0;
@@ -27,21 +41,54 @@ namespace TetrioVirtualEnvironment
 			GarbageSpeed = options.garbagespeed ?? 0;
 			BTBChaining = options.b2bchaining ?? true;
 			NoLockout = options.nolockout ?? true;
-			GarbageBlocking = options.garbageblocking ?? "combo blocking";
-			if (options.passthrough == null)
-				Passthrough = "limited";
-			else
-			{
-				if (options.passthrough.ToString() == "true")
-					Passthrough = "full";
-				else if (options.passthrough.ToString() == "false")
-					Passthrough = "limited";
-				else
-					Passthrough = (options.passthrough.ToString() ?? "limited");
 
+			switch (options.garbageblocking)
+			{
+				case "combo blocking":
+					GarbageBlocking = GarbageBlockingType.ComboBlocking;
+					break;
+				case "limited blocking":
+					GarbageBlocking = GarbageBlockingType.LimitedBlocking;
+					break;
+				case "none":
+					GarbageBlocking = GarbageBlockingType.None;
+					break;
+				default:
+					GarbageBlocking = GarbageBlockingType.ComboBlocking;
+					break;
 			}
 
-
+			if (options.passthrough == null)
+				Passthrough = PassthroughKind.Limited;
+			else
+			{
+				var passthroughStr = options.passthrough.ToString();
+				if (passthroughStr == "true")
+					Passthrough = PassthroughKind.Full;
+				else if (passthroughStr == "false")
+					Passthrough = PassthroughKind.Limited;
+				else
+				{
+					switch (passthroughStr)
+					{
+						case "zero":
+							Passthrough = PassthroughKind.Zero;
+							break;
+						case "consistent":
+							Passthrough = PassthroughKind.Consistent;
+							break;
+						case "limited":
+							Passthrough = PassthroughKind.Limited;
+							break;
+						case "full":
+							Passthrough = PassthroughKind.Full;
+							break;
+						default:
+							Passthrough = PassthroughKind.Limited;
+							break;
+					}
+				}
+			}
 		}
 
 		public int Version { get; internal set; }
@@ -65,12 +112,8 @@ namespace TetrioVirtualEnvironment
 		public int? LockTime { get; internal set; }
 
 		public bool ClipListenIDs { get; internal set; } = true;
-		public string Passthrough { get; internal set; }
-		public string GarbageBlocking { get; internal set; }
+		public PassthroughKind Passthrough { get; internal set; }
+		public GarbageBlockingType GarbageBlocking { get; internal set; }
 		public bool NoLockout { get; private set; }
 	}
-
-
-
-
 }

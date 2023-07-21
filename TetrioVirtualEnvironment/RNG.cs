@@ -1,4 +1,6 @@
 ﻿
+using TetrioVirtualEnvironment.Constants;
+
 namespace TetrioVirtualEnvironment
 {
 	public class Rng
@@ -6,20 +8,20 @@ namespace TetrioVirtualEnvironment
 		private double _t;
 		public double Seed { get; private set; }
 
-		public static Environment.MinoKind[] GetNextAt(double seed, int skipCount, int length)
+		public static Tetrimino.MinoType[] GetNextAt(double seed, int skipCount, int length)
 		{
 			skipCount -= 5;
 
-			Environment.MinoKind[] result = new Environment.MinoKind[length];
+			Tetrimino.MinoType[] result = new Tetrimino.MinoType[length];
 			var rng = new Rng();
 			rng.Init(seed);
 
-			var list = new List<Environment.MinoKind>();
+			var list = new List<Tetrimino.MinoType>();
 			for (int i = 0;; i++)
 			{
 				if (list.Count == 0)
 				{
-					var array = (Environment.MinoKind[])Environment.ConstData.MINOTYPES.Clone();
+					var array = (Tetrimino.MinoType[])Tetrimino.MINOTYPES.Clone();
 					rng.ShuffleArray(array);
 					list.AddRange(array);
 				}
@@ -48,7 +50,7 @@ namespace TetrioVirtualEnvironment
 
 		}
 
-		public void ShuffleArray(Environment.MinoKind[] array)
+		public void ShuffleArray(Tetrimino.MinoType[] array)
 		{
 			for (var i = array.Length - 1; i != 0; i--)
 			{

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using TetrReplayLoader;
 using TetrioVirtualEnvironment;
+using TetrioVirtualEnvironment.Constants;
 using Environment = TetrioVirtualEnvironment.Environment;
 using static TetrioVirtualEnvironment.Environment;
 
@@ -106,13 +107,13 @@ void Print(Replay replay)
         output += "Player" + (playerIndex + 1) + "\r\n";
         output += "CurrentFrame:";
         output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
-        var tempfield = (MinoKind[])replay.Environments[playerIndex].GameData.Board.Clone();
+        var tempfield = (Tetrimino.MinoType[])replay.Environments[playerIndex].GameData.Board.Clone();
 
-        if (replay.Environments[playerIndex].GameData.Falling.Type != MinoKind.Empty)
-            foreach (var pos in Environment.ConstData.TETRIMINOS_SHAPES[(int)replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
+        if (replay.Environments[playerIndex].GameData.Falling.Type != Tetrimino.MinoType.Empty)
+            foreach (var pos in Tetrimino.SHAPES[(int)replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
             {
-                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - Environment.ConstData.TETRIMINO_DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].x) +
-                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y - Environment.ConstData.TETRIMINO_DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = (int)Environment.MinoKind.Z;
+                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - Tetrimino.DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].x) +
+                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y -  Tetrimino.DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = Tetrimino.MinoType.Z;
             }
 
 
@@ -120,7 +121,7 @@ void Print(Replay replay)
         {
             for (int x = 0; x < 10; x++)
             {
-                if (tempfield[x + y * 10] == MinoKind.Empty)
+                if (tempfield[x + y * 10] == Tetrimino.MinoType.Empty)
                     output += "□";
                 else
                     output += "■";

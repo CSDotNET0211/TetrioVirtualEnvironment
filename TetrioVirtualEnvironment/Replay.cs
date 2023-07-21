@@ -90,6 +90,7 @@ namespace TetrioVirtualEnvironment
 				Environments.Add(new Environment(fullEvent.data, Environment.NextGenerateKind.Seed, fullEvent.data.options?.username));
 				ReplayData.GetReplayEvents(playerIndex, ReplayIndex);
 			}
+			
 
 			ReplayStatus = ReplayStatusKind.Playing;
 			TotalGameFramesAtLoadedGame = ReplayData.GetGameTotalFrames(replayIndex);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrioVirtualEnvironment.Constants;
 using TetrReplayLoader.JsonClass;
 using static TetrioVirtualEnvironment.Environment;
 
@@ -13,13 +14,13 @@ namespace TetrioVirtualEnvironment
 		public DataForInitialize()
 		{
 			Board = null;
-			Hold = MinoKind.Empty;
+			Hold = Tetrimino.MinoType.Empty;
 			Next = null;
-			Current = MinoKind.Empty;
+			Current = Tetrimino.MinoType.Empty;
 			Garbages = null;
 		}
 
-		public DataForInitialize(MinoKind[] board, MinoKind hold, MinoKind current, MinoKind[] next, IgeData[] garbages)
+		public DataForInitialize(Tetrimino.MinoType[] board, Tetrimino.MinoType hold, Tetrimino.MinoType current, Tetrimino.MinoType[] next, IgeData[] garbages)
 		{
 			Board = board;
 			Hold = hold;
@@ -28,10 +29,10 @@ namespace TetrioVirtualEnvironment
 			Garbages = new List<IgeData?>(garbages);
 		}
 
-		public MinoKind[] Board { get; }
-		public MinoKind Hold { get; }
-		public MinoKind Current { get; }
-		public MinoKind[] Next { get; }
+		public Tetrimino.MinoType[] Board { get; }
+		public Tetrimino.MinoType Hold { get; }
+		public Tetrimino.MinoType Current { get; }
+		public Tetrimino.MinoType[] Next { get; }
 		public List<IgeData?>? Garbages { get; }
 
 	}

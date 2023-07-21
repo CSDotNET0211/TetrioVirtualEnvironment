@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrioVirtualEnvironment.Constants;
 using TetrReplayLoader.JsonClass;
 using static TetrioVirtualEnvironment.Environment;
 
@@ -56,7 +57,7 @@ namespace TetrioVirtualEnvironment
 			return garbagesList;
 		}
 
-		public static void ToIntArray(this MinoKind[]? array, out int[]? resultArray)
+		public static void ToIntArray(this Tetrimino.MinoType[]? array, out int[]? resultArray)
 		{
 			if (array == null)
 			{

@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrioVirtualEnvironment.Constants;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
 	public class MinoPosition
 	{
-		public MinoPosition(MinoKind type, int x, int y, int r)
+		public MinoPosition(Tetrimino.MinoType type, int x, int y, int r)
 		{
 			this.type = type;
 			this.x = x;
@@ -25,7 +26,7 @@ namespace TetrioVirtualEnvironment
 			this.r = falling.R;
 		}
 
-	public MinoKind type;
+	public Tetrimino.MinoType type;
 		public int x;
 		public int y;
 		public int r;

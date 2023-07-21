@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TetrioVirtualEnvironment.Interface;
+using TetrioVirtualEnvironment.Constants;
 using TetrReplayLoader.JsonClass;
 using static TetrioVirtualEnvironment.Environment;
 
@@ -38,7 +38,7 @@ namespace TetrioVirtualEnvironment.System
 
 			if (attackLine > 0)
 			{
-				if (gameData.Options.Passthrough == "consistent" && gameData.NotYetReceivedAttack > 0)
+				if (gameData.Options.Passthrough == Options.PassthroughKind.Consistent && gameData.NotYetReceivedAttack > 0)
 				{
 					//PlaySound
 				}
@@ -59,7 +59,7 @@ namespace TetrioVirtualEnvironment.System
 				{
 					var interactionID = ++gameData.InteractionID;
 
-					if (gameData.Options.Passthrough is "zero" or "consistent")
+					if (gameData.Options.Passthrough is Options.PassthroughKind.Zero or Options.PassthroughKind.Consistent)
 					{
 						if (!gameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
 							gameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
@@ -76,7 +76,7 @@ namespace TetrioVirtualEnvironment.System
 			}
 		}
 
-		internal static bool GetAttackPower(int clearLineCount, string? isTspin, GameData gameData,Stats stats)
+		internal static bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin, GameData gameData,Stats stats)
 		{
 			var isBTB = false;
 
@@ -89,7 +89,7 @@ namespace TetrioVirtualEnvironment.System
 					isBTB = true;
 				else
 				{
-					if (isTspin != null)
+					if (isTspin != Falling.SpinTypeKind.Null)
 						isBTB = true;
 				}
 
@@ -116,42 +116,42 @@ namespace TetrioVirtualEnvironment.System
 			switch (clearLineCount)
 			{
 				case 0:
-					if (isTspin == "mini")
-						garbageValue = ConstValue.Garbage.TSPIN_MINI;
-					else if (isTspin == "normal")
-						garbageValue = ConstValue.Garbage.TSPIN;
+					if (isTspin == Falling.SpinTypeKind.Mini)
+						garbageValue = Constants.Garbage.TSPIN_MINI;
+					else if (isTspin == Falling.SpinTypeKind.Normal)
+						garbageValue = Constants.Garbage.TSPIN;
 					break;
 
 				case 1:
-					if (isTspin == "mini")
-						garbageValue = ConstValue.Garbage.TSPIN_MINI_SINGLE;
-					else if (isTspin == "normal")
-						garbageValue = ConstValue.Garbage.TSPIN_SINGLE;
+					if (isTspin == Falling.SpinTypeKind.Mini)
+						garbageValue = Constants.Garbage.TSPIN_MINI_SINGLE;
+					else if (isTspin == Falling.SpinTypeKind.Normal)
+						garbageValue = Constants.Garbage.TSPIN_SINGLE;
 					else
-						garbageValue = ConstValue.Garbage.SINGLE;
+						garbageValue = Constants.Garbage.SINGLE;
 					break;
 
 				case 2:
-					if (isTspin == "mini")
-						garbageValue = ConstValue.Garbage.TSPIN_MINI_DOUBLE;
-					else if (isTspin == "normal")
-						garbageValue = ConstValue.Garbage.TSPIN_DOUBLE;
+					if (isTspin == Falling.SpinTypeKind.Mini)
+						garbageValue = Constants.Garbage.TSPIN_MINI_DOUBLE;
+					else if (isTspin == Falling.SpinTypeKind.Normal)
+						garbageValue = Constants.Garbage.TSPIN_DOUBLE;
 					else
-						garbageValue = ConstValue.Garbage.DOUBLE;
+						garbageValue = Constants.Garbage.DOUBLE;
 					break;
 
 				case 3:
-					if (isTspin != null)
-						garbageValue = ConstValue.Garbage.TSPIN_TRIPLE;
+					if (isTspin != Falling.SpinTypeKind.Null)
+						garbageValue = Constants.Garbage.TSPIN_TRIPLE;
 					else
-						garbageValue = ConstValue.Garbage.TRIPLE;
+						garbageValue = Constants.Garbage.TRIPLE;
 					break;
 
 				case 4:
-					if (isTspin != null)
-						garbageValue = ConstValue.Garbage.TSPIN_QUAD;
+					if (isTspin != Falling.SpinTypeKind.Null)
+						garbageValue = Constants.Garbage.TSPIN_QUAD;
 					else
-						garbageValue = ConstValue.Garbage.QUAD;
+						garbageValue = Constants.Garbage.QUAD;
 
 					break;
 			}
@@ -165,11 +165,11 @@ namespace TetrioVirtualEnvironment.System
 					if (stats.BTB - 1 == 1)
 						tempValue = 0;
 					else
-						tempValue = 1 + (Math.Log((stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+						tempValue = 1 + (Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
 
-					var btb_bonus = ConstValue.Garbage.BACKTOBACK_BONUS *
-						(Math.Floor(1 + Math.Log((stats.BTB - 1) * ConstValue.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+					var btb_bonus = Constants.Garbage.BACKTOBACK_BONUS *
+						(Math.Floor(1 + Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
 
 					garbageValue += btb_bonus;
 
@@ -187,7 +187,7 @@ namespace TetrioVirtualEnvironment.System
 
 				}
 				else
-					garbageValue += ConstValue.Garbage.BACKTOBACK_BONUS;
+					garbageValue += Constants.Garbage.BACKTOBACK_BONUS;
 			}
 			else
 			{
@@ -197,13 +197,13 @@ namespace TetrioVirtualEnvironment.System
 
 			if (stats.Combo > 1)
 			{
-				garbageValue *= 1 + ConstValue.Garbage.COMBO_BONUS * (stats.Combo - 1);
+				garbageValue *= 1 + Constants.Garbage.COMBO_BONUS * (stats.Combo - 1);
 			}
 
 			if (stats.Combo > 2)
 			{
-				garbageValue = Math.Max(Math.Log(ConstValue.Garbage.COMBO_MINIFIER *
-					(stats.Combo - 1) * ConstValue.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
+				garbageValue = Math.Max(Math.Log(Constants.Garbage.COMBO_MINIFIER *
+					(stats.Combo - 1) * Constants.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
 
@@ -218,17 +218,17 @@ namespace TetrioVirtualEnvironment.System
 
 			switch (gameData.Options.GarbageBlocking)
 			{
-				case "combo blocking":
+				case Options.GarbageBlockingType.ComboBlocking:
 					if (clearLineCount > 0)
 						FightLines(totalPower, gameData);
 					return clearLineCount > 0;
 
-				case "limited blocking":
+				case Options.GarbageBlockingType.LimitedBlocking:
 					if (clearLineCount > 0)
 						FightLines(totalPower, gameData);
 					return false;
 
-				case "none":	
+				case Options.GarbageBlockingType.None:	
 					Offence(totalPower, gameData);
 					return false;
 
@@ -238,13 +238,13 @@ namespace TetrioVirtualEnvironment.System
 
 		internal static bool PushGarbageLine(int line, GameData gameData,bool falseValue = false, int whatIsThis = 68)
 		{
-			var newBoardList = new List<MinoKind>();
-			newBoardList.AddRange((MinoKind[])gameData.Board.Clone());
+			var newBoardList = new List<Tetrimino.MinoType>();
+			newBoardList.AddRange((Tetrimino.MinoType[])gameData.Board.Clone());
 
 			for (int x = 0; x < FIELD_WIDTH; x++)
 			{
 				//x+y*10
-				if (newBoardList[x] != MinoKind.Empty)
+				if (newBoardList[x] != Tetrimino.MinoType.Empty)
 					return false;
 			}
 
@@ -252,14 +252,14 @@ namespace TetrioVirtualEnvironment.System
 			for (int x = 0; x < FIELD_WIDTH; x++)
 				newBoardList.RemoveAt(x);
 
-			var RValueList = new List<MinoKind>();
+			var RValueList = new List<Tetrimino.MinoType>();
 
 			for (var tIndex = 0; tIndex < FIELD_WIDTH; tIndex++)
 			{
 				if (tIndex == line)
-					RValueList.Add(MinoKind.Empty);
+					RValueList.Add(Tetrimino.MinoType.Empty);
 				else
-					RValueList.Add(MinoKind.Garbage);
+					RValueList.Add(Tetrimino.MinoType.Garbage);
 			}
 
 			newBoardList.AddRange(RValueList);

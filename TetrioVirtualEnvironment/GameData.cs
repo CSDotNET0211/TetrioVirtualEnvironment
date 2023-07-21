@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using TetrioVirtualEnvironment.Constants;
 using TetrReplayLoader;
 using TetrReplayLoader.JsonClass;
 using TetrReplayLoader.JsonClass.Event;
@@ -9,6 +10,16 @@ namespace TetrioVirtualEnvironment
 {
 	public class GameData
 	{
+		public enum SpinBonus
+		{
+			None,
+			Stupid,
+			Handheld,
+			All,
+			Tspin
+		}
+
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -23,10 +34,10 @@ namespace TetrioVirtualEnvironment
 		{
 			gameData = this;
 
-			Next = new Queue<MinoKind>();
-			Hold = MinoKind.Empty;
+			Next = new Queue<Tetrimino.MinoType>();
+			Hold = Tetrimino.MinoType.Empty;
 			ImpendingDamages = new List<IgeData?>();
-			NextBag = new List<MinoKind>();
+			NextBag = new List<Tetrimino.MinoType>();
 			WaitingFrames = new List<WaitingFrameData>();
 			InteractionID = 0;
 			Targets = new List<string>();
@@ -44,7 +55,35 @@ namespace TetrioVirtualEnvironment
 			RDasIter = 0;
 			Falling = new Falling(environment, this);
 			Gravity = (double)(eventFull.options.g);
-			SpinBonuses = eventFull.options.spinbonuses;
+
+			switch (eventFull.options.spinbonuses)
+			{
+				case "none":
+					SpinBonuses = SpinBonus.None;
+					break;
+
+				case "stupid":
+					SpinBonuses = SpinBonus.Stupid;
+					break;
+
+				case "handheld":
+					SpinBonuses = SpinBonus.Handheld;
+					break;
+
+				case "all":
+					SpinBonuses = SpinBonus.All;
+					break;
+
+				case "T-spins":
+					SpinBonuses = SpinBonus.Tspin;
+					break;
+
+				default:
+					SpinBonuses = SpinBonus.Tspin;
+					break;
+			}
+
+
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
 			environment.Rng.Init(eventFull.options.seed);
@@ -70,26 +109,25 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData, int nextSkipCount, Environment environment)
+		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData,
+			int nextSkipCount, Environment environment)
 		{
-
 			void InitBoard(DataForInitialize initData)
 			{
 				if (initData.Board == null)
 				{
-					Board = new MinoKind[FIELD_SIZE];
-					Array.Fill(Board, MinoKind.Empty);
+					Board = new Tetrimino.MinoType[FIELD_SIZE];
+					Array.Fill(Board, Tetrimino.MinoType.Empty);
 				}
 				else
 				{
-					Board = (MinoKind[])initData.Board.Clone();
+					Board = (Tetrimino.MinoType[])initData.Board.Clone();
 				}
-
 			}
 
 			void InitNext(DataForInitialize initData, NextGenerateKind mode)
 			{
-				Next = new Queue<MinoKind>();
+				Next = new Queue<Tetrimino.MinoType>();
 
 				if (mode == NextGenerateKind.Array)
 				{
@@ -105,7 +143,7 @@ namespace TetrioVirtualEnvironment
 						Console.WriteLine("nextCount is less than 1. This replay may not play properly.");
 
 					for (int nextInitIndex = 0; nextInitIndex < (int)initGameData.options?.nextcount; nextInitIndex++)
-						Next.Enqueue(MinoKind.Empty);
+						Next.Enqueue(Tetrimino.MinoType.Empty);
 
 					environment.RefreshNext(Next, initGameData.options.no_szo ?? false);
 
@@ -123,19 +161,19 @@ namespace TetrioVirtualEnvironment
 			InitNext(data, envMode);
 
 
-		//	if (data.Hold != null)
-				Hold = data.Hold;
+			//	if (data.Hold != null)
+			Hold = data.Hold;
 
 			if (data.Garbages != null)
 				ImpendingDamages = data.Garbages;
 		}
 
 
-		public string? SpinBonuses { get; private set; }
-		public MinoKind[] Board { get; internal set; }
+		public SpinBonus SpinBonuses { get; private set; }
+		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }
-		public Queue<MinoKind> Next { get; private set; }
-		public List<MinoKind> NextBag { get; private set; }
+		public Queue<Tetrimino.MinoType> Next { get; private set; }
+		public List<Tetrimino.MinoType> NextBag { get; private set; }
 		public Options Options { get; private set; }
 		public double SubFrame { get; internal set; }
 		public bool LShift { get; internal set; }
@@ -149,16 +187,15 @@ namespace TetrioVirtualEnvironment
 		public bool SoftDrop { get; internal set; }
 		public Falling Falling { get; private set; }
 		public bool HoldLocked { get; internal set; }
-		public MinoKind Hold { get; internal set; }
+		public Tetrimino.MinoType Hold { get; internal set; }
 		public double Gravity { get; internal set; }
 		public int FallingRotations { get; internal set; }
 		public int TotalRotations { get; internal set; }
 		public List<IgeData?> ImpendingDamages { get; internal set; }
-		public (Dictionary<string, int?> Incoming, Dictionary<string, List<GarbageData?>> Outgoing) GarbageActnowledgements
-		{
-			get;
-			internal set;
-		}
+
+		public (Dictionary<string, int?> Incoming, Dictionary<string, List<GarbageData?>> Outgoing)
+			GarbageActnowledgements { get; internal set; }
+
 		public int GarbageID { get; internal set; }
 		public int NotYetReceivedAttack { get; internal set; }
 		public List<string> Targets { get; internal set; }

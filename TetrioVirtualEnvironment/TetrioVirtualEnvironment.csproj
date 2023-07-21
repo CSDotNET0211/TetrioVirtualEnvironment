@@ -27,4 +27,8 @@
 		<ProjectReference Include="..\TetrReplayLoader\TetrLoader.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="PieceDrop\" />
+	</ItemGroup>
+
 </Project>

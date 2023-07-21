@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TetrioVirtualEnvironment.Constants;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment.System
@@ -53,10 +54,10 @@ namespace TetrioVirtualEnvironment.System
 
 			for (var index = 0; index < aboutARRValue; index++)
 			{
-				if (JudgeSystem.IsLegalAtPos((MinoKind)gameData.Falling.Type, gameData.Falling.X - 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board))
+				if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X - 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board))
 				{
 					gameData.Falling.X--;
-					gameData.Falling.Last = "move";
+					gameData.Falling.Last = Falling.LastKind.Move;
 					gameData.Falling.Clamped = false;
 
 					if (++gameData.Falling.LockResets < 15 || gameData.Options.InfiniteMovement)
@@ -102,10 +103,10 @@ namespace TetrioVirtualEnvironment.System
 
 			for (var ARRIndex = 0; ARRIndex < moveARRValue; ARRIndex++)
 			{
-				if (JudgeSystem.IsLegalAtPos((MinoKind)gameData.Falling.Type, gameData.Falling.X + 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board))
+				if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X + 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board))
 				{
 					gameData.Falling.X++;
-					gameData.Falling.Last = "move";
+					gameData.Falling.Last = Falling.LastKind.Move;
 					gameData.Falling.Clamped = false;
 
 					if (++gameData.Falling.LockResets < 15 || gameData.Options.InfiniteMovement)
