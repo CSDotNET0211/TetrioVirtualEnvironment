@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TetrioVirtualEnvironment.Constants;
-using TetrReplayLoader.JsonClass;
+using TetrLoader.JsonClass;
+using TetrLoader.JsonClass;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment

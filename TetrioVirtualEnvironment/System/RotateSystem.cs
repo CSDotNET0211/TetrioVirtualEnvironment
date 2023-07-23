@@ -9,7 +9,7 @@ using TetrioVirtualEnvironment.Constants;
 
 namespace TetrioVirtualEnvironment.System
 {
-	public class RotateSystem
+	public abstract class RotateSystem
 	{
 
 
@@ -81,7 +81,6 @@ namespace TetrioVirtualEnvironment.System
 					gameData.Falling.Locking = 0;
 
 
-				//落下ミノ更新フラグ true
 				return;
 			}
 

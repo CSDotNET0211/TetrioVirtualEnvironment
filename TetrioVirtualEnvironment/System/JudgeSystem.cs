@@ -1,36 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TetrioVirtualEnvironment.Constants;
+﻿using TetrioVirtualEnvironment.Constants;
+using TetrLoader.Enum;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment.System
 {
-	public class JudgeSystem
+	public abstract class JudgeSystem
 	{
 
 		
 		internal static Falling.SpinTypeKind IsTspin(GameData gameData)
 		{
-			if (gameData.SpinBonuses == GameData.SpinBonus.None)
+			if (gameData.SpinBonuses == SpinBonusesType.None)
 				return Falling.SpinTypeKind.Null;
 
-			if (gameData.SpinBonuses == GameData.SpinBonus.Stupid)
+			if (gameData.SpinBonuses ==SpinBonusesType.Stupid)
 				throw new NotImplementedException();
 
-			if (IsLegalAtPos((Tetrimino.MinoType)gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y + 1, gameData.Falling.R, gameData.Board))
+			if (IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y + 1, gameData.Falling.R, gameData.Board))
 				return Falling.SpinTypeKind.Null;
 
-			if (gameData.Falling.Type != Tetrimino.MinoType.T && gameData.SpinBonuses != GameData.SpinBonus.Handheld)
+			if (gameData.Falling.Type != Tetrimino.MinoType.T && gameData.SpinBonuses != SpinBonusesType.Handheld)
 			{
-				if (gameData.SpinBonuses == GameData.SpinBonus.All)
+				if (gameData.SpinBonuses == SpinBonusesType.All)
 				{
-					if (!(IsLegalAtPos((Tetrimino.MinoType)gameData.Falling.Type, gameData.Falling.X - 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board) ||
-					   IsLegalAtPos((Tetrimino.MinoType)gameData.Falling.Type, gameData.Falling.X + 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board) ||
-					   IsLegalAtPos((Tetrimino.MinoType)gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y - 1, gameData.Falling.R, gameData.Board) ||
-					   IsLegalAtPos((Tetrimino.MinoType)gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y + 1, gameData.Falling.R, gameData.Board)))
+					if (!(IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X - 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board) ||
+					   IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X + 1, gameData.Falling.Y, gameData.Falling.R, gameData.Board) ||
+					   IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y - 1, gameData.Falling.R, gameData.Board) ||
+					   IsLegalAtPos(gameData.Falling.Type, gameData.Falling.X, gameData.Falling.Y + 1, gameData.Falling.R, gameData.Board)))
 						return Falling.SpinTypeKind.Normal;
 					else
 						return Falling.SpinTypeKind.Null;

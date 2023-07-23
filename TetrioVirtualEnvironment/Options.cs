@@ -1,23 +1,11 @@
-﻿using TetrReplayLoader.JsonClass.Event;
+﻿using TetrLoader.JsonClass.Event;
+using TetrLoader.Enum;
 
 namespace TetrioVirtualEnvironment
 {
 	public class Options
 	{
-		public enum GarbageBlockingType
-		{
-			ComboBlocking,
-			LimitedBlocking,
-			None
-		}
-
-		public enum PassthroughKind
-		{
-			Full,
-			Limited,
-			Zero,
-			Consistent
-		}
+		
 
 		public Options(EventFullOptionsData options)
 		{
@@ -41,54 +29,9 @@ namespace TetrioVirtualEnvironment
 			GarbageSpeed = options.garbagespeed ?? 0;
 			BTBChaining = options.b2bchaining ?? true;
 			NoLockout = options.nolockout ?? true;
-
-			switch (options.garbageblocking)
-			{
-				case "combo blocking":
-					GarbageBlocking = GarbageBlockingType.ComboBlocking;
-					break;
-				case "limited blocking":
-					GarbageBlocking = GarbageBlockingType.LimitedBlocking;
-					break;
-				case "none":
-					GarbageBlocking = GarbageBlockingType.None;
-					break;
-				default:
-					GarbageBlocking = GarbageBlockingType.ComboBlocking;
-					break;
-			}
-
-			if (options.passthrough == null)
-				Passthrough = PassthroughKind.Limited;
-			else
-			{
-				var passthroughStr = options.passthrough.ToString();
-				if (passthroughStr == "true")
-					Passthrough = PassthroughKind.Full;
-				else if (passthroughStr == "false")
-					Passthrough = PassthroughKind.Limited;
-				else
-				{
-					switch (passthroughStr)
-					{
-						case "zero":
-							Passthrough = PassthroughKind.Zero;
-							break;
-						case "consistent":
-							Passthrough = PassthroughKind.Consistent;
-							break;
-						case "limited":
-							Passthrough = PassthroughKind.Limited;
-							break;
-						case "full":
-							Passthrough = PassthroughKind.Full;
-							break;
-						default:
-							Passthrough = PassthroughKind.Limited;
-							break;
-					}
-				}
-			}
+			GarbageBlocking = options.garbageblocking ?? GarbageBlockingType.ComboBlocking;
+			Passthrough = options.passthrough??PassthroughType.Limited;
+			
 		}
 
 		public int Version { get; internal set; }
@@ -112,7 +55,7 @@ namespace TetrioVirtualEnvironment
 		public int? LockTime { get; internal set; }
 
 		public bool ClipListenIDs { get; internal set; } = true;
-		public PassthroughKind Passthrough { get; internal set; }
+		public PassthroughType Passthrough { get; internal set; }
 		public GarbageBlockingType GarbageBlocking { get; internal set; }
 		public bool NoLockout { get; private set; }
 	}

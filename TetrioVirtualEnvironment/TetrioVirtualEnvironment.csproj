@@ -24,11 +24,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TetrReplayLoader\TetrLoader.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="PieceDrop\" />
+	  <Reference Include="TetrLoader">
+	    <HintPath>..\..\..\..\RiderProjects\TetrLoader\TetrLoader\bin\Debug\net7.0\TetrLoader.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

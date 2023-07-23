@@ -1,9 +1,6 @@
 ﻿using System.Text;
-using TetrReplayLoader;
 using TetrioVirtualEnvironment;
 using TetrioVirtualEnvironment.Constants;
-using Environment = TetrioVirtualEnvironment.Environment;
-using static TetrioVirtualEnvironment.Environment;
 
 Console.WriteLine("Select file to replay.");
 string filePath = Console.ReadLine();
@@ -17,31 +14,31 @@ replay = new Replay(rawJson);
 int replayIndex;
 int playerIndex;
 
-Select:;
+Select: ;
 
-if (ReplayLoader.IsMulti(rawJson))
+if (TetrLoader.ReplayLoader.IsMulti(rawJson))
 {
-    Console.WriteLine("detected TTRM");
-    var replayCount = replay.ReplayData.GetReplayCount();
+	Console.WriteLine("detected TTRM");
+	var replayCount = replay.ReplayData.GetReplayCount();
 
-    Console.WriteLine(replayCount + "Games Found.");
-    for (int i = 0; i < replayCount; i++)
-    {
-        var stats1 = replay.ReplayData.GetReplayStats(0, i);
-        var stats2 = replay.ReplayData.GetReplayStats(1, i);
+	Console.WriteLine(replayCount + "Games Found.");
+	for (int i = 0; i < replayCount; i++)
+	{
+		var stats1 = replay.ReplayData.GetReplayStats(0, i);
+		var stats2 = replay.ReplayData.GetReplayStats(1, i);
 
-        Console.WriteLine($"{i}	{stats1.PPS:F}PPS {stats1.APM:F}APM {stats1.VS:F}VS" + "	/ " +
-                          $"{stats2.PPS:F}PPS {stats2.APM:F}APM {stats2.VS:F}VS");
-    }
+		Console.WriteLine($"{i}	{stats1.PPS:F}PPS {stats1.APM:F}APM {stats1.VS:F}VS" + "	/ " +
+		                  $"{stats2.PPS:F}PPS {stats2.APM:F}APM {stats2.VS:F}VS");
+	}
 
-    replayIndex = int.Parse(Console.ReadLine());
+	replayIndex = int.Parse(Console.ReadLine());
 }
 else
 {
-    Console.WriteLine("detected TTR");
+	Console.WriteLine("detected TTR");
 
-    replayIndex = 0;
-    playerIndex = 0;
+	replayIndex = 0;
+	playerIndex = 0;
 }
 
 
@@ -55,99 +52,101 @@ float period = 1000f / 60f;
 
 while (true)
 {
-    double tickCount = System.Environment.TickCount;
+	double tickCount = System.Environment.TickCount;
 
-    if (tickCount < nextFrame)
-    {
-        if (nextFrame - tickCount > 1)
-            Thread.Sleep((int)(nextFrame - tickCount));
+	if (tickCount < nextFrame)
+	{
+		if (nextFrame - tickCount > 1)
+			Thread.Sleep((int)(nextFrame - tickCount));
 
-        continue;
-    }
+		continue;
+	}
 
-    if (System.Environment.TickCount >= nextFrame + period)
-    {
-        nextFrame += period;
-        continue;
-    }
+	if (System.Environment.TickCount >= nextFrame + period)
+	{
+		nextFrame += period;
+		continue;
+	}
 
-    //replay.Environments
+	//replay.Environments
 
-    if (!replay.Update())
-    {
-        Print(replay);
-        goto Select;
-    }
+	if (!replay.Update())
+	{
+		Print(replay);
+		goto Select;
+	}
 
 
-    Print(replay);
-    //Step by step
-    //var input = Console.ReadLine();
-    //if (input != "")
-    //{
-    //    Console.Clear();
-    //    replay.JumpFrame(int.Parse(input));
-    //}
+	Print(replay);
+	//Step by step
+	/*var input = Console.ReadLine();
+	if (input != "")
+	{
+	    Console.Clear();
+	    
+	    replay.JumpFrame(int.Parse(input));
+	}*/
 
-    nextFrame += period;
+	nextFrame += period;
 }
 
 
 void Print(Replay replay)
 {
-    // Console.Clear();
+	// Console.Clear();
 
-    for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
-    {
-        string output = "";
-        Console.CursorLeft = 0;
-        Console.CursorTop = playerIndex * 30;
-
-
-        output += "Player" + (playerIndex + 1) + "\r\n";
-        output += "CurrentFrame:";
-        output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
-        var tempfield = (Tetrimino.MinoType[])replay.Environments[playerIndex].GameData.Board.Clone();
-
-        if (replay.Environments[playerIndex].GameData.Falling.Type != Tetrimino.MinoType.Empty)
-            foreach (var pos in Tetrimino.SHAPES[(int)replay.Environments[playerIndex].GameData.Falling.Type][replay.Environments[playerIndex].GameData.Falling.R])
-            {
-                tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X - Tetrimino.DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].x) +
-                    (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y -  Tetrimino.DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] = Tetrimino.MinoType.Z;
-            }
+	for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
+	{
+		string output = "";
+		Console.CursorLeft = 0;
+		Console.CursorTop = playerIndex * 30;
 
 
-        for (int y = 15; y < 40; y++)
-        {
-            for (int x = 0; x < 10; x++)
-            {
-                if (tempfield[x + y * 10] == Tetrimino.MinoType.Empty)
-                    output += "□";
-                else
-                    output += "■";
+		output += "Player" + (playerIndex + 1) + "\r\n";
+		output += "CurrentFrame:";
+		output += replay.Environments[playerIndex].CurrentFrame + "\r\n";
+		var tempfield = (Tetrimino.MinoType[])replay.Environments[playerIndex].GameData.Board.Clone();
+
+		if (replay.Environments[playerIndex].GameData.Falling.Type != Tetrimino.MinoType.Empty)
+			foreach (var pos in Tetrimino.SHAPES[(int)replay.Environments[playerIndex].GameData.Falling.Type][
+				         replay.Environments[playerIndex].GameData.Falling.R])
+			{
+				tempfield[(int)((pos.x + replay.Environments[playerIndex].GameData.Falling.X -
+				                 Tetrimino.DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].x) +
+				                (int)(pos.y + replay.Environments[playerIndex].GameData.Falling.Y - Tetrimino
+					                .DIFFS[(int)replay.Environments[playerIndex].GameData.Falling.Type].y) * 10)] =
+					Tetrimino.MinoType.Z;
+			}
 
 
-            }
+		for (int y = 15; y < 40; y++)
+		{
+			for (int x = 0; x < 10; x++)
+			{
+				if (tempfield[x + y * 10] == Tetrimino.MinoType.Empty)
+					output += "□";
+				else
+					output += "■";
+			}
 
-            output += "\r\n";
-        }
-        output += "\r\n";
+			output += "\r\n";
+		}
 
-        Console.WriteLine(output);
+		output += "\r\n";
 
-    }
+		Console.WriteLine(output);
+	}
 
-    for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
-    {
-        Console.CursorLeft = 35;
-        Console.CursorTop = playerIndex * 31;
+	for (int playerIndex = 0; playerIndex < replay.Environments.Count; playerIndex++)
+	{
+		Console.CursorLeft = 35;
+		Console.CursorTop = playerIndex * 31;
 
-        Console.Write("                                                                 ");
-        Console.CursorLeft = 35;
-        foreach (var garbage in replay.Environments[playerIndex].GameData.ImpendingDamages)
-        {
-            Console.Write($"line:{garbage.lines} active:{garbage.active} id:{garbage.id} /");
-        }
-    }
-
+		Console.Write("                                                                 ");
+		Console.CursorLeft = 35;
+		foreach (var garbage in replay.Environments[playerIndex].GameData.ImpendingDamages)
+		{
+			Console.Write($"line:{garbage.lines} active:{garbage.active} id:{garbage.id} /");
+		}
+	}
 }

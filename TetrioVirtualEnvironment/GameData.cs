@@ -1,24 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using TetrioVirtualEnvironment.Constants;
-using TetrReplayLoader;
-using TetrReplayLoader.JsonClass;
-using TetrReplayLoader.JsonClass.Event;
+﻿using TetrioVirtualEnvironment.Constants;
+using TetrLoader.Enum;
 using static TetrioVirtualEnvironment.Environment;
+using TetrLoader.JsonClass;
+using TetrLoader.JsonClass.Event;
 
 namespace TetrioVirtualEnvironment
 {
 	public class GameData
 	{
-		public enum SpinBonus
-		{
-			None,
-			Stupid,
-			Handheld,
-			All,
-			Tspin
-		}
-
 
 		/// <summary>
 		/// 
@@ -27,10 +16,10 @@ namespace TetrioVirtualEnvironment
 		/// <param name="eventFull"></param>
 		/// <param name="classManager"></param>
 		/// <param name="nextSkipCount"></param>
-		/// <param name="dataForInitialize"></param>
+		/// <param name="initData"></param>
 		/// <exception cref="Exception"></exception>
 		public void Init(NextGenerateKind envMode, EventFullData eventFull, GameData gameData, Environment environment,
-			int nextSkipCount, DataForInitialize dataForInitialize)
+			int nextSkipCount, FieldData initData)
 		{
 			gameData = this;
 
@@ -55,48 +44,22 @@ namespace TetrioVirtualEnvironment
 			RDasIter = 0;
 			Falling = new Falling(environment, this);
 			Gravity = (double)(eventFull.options.g);
-
-			switch (eventFull.options.spinbonuses)
-			{
-				case "none":
-					SpinBonuses = SpinBonus.None;
-					break;
-
-				case "stupid":
-					SpinBonuses = SpinBonus.Stupid;
-					break;
-
-				case "handheld":
-					SpinBonuses = SpinBonus.Handheld;
-					break;
-
-				case "all":
-					SpinBonuses = SpinBonus.All;
-					break;
-
-				case "T-spins":
-					SpinBonuses = SpinBonus.Tspin;
-					break;
-
-				default:
-					SpinBonuses = SpinBonus.Tspin;
-					break;
-			}
+			SpinBonuses = eventFull.options.spinbonuses ?? SpinBonusesType.TSpins;
 
 
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
 			environment.Rng.Init(eventFull.options.seed);
+			InitializeField(envMode, initData, eventFull, nextSkipCount, environment);
+			InitializeHandling(eventFull);
+ 
 
-			Initialize(envMode, dataForInitialize, eventFull, nextSkipCount, environment);
-
-			InitHandling(eventFull);
 
 			if (envMode == NextGenerateKind.Array)
 				Falling.Init(null, false, environment.NextGenerateMode);
 		}
 
-		private void InitHandling(EventFullData eventFull)
+		private void InitializeHandling(EventFullData eventFull)
 		{
 			if (eventFull.game == null)
 				Handling = new PlayerOptions((double)eventFull.options?.handling.arr,
@@ -109,10 +72,10 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void Initialize(NextGenerateKind envMode, in DataForInitialize data, EventFullData initGameData,
+		private void InitializeField(NextGenerateKind envMode, in FieldData data, EventFullData initGameData,
 			int nextSkipCount, Environment environment)
 		{
-			void InitBoard(DataForInitialize initData)
+			void InitBoard(FieldData initData)
 			{
 				if (initData.Board == null)
 				{
@@ -125,7 +88,7 @@ namespace TetrioVirtualEnvironment
 				}
 			}
 
-			void InitNext(DataForInitialize initData, NextGenerateKind mode)
+			void InitNext(FieldData initData, NextGenerateKind mode)
 			{
 				Next = new Queue<Tetrimino.MinoType>();
 
@@ -169,7 +132,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		public SpinBonus SpinBonuses { get; private set; }
+		public SpinBonusesType SpinBonuses { get; private set; }
 		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }
 		public Queue<Tetrimino.MinoType> Next { get; private set; }

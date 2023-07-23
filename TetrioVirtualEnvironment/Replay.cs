@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
 using TetrLoader;
-using TetrReplayLoader;
-using TetrReplayLoader.JsonClass.Event;
-using static TetrReplayLoader.ReplayLoader;
+using TetrLoader.JsonClass.Event;
+using TetrLoader;
+using TetrLoader.Enum;
+using TetrLoader.JsonClass.Event;
+using static TetrLoader.ReplayLoader;
 
 namespace TetrioVirtualEnvironment
 {
@@ -80,7 +82,7 @@ namespace TetrioVirtualEnvironment
 
 				foreach (var @event in _events[_events.Count - 1])
 				{
-					if (@event.type == "full")
+					if (@event.type == EventType.Full)
 					{
 						fullEvent = @event as EventFull;
 						break;

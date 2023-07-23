@@ -1,13 +1,8 @@
-﻿using System.Diagnostics;
-using System.Dynamic;
-using System.Numerics;
-using System.Security.Claims;
-using System.Text.Json;
-using TetrioVirtualEnvironment.Constants;
+﻿using TetrioVirtualEnvironment.Constants;
 using TetrioVirtualEnvironment.System;
-using TetrReplayLoader;
-using TetrReplayLoader.JsonClass;
-using TetrReplayLoader.JsonClass.Event;
+using TetrLoader.Enum;
+using TetrLoader.JsonClass;
+using TetrLoader.JsonClass.Event;
 
 namespace TetrioVirtualEnvironment
 {
@@ -59,7 +54,7 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// initialize game data.
 		/// </summary>
-		internal DataForInitialize DataForInitialize { get; }
+		internal FieldData DataForInitialize { get; }
 
 		/// <summary>
 		/// ArrayMode only use initialized Next.
@@ -106,9 +101,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
 		public Environment(EventFullData envData, NextGenerateKind envMode, string? username, bool infinityHold = false,
-			DataForInitialize? dataForInitialize = null, int nextSkipCount = 0)
+			FieldData? dataForInitialize = null, int nextSkipCount = 0)
 		{
-			dataForInitialize ??= new DataForInitialize();
+			dataForInitialize ??= new FieldData();
 
 
 			Username = username;
@@ -127,7 +122,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="envMode"></param>
 		/// <param name="dataForInitialize"></param>
 		/// <param name="nextSkipCount"></param>
-		internal void ResetGame(EventFullData envData, NextGenerateKind envMode, DataForInitialize dataForInitialize,
+		internal void ResetGame(EventFullData envData, NextGenerateKind envMode, FieldData dataForInitialize,
 			int nextSkipCount = 0)
 		{
 			GameData = new GameData();
@@ -145,9 +140,9 @@ namespace TetrioVirtualEnvironment
 
 
 
-		public void KeyInput(string type, EventKeyInputData @event)
+		public void KeyInput(EventType? type, EventKeyInputData @event)
 		{
-			if (type == "keydown")
+			if (type == EventType.Keydown)
 			{
 				if (@event.subframe > GameData.SubFrame)
 				{
@@ -233,7 +228,7 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 			}
-			else if (type == "keyup")
+			else if (type == EventType.Keyup)
 			{
 				if (@event.subframe > GameData.SubFrame)
 				{
@@ -327,15 +322,15 @@ namespace TetrioVirtualEnvironment
 				{
 					switch (events[CurrentIndex].type)
 					{
-						case "start":
+						case EventType.Start:
 							break;
 
-						case "full":
+						case EventType.Full:
 							GameData.Falling.Init(null, false, NextGenerateMode);
 							break;
 
-						case "keydown":
-						case "keyup":
+						case EventType.Keydown:
+						case EventType.Keyup:
 							var inputEvent = events[CurrentIndex] as EventKeyInput;
 
 							if (inputEvent == null)
@@ -346,7 +341,7 @@ namespace TetrioVirtualEnvironment
 							break;
 
 
-						case "targets":
+						case EventType.Targets:
 							var targets = events[CurrentIndex] as EventTargets;
 							for (int i = 0; i < targets.data.data.Count; i++)
 								targets.data.data[i] = targets.data.data[i].Substring(0, 24);
@@ -355,7 +350,7 @@ namespace TetrioVirtualEnvironment
 
 							break;
 
-						case "ige":
+						case EventType.Ige:
 							var garbageEvent = events[CurrentIndex] as EventIge;
 
 
@@ -379,6 +374,7 @@ namespace TetrioVirtualEnvironment
 									y = -1,
 								}, garbageEvent.data.data.sender, garbageEvent.data.data.cid.ToString());
 							}
+							//ここelseじゃね
 
 							if (garbageEvent.data.data.type == "interaction")
 							{
@@ -424,7 +420,7 @@ namespace TetrioVirtualEnvironment
 
 							break;
 
-						case "end":
+						case EventType.End:
 							return false;
 
 						default:
@@ -447,7 +443,7 @@ namespace TetrioVirtualEnvironment
 
 		private void IncomingAttack(GarbageData data, string? sender = null, string? id1 = null, int? id2 = null)
 		{
-			if (GameData.Options.Passthrough == Options.PassthroughKind.Consistent)
+			if (GameData.Options.Passthrough == PassthroughType.Consistent)
 			{
 				data.amt = GetAmt(data, id1);
 			}
@@ -557,7 +553,7 @@ namespace TetrioVirtualEnvironment
 		{
 			var amt_value = data.amt;
 
-			if (GameData.Options.Passthrough == Options.PassthroughKind.Zero)
+			if (GameData.Options.Passthrough == PassthroughType.Zero)
 			{
 				amt_value = GetAmt(data, id1);
 			}

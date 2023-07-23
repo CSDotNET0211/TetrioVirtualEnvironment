@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TetrioVirtualEnvironment.Constants;
-using TetrReplayLoader.JsonClass;
+using TetrLoader.Enum;
+using TetrLoader.JsonClass;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment.System
 {
-	public class GarbageSystem
+	public abstract class GarbageSystem
 	{
 		internal static void FightLines(int attackLine, GameData gameData)
 		{
-
 			if (!gameData.Options.HasGarbage)
 				return;
 
@@ -38,20 +38,17 @@ namespace TetrioVirtualEnvironment.System
 
 			if (attackLine > 0)
 			{
-				if (gameData.Options.Passthrough == Options.PassthroughKind.Consistent && gameData.NotYetReceivedAttack > 0)
+				if (gameData.Options.Passthrough == PassthroughType.Consistent && gameData.NotYetReceivedAttack > 0)
 				{
 					//PlaySound
 				}
+
 				Offence(attackLine, gameData);
-
-
 			}
-
 		}
 
 		internal static void Offence(int attackLine, GameData gameData)
 		{
-
 			attackLine = attackLine / Math.Max(1, 1);
 			if (!(attackLine < 1))
 			{
@@ -59,7 +56,8 @@ namespace TetrioVirtualEnvironment.System
 				{
 					var interactionID = ++gameData.InteractionID;
 
-					if (gameData.Options.Passthrough is Options.PassthroughKind.Zero or Options.PassthroughKind.Consistent)
+					if (gameData.Options.Passthrough is PassthroughType.Zero
+					    or PassthroughType.Consistent)
 					{
 						if (!gameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
 							gameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
@@ -70,13 +68,13 @@ namespace TetrioVirtualEnvironment.System
 							iid = interactionID,
 							amt = attackLine
 						});
-
 					}
 				}
 			}
 		}
 
-		internal static bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin, GameData gameData,Stats stats)
+		internal static bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin, GameData gameData,
+			Stats stats)
 		{
 			var isBTB = false;
 
@@ -101,9 +99,7 @@ namespace TetrioVirtualEnvironment.System
 				else
 				{
 					stats.BTB = 0;
-
 				}
-
 			}
 			else
 			{
@@ -169,7 +165,9 @@ namespace TetrioVirtualEnvironment.System
 
 
 					var btb_bonus = Constants.Garbage.BACKTOBACK_BONUS *
-						(Math.Floor(1 + Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1)) + (tempValue / 3));
+					                (Math.Floor(1 +
+					                            Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG +
+					                                     1)) + (tempValue / 3));
 
 					garbageValue += btb_bonus;
 
@@ -182,9 +180,6 @@ namespace TetrioVirtualEnvironment.System
 					{
 						gameData.CurrentBTBChainPower = (int)btb_bonus;
 					}
-
-
-
 				}
 				else
 					garbageValue += Constants.Garbage.BACKTOBACK_BONUS;
@@ -213,22 +208,21 @@ namespace TetrioVirtualEnvironment.System
 
 			if (clearLineCount > 0 && stats.Combo > 1 && stats.CurrentComboPower >= 7)
 			{
-
 			}
 
 			switch (gameData.Options.GarbageBlocking)
 			{
-				case Options.GarbageBlockingType.ComboBlocking:
+				case  GarbageBlockingType.ComboBlocking:
 					if (clearLineCount > 0)
 						FightLines(totalPower, gameData);
 					return clearLineCount > 0;
 
-				case Options.GarbageBlockingType.LimitedBlocking:
+				case GarbageBlockingType.LimitedBlocking:
 					if (clearLineCount > 0)
 						FightLines(totalPower, gameData);
 					return false;
 
-				case Options.GarbageBlockingType.None:	
+				case GarbageBlockingType.None:
 					Offence(totalPower, gameData);
 					return false;
 
@@ -236,7 +230,7 @@ namespace TetrioVirtualEnvironment.System
 			}
 		}
 
-		internal static bool PushGarbageLine(int line, GameData gameData,bool falseValue = false, int whatIsThis = 68)
+		internal static bool PushGarbageLine(int line, GameData gameData, bool falseValue = false, int whatIsThis = 68)
 		{
 			var newBoardList = new List<Tetrimino.MinoType>();
 			newBoardList.AddRange((Tetrimino.MinoType[])gameData.Board.Clone());
@@ -266,6 +260,5 @@ namespace TetrioVirtualEnvironment.System
 			gameData.Board = newBoardList.ToArray();
 			return true;
 		}
-
 	}
 }
