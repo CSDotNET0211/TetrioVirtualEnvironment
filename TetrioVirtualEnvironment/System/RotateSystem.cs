@@ -7,15 +7,15 @@ using static TetrioVirtualEnvironment.Environment;
 using TetrioVirtualEnvironment;
 using TetrioVirtualEnvironment.Constants;
 
-namespace TetrioVirtualEnvironment.System
+namespace TetrioVirtualEnvironment
 {
-	public abstract class RotateSystem
+	public partial class Environment
 	{
 
 
-		internal static void RotatePiece(int rotation, GameData gameData)
+		private  void RotatePiece(int rotation)
 		{
-			var currentMinoRotation = gameData.Falling.R;
+			var currentMinoRotation = GameData.Falling.R;
 			var currentMinoNewRotation = currentMinoRotation*10 + rotation;
 			var oValue = 0;
 			Falling.LastRotationKind lastRotation =Falling.LastRotationKind.None;
@@ -52,85 +52,85 @@ namespace TetrioVirtualEnvironment.System
 			if (rotation == 1 && currentMinoRotation == 3)
 				lastRotation = Falling.LastRotationKind.Horizontal;
 
-			if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type,
-				gameData.Falling.X - gameData.Falling.Aox,
-				gameData.Falling.Y - gameData.Falling.Aoy, rotation,
-				gameData.Board))
+			if (IsLegalAtPos(GameData.Falling.Type,
+				GameData.Falling.X - GameData.Falling.Aox,
+				GameData.Falling.Y - GameData.Falling.Aoy, rotation,
+				GameData.Board))
 			{
-				gameData.Falling.X -= gameData.Falling.Aox;
-				gameData.Falling.Y -= gameData.Falling.Aoy;
-				gameData.Falling.Aox = 0;
-				gameData.Falling.Aoy = 0;
-				gameData.Falling.R = rotation;
-				gameData.Falling.Last = Falling.LastKind.Rotate;
-				gameData.Falling.LastRotation = lastRotation;
-				gameData.Falling.LastKick = 0;
-				gameData.Falling.SpinType = JudgeSystem.IsTspin(gameData);
-				gameData.FallingRotations++;
-				gameData.TotalRotations++;
+				GameData.Falling.X -= GameData.Falling.Aox;
+				GameData.Falling.Y -= GameData.Falling.Aoy;
+				GameData.Falling.Aox = 0;
+				GameData.Falling.Aoy = 0;
+				GameData.Falling.R = rotation;
+				GameData.Falling.Last = Falling.LastKind.Rotate;
+				GameData.Falling.LastRotation = lastRotation;
+				GameData.Falling.LastKick = 0;
+				GameData.Falling.SpinType = IsTspin();
+				GameData.FallingRotations++;
+				GameData.TotalRotations++;
 
-				if (gameData.Falling.Clamped && gameData.Handling.DCD > 0)
+				if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
 				{
-					gameData.LDas = Math.Min(gameData.LDas, gameData.Handling.DAS - gameData.Handling.DCD);
-					gameData.LDasIter = gameData.Handling.ARR;
-					gameData.RDas = Math.Min(gameData.RDas, gameData.Handling.DAS - gameData.Handling.DCD);
-					gameData.RDasIter = gameData.Handling.ARR;
+					GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+					GameData.LDasIter = GameData.Handling.ARR;
+					GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+					GameData.RDasIter = GameData.Handling.ARR;
 				}
 
-				if (++gameData.Falling.LockResets < 15 || gameData.Options.InfiniteMovement)
-					gameData.Falling.Locking = 0;
+				if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+					GameData.Falling.Locking = 0;
 
 
 				return;
 			}
 
-			if (gameData.Falling.Type == Tetrimino.MinoType.O)
+			if (GameData.Falling.Type == Tetrimino.MinoType.O)
 				return;
 
 			var kicktable = KickTable.SRSPLUS[currentMinoNewRotation];
 
-			if (gameData.Falling.Type == Tetrimino.MinoType.I)
+			if (GameData.Falling.Type == Tetrimino.MinoType.I)
 				kicktable = KickTable.SRSPLUS_I[currentMinoNewRotation];
 
 			for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 			{
 				var kicktableTest = kicktable[kicktableIndex];
-				var newMinoYPos = (int)(gameData.Falling.Y) + 0.1 +
-					kicktableTest.y - gameData.Falling.Aoy;
+				var newMinoYPos = (int)(GameData.Falling.Y) + 0.1 +
+					kicktableTest.y - GameData.Falling.Aoy;
 
 
-				if (!gameData.Options.InfiniteMovement &&
-					gameData.TotalRotations > (int)gameData.Options.LockResets + 15)
+				if (!GameData.Options.InfiniteMovement &&
+					GameData.TotalRotations > (int)GameData.Options.LockResets + 15)
 				{
-					newMinoYPos = gameData.Falling.Y + kicktableTest.y - gameData.Falling.Aoy;
+					newMinoYPos = GameData.Falling.Y + kicktableTest.y - GameData.Falling.Aoy;
 				}
 
-				if (JudgeSystem.IsLegalAtPos(gameData.Falling.Type,
-					gameData.Falling.X + (int)kicktableTest.x - gameData.Falling.Aox,
-					newMinoYPos, rotation, gameData.Board))
+				if (IsLegalAtPos(GameData.Falling.Type,
+					GameData.Falling.X + (int)kicktableTest.x - GameData.Falling.Aox,
+					newMinoYPos, rotation, GameData.Board))
 				{
 
-					gameData.Falling.X += (int)kicktableTest.x - gameData.Falling.Aox;
-					gameData.Falling.Y = newMinoYPos;
-					gameData.Falling.Aox = 0;
-					gameData.Falling.Aoy = 0;
-					gameData.Falling.R = rotation;
-					gameData.Falling.SpinType = JudgeSystem.IsTspin(gameData);
-					gameData.Falling.LastKick = kicktableIndex + 1;
-					gameData.Falling.Last = Falling.LastKind.Rotate;
-					gameData.FallingRotations++;
-					gameData.TotalRotations++;
+					GameData.Falling.X += (int)kicktableTest.x - GameData.Falling.Aox;
+					GameData.Falling.Y = newMinoYPos;
+					GameData.Falling.Aox = 0;
+					GameData.Falling.Aoy = 0;
+					GameData.Falling.R = rotation;
+					GameData.Falling.SpinType = IsTspin();
+					GameData.Falling.LastKick = kicktableIndex + 1;
+					GameData.Falling.Last = Falling.LastKind.Rotate;
+					GameData.FallingRotations++;
+					GameData.TotalRotations++;
 
-					if (gameData.Falling.Clamped && gameData.Handling.DCD > 0)
+					if (GameData.Falling.Clamped && GameData.Handling.DCD > 0)
 					{
-						gameData.LDas = Math.Min(gameData.LDas, gameData.Handling.DAS - gameData.Handling.DCD);
-						gameData.LDasIter = gameData.Handling.ARR;
-						gameData.RDas = Math.Min(gameData.RDas, gameData.Handling.DAS - gameData.Handling.DCD);
-						gameData.RDasIter = gameData.Handling.ARR;
+						GameData.LDas = Math.Min(GameData.LDas, GameData.Handling.DAS - GameData.Handling.DCD);
+						GameData.LDasIter = GameData.Handling.ARR;
+						GameData.RDas = Math.Min(GameData.RDas, GameData.Handling.DAS - GameData.Handling.DCD);
+						GameData.RDasIter = GameData.Handling.ARR;
 					}
 
-					if (++gameData.Falling.LockResets < 15 || gameData.Options.InfiniteMovement)
-						gameData.Falling.Locking = 0;
+					if (++GameData.Falling.LockResets < 15 || GameData.Options.InfiniteMovement)
+						GameData.Falling.Locking = 0;
 
 
 					return;

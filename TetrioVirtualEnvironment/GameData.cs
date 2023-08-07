@@ -49,6 +49,7 @@ namespace TetrioVirtualEnvironment
 
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
+			environment.Rng = new Rng();
 			environment.Rng.Init(eventFull.options.seed);
 			InitializeField(envMode, initData, eventFull, nextSkipCount, environment);
 			InitializeHandling(eventFull);

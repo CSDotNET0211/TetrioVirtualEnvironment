@@ -1,35 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TetrioVirtualEnvironment.Constants;
+﻿using TetrioVirtualEnvironment.Constants;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass;
-using static TetrioVirtualEnvironment.Environment;
 
-namespace TetrioVirtualEnvironment.System
+namespace TetrioVirtualEnvironment
 {
-	public abstract class GarbageSystem
+	public partial class Environment
 	{
-		internal static void FightLines(int attackLine, GameData gameData)
+		private  void FightLines(int attackLine)
 		{
-			if (!gameData.Options.HasGarbage)
+			if (!GameData.Options.HasGarbage)
 				return;
 
+			CustomStats.TotalSendLine += attackLine;
+			
 			bool count;
-			if (gameData.ImpendingDamages.Count == 0)
+			if (GameData.ImpendingDamages.Count == 0)
 				count = false;
 			else
 				count = true;
 
 			var oValue = 0;
-			for (; attackLine > 0 && gameData.ImpendingDamages.Count != 0;)
+			for (; attackLine > 0 && GameData.ImpendingDamages.Count != 0;)
 			{
-				gameData.ImpendingDamages[0].lines--;
-				if (gameData.ImpendingDamages[0].lines == 0)
+				GameData.ImpendingDamages[0].lines--;
+				if (GameData.ImpendingDamages[0].lines == 0)
 				{
-					gameData.ImpendingDamages.RemoveAt(0);
+					GameData.ImpendingDamages.RemoveAt(0);
 				}
 
 				attackLine--;
@@ -38,32 +34,32 @@ namespace TetrioVirtualEnvironment.System
 
 			if (attackLine > 0)
 			{
-				if (gameData.Options.Passthrough == PassthroughType.Consistent && gameData.NotYetReceivedAttack > 0)
+				if (GameData.Options.Passthrough == PassthroughType.Consistent && GameData.NotYetReceivedAttack > 0)
 				{
 					//PlaySound
 				}
 
-				Offence(attackLine, gameData);
+				Offence(attackLine);
 			}
 		}
 
-		internal static void Offence(int attackLine, GameData gameData)
+		private  void Offence(int attackLine)
 		{
 			attackLine = attackLine / Math.Max(1, 1);
 			if (!(attackLine < 1))
 			{
-				foreach (var target in gameData.Targets)
+				foreach (var target in GameData.Targets)
 				{
-					var interactionID = ++gameData.InteractionID;
+					var interactionID = ++GameData.InteractionID;
 
-					if (gameData.Options.Passthrough is PassthroughType.Zero
+					if (GameData.Options.Passthrough is PassthroughType.Zero
 					    or PassthroughType.Consistent)
 					{
-						if (!gameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
-							gameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
+						if (!GameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
+							GameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
 
 
-						gameData.GarbageActnowledgements.Outgoing[target].Add(new GarbageData()
+						GameData.GarbageActnowledgements.Outgoing[target].Add(new GarbageData()
 						{
 							iid = interactionID,
 							amt = attackLine
@@ -73,15 +69,14 @@ namespace TetrioVirtualEnvironment.System
 			}
 		}
 
-		internal static bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin, GameData gameData,
-			Stats stats)
+		internal  bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin)
 		{
 			var isBTB = false;
 
 			if (clearLineCount > 0)
 			{
-				stats.Combo++;
-				stats.TopCombo = Math.Max(stats.Combo, stats.TopCombo);
+				Stats.Combo++;
+				Stats.TopCombo = Math.Max(Stats.Combo, Stats.TopCombo);
 
 				if (clearLineCount == 4)
 					isBTB = true;
@@ -93,18 +88,18 @@ namespace TetrioVirtualEnvironment.System
 
 				if (isBTB)
 				{
-					stats.BTB++;
-					stats.TopBTB = Math.Max(stats.BTB, stats.TopBTB);
+					Stats.BTB++;
+					Stats.TopBTB = Math.Max(Stats.BTB, Stats.TopBTB);
 				}
 				else
 				{
-					stats.BTB = 0;
+					Stats.BTB = 0;
 				}
 			}
 			else
 			{
-				stats.Combo = 0;
-				stats.CurrentComboPower = 0;
+				Stats.Combo = 0;
+				Stats.CurrentComboPower = 0;
 			}
 
 
@@ -153,20 +148,20 @@ namespace TetrioVirtualEnvironment.System
 			}
 
 
-			if (clearLineCount > 0 && stats.BTB > 1)
+			if (clearLineCount > 0 && Stats.BTB > 1)
 			{
-				if (gameData.Options.BTBChaining)
+				if (GameData.Options.BTBChaining)
 				{
 					double tempValue;
-					if (stats.BTB - 1 == 1)
+					if (Stats.BTB - 1 == 1)
 						tempValue = 0;
 					else
-						tempValue = 1 + (Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+						tempValue = 1 + (Math.Log((Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
 
 					var btb_bonus = Constants.Garbage.BACKTOBACK_BONUS *
 					                (Math.Floor(1 +
-					                            Math.Log((stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG +
+					                            Math.Log((Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG +
 					                                     1)) + (tempValue / 3));
 
 					garbageValue += btb_bonus;
@@ -176,9 +171,9 @@ namespace TetrioVirtualEnvironment.System
 						//AddFire
 					}
 
-					if ((int)btb_bonus > gameData.CurrentBTBChainPower)
+					if ((int)btb_bonus > GameData.CurrentBTBChainPower)
 					{
-						gameData.CurrentBTBChainPower = (int)btb_bonus;
+						GameData.CurrentBTBChainPower = (int)btb_bonus;
 					}
 				}
 				else
@@ -186,54 +181,54 @@ namespace TetrioVirtualEnvironment.System
 			}
 			else
 			{
-				if (clearLineCount > 0 && stats.BTB <= 1)
-					gameData.CurrentBTBChainPower = 0;
+				if (clearLineCount > 0 && Stats.BTB <= 1)
+					GameData.CurrentBTBChainPower = 0;
 			}
 
-			if (stats.Combo > 1)
+			if (Stats.Combo > 1)
 			{
-				garbageValue *= 1 + Constants.Garbage.COMBO_BONUS * (stats.Combo - 1);
+				garbageValue *= 1 + Constants.Garbage.COMBO_BONUS * (Stats.Combo - 1);
 			}
 
-			if (stats.Combo > 2)
+			if (Stats.Combo > 2)
 			{
 				garbageValue = Math.Max(Math.Log(Constants.Garbage.COMBO_MINIFIER *
-					(stats.Combo - 1) * Constants.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
+					(Stats.Combo - 1) * Constants.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
 
-			int totalPower = (int)(garbageValue * gameData.Options.GarbageMultiplier);
-			if (stats.Combo > 2)
-				stats.CurrentComboPower = Math.Max(stats.CurrentComboPower, totalPower);
+			int totalPower = (int)(garbageValue * GameData.Options.GarbageMultiplier);
+			if (Stats.Combo > 2)
+				Stats.CurrentComboPower = Math.Max(Stats.CurrentComboPower, totalPower);
 
-			if (clearLineCount > 0 && stats.Combo > 1 && stats.CurrentComboPower >= 7)
+			if (clearLineCount > 0 && Stats.Combo > 1 && Stats.CurrentComboPower >= 7)
 			{
 			}
-
-			switch (gameData.Options.GarbageBlocking)
+			
+			switch (GameData.Options.GarbageBlocking)
 			{
-				case  GarbageBlockingType.ComboBlocking:
+				case GarbageBlockingType.ComboBlocking:
 					if (clearLineCount > 0)
-						FightLines(totalPower, gameData);
+						FightLines(totalPower);
 					return clearLineCount > 0;
 
 				case GarbageBlockingType.LimitedBlocking:
 					if (clearLineCount > 0)
-						FightLines(totalPower, gameData);
+						FightLines(totalPower);
 					return false;
 
 				case GarbageBlockingType.None:
-					Offence(totalPower, gameData);
+					Offence(totalPower);
 					return false;
 
 				default: throw new Exception();
 			}
 		}
 
-		internal static bool PushGarbageLine(int line, GameData gameData, bool falseValue = false, int whatIsThis = 68)
+		internal  bool PushGarbageLine(int line, bool falseValue = false, int whatIsThis = 68)
 		{
 			var newBoardList = new List<Tetrimino.MinoType>();
-			newBoardList.AddRange((Tetrimino.MinoType[])gameData.Board.Clone());
+			newBoardList.AddRange((Tetrimino.MinoType[])GameData.Board.Clone());
 
 			for (int x = 0; x < FIELD_WIDTH; x++)
 			{
@@ -257,7 +252,7 @@ namespace TetrioVirtualEnvironment.System
 			}
 
 			newBoardList.AddRange(RValueList);
-			gameData.Board = newBoardList.ToArray();
+			GameData.Board = newBoardList.ToArray();
 			return true;
 		}
 	}

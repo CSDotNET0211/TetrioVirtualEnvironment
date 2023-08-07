@@ -17,7 +17,7 @@ namespace TetrioVirtualEnvironment
 
 		private ReplayStatusKind _replayStatus;
 		public event EventHandler? ReplayStatusChanged;
-		private List<List<Event>>? _events = null;
+		private List<IReadOnlyList<Event>>? _events = null;
 
 		public ReplayStatusKind ReplayStatus
 		{
@@ -29,7 +29,7 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		///TODO: End Flag
+		///TODO: End Flag,これをReadonlyにして関数制御
 		/// <summary>
 		/// Initialized		Replay is initialized by contructer.
 		/// Loaded			One game is loaded.
@@ -67,7 +67,7 @@ namespace TetrioVirtualEnvironment
 		{
 			ReplayIndex = replayIndex;
 			Environments.Clear();
-			_events = new List<List<Event>>();
+			_events = new List<IReadOnlyList<Event>>();
 
 			var playerCount = ReplayData.GetPlayerCount();
 

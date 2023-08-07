@@ -8,13 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TetrioVirtualEnvironment\TetrioVirtualEnvironment.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Reference Include="TetrLoader">
-	    <HintPath>..\..\..\..\RiderProjects\TetrLoader\TetrLoader\bin\Debug\net7.0\TetrLoader.dll</HintPath>
-	  </Reference>
+	  <ProjectReference Include="..\..\TetrLoader\TetrLoader\TetrLoader.csproj" />
+	  <ProjectReference Include="..\TetrioVirtualEnvironment\TetrioVirtualEnvironment.csproj" />
 	</ItemGroup>
 
 </Project>

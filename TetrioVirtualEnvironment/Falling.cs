@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment.Constants;
-using TetrioVirtualEnvironment.System;
 using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
@@ -129,7 +128,7 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!JudgeSystem.IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
+			if (!IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
 			    (!GameDataInstance.Options.NoLockout && HighestYisOver20()))
 			{
 				EnvironmentInstance.IsDead = true;
