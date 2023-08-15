@@ -360,59 +360,59 @@ namespace TetrioVirtualEnvironment
 
 							GarbageIDs.Add((int)garbageEvent.data.id);
 
-							if (garbageEvent.data.data.type == "attack")
+							switch (garbageEvent.data.data.type)
 							{
-								IncomingAttack(new GarbageData()
-								{
-									type = "garbage",
-									amt = garbageEvent.data.data.lines,
-									column = garbageEvent.data.data.column,
-									x = -1,
-									y = -1,
-								}, garbageEvent.data.data.sender, garbageEvent.data.data.cid.ToString());
-							}
-							//TODO:ここelseじゃね
+								case "attack":
+									IncomingAttack(new GarbageData()
+									{
+										type = "garbage",
+										amt = garbageEvent.data.data.lines,
+										column = garbageEvent.data.data.column,
+										x = -1,
+										y = -1,
+									}, garbageEvent.data.data.sender, garbageEvent.data.data.cid.ToString());
+									break;
 
-							if (garbageEvent.data.data.type == "interaction")
-							{
-								switch (garbageEvent.data.data.data.type)
-								{
-									case "garbage":
-										string? idValue;
-										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.data.sender_id != null
-												? garbageEvent.data.data.sender_id.Substring(0, 24)
-												: null;
-										else
-											idValue = garbageEvent.data.data.sender_id;
-										StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
-											idValue, garbageEvent.data.data.cid);
+								case "interaction":
 
-										break;
-								}
-							}
+									switch (garbageEvent.data.data.data.type)
+									{
+										case "garbage":
+											string? idValue;
+											if (GameData.Options.ClipListenIDs)
+												idValue = garbageEvent.data.data.sender_id != null
+													? garbageEvent.data.data.sender_id.Substring(0, 24)
+													: null;
+											else
+												idValue = garbageEvent.data.data.sender_id;
+											StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+												idValue, garbageEvent.data.data.cid);
 
-							if (garbageEvent.data.data.type == "interaction_confirm")
-							{
-								switch (garbageEvent.data.data.data.type)
-								{
-									case "garbage":
-										string idValue;
-										if (GameData.Options.ClipListenIDs)
-											idValue = garbageEvent.data.data.sender_id != null
-												? garbageEvent.data.data.sender_id.Substring(0, 24)
-												: null;
-										else
-											idValue = garbageEvent.data.data.sender_id;
+											break;
+									}
 
-										IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
-											idValue, garbageEvent.data.data.cid);
-										break;
-								}
-							}
+									break;
 
-							if (garbageEvent.data.data.type == "kev")
-							{
+								case "interaction_confirm":
+									switch (garbageEvent.data.data.data.type)
+									{
+										case "garbage":
+											string idValue;
+											if (GameData.Options.ClipListenIDs)
+												idValue = garbageEvent.data.data.sender_id != null
+													? garbageEvent.data.data.sender_id.Substring(0, 24)
+													: null;
+											else
+												idValue = garbageEvent.data.data.sender_id;
+
+											IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+												idValue, garbageEvent.data.data.cid);
+											break;
+									}
+
+									break;
+								case "kev":
+									break;
 							}
 
 							break;
@@ -733,7 +733,7 @@ namespace TetrioVirtualEnvironment
 
 			EventManager.Trigger_OnPiecePlaced(this, EventArgs.Empty);
 			CustomStats.TotalPiecePlaced++;
-			
+
 			var clearedLineCount = ClearLines(out var garbageClear, out var stackClear);
 
 			CustomStats.TotalGarbageClear += garbageClear;
