@@ -9,7 +9,6 @@ namespace TetrioVirtualEnvironment
 	{
 		public const int FIELD_WIDTH = 10;
 		public const int FIELD_HEIGHT = 40;
-		public static int FIELD_SIZE => FIELD_WIDTH * FIELD_HEIGHT;
 
 		public EventManager EventManager;
 
@@ -26,7 +25,7 @@ namespace TetrioVirtualEnvironment
 		/// <summary>
 		/// RNG Generator
 		/// </summary>
-		public Rng Rng { get; internal set; }
+		private Rng Rng { get; }
 
 		public NextGenerateKind NextGenerateMode { get; }
 		public int NextSkipCount;
@@ -101,7 +100,8 @@ namespace TetrioVirtualEnvironment
 		{
 			dataForInitialize ??= new FieldData();
 
-
+			GameData =new GameData(this) ;
+			Rng = new Rng();
 			Username = username;
 			NextGenerateMode = envMode;
 			EventFull = envData;
@@ -122,8 +122,9 @@ namespace TetrioVirtualEnvironment
 			int nextSkipCount = 0)
 		{
 			EventManager = new EventManager();
-			GameData = new GameData();
+		
 			Stats = new Stats();
+			Rng.Init(envData.options.seed);
 			CustomStats = new CustomStats();
 
 
@@ -133,7 +134,7 @@ namespace TetrioVirtualEnvironment
 			CurrentFrame = 0;
 			CurrentIndex = 0;
 
-			GameData.Init(envMode, envData, GameData, this, nextSkipCount, dataForInitialize);
+			GameData.Init(envMode, envData, nextSkipCount, dataForInitialize);
 		}
 
 

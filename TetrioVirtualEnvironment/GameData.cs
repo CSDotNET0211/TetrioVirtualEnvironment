@@ -8,7 +8,11 @@ namespace TetrioVirtualEnvironment
 {
 	public class GameData
 	{
-
+		public GameData(Environment environment)
+		{
+			_environment = environment;
+		}
+		
 		/// <summary>
 		/// 
 		/// </summary>
@@ -18,10 +22,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="initData"></param>
 		/// <exception cref="Exception"></exception>
-		public void Init(NextGenerateKind envMode, EventFullData eventFull, GameData gameData, Environment environment,
+		public void Init(NextGenerateKind envMode, EventFullData eventFull,
 			int nextSkipCount, FieldData initData)
 		{
-			gameData = this;
 
 			Next = new Queue<Tetrimino.MinoType>();
 			Hold = Tetrimino.MinoType.Empty;
@@ -42,22 +45,19 @@ namespace TetrioVirtualEnvironment
 			LastShift = 0;
 			LDasIter = 0;
 			RDasIter = 0;
-			Falling = new Falling(environment, this);
-			Gravity = (double)(eventFull.options.g);
+			Falling = new Falling(_environment);
+			Gravity =(eventFull.options.g??999);
 			SpinBonuses = eventFull.options.spinbonuses ?? SpinBonusesType.TSpins;
 
 
 			GarbageActnowledgements = (new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData?>>());
 
-			environment.Rng = new Rng();
-			environment.Rng.Init(eventFull.options.seed);
-			InitializeField(envMode, initData, eventFull, nextSkipCount, environment);
+			InitializeField(envMode, initData, eventFull, nextSkipCount, _environment);
 			InitializeHandling(eventFull);
- 
 
 
 			if (envMode == NextGenerateKind.Array)
-				Falling.Init(null, false, environment.NextGenerateMode);
+				Falling.Init(null, false, _environment.NextGenerateMode);
 		}
 
 		private void InitializeHandling(EventFullData eventFull)
@@ -80,7 +80,7 @@ namespace TetrioVirtualEnvironment
 			{
 				if (initData.Board == null)
 				{
-					Board = new Tetrimino.MinoType[FIELD_SIZE];
+					Board = new Tetrimino.MinoType[FIELD_WIDTH * FIELD_HEIGHT];
 					Array.Fill(Board, Tetrimino.MinoType.Empty);
 				}
 				else
@@ -132,7 +132,7 @@ namespace TetrioVirtualEnvironment
 				ImpendingDamages = data.Garbages;
 		}
 
-
+		private readonly Environment _environment;
 		public SpinBonusesType SpinBonuses { get; private set; }
 		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }

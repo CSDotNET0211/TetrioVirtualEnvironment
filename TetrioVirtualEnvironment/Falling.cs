@@ -31,7 +31,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		public Falling(Environment environment, GameData gameData)
+		public Falling(Environment environment)
 		{
 			Sleep = true;
 			DeepSleep = false;
@@ -54,8 +54,7 @@ namespace TetrioVirtualEnvironment
 			Aox = 0;
 			Aoy = 0;
 
-			EnvironmentInstance = environment;
-			GameDataInstance = gameData;
+			_environment = environment;
 		}
 
 		
@@ -78,9 +77,9 @@ namespace TetrioVirtualEnvironment
 			{
 				if (environmentMode == NextGenerateKind.Array)
 				{
-					if (EnvironmentInstance.GameData.Next.Count != 0)
+					if (_environment.GameData.Next.Count != 0)
 					{
-						Type = EnvironmentInstance.GameData.Next.Dequeue();
+						Type = _environment.GameData.Next.Dequeue();
 					}
 					else
 					{
@@ -89,7 +88,7 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 				else
-					Type = EnvironmentInstance.RefreshNext(GameDataInstance.Next, false);
+					Type = _environment.RefreshNext(_environment.GameData.Next, false);
 			}
 			else
 				Type = (Tetrimino.MinoType)newType;
@@ -104,8 +103,8 @@ namespace TetrioVirtualEnvironment
 			SpinType = SpinTypeKind.Null;
 			Sleep = false;
 			Last = LastKind.None;
-			GameDataInstance.FallingRotations = 0;
-			GameDataInstance.TotalRotations = 0;
+			_environment.GameData.FallingRotations = 0;
+			_environment.GameData.TotalRotations = 0;
 
 			/* in tetrio.js, normal tetromino creating has undefined argument, first hold is unll so easy to judge.
 			 * t.holdlocked = void 0 !== s
@@ -114,31 +113,31 @@ namespace TetrioVirtualEnvironment
 
 
 			if (isHold)
-				GameDataInstance.HoldLocked = true;
+				_environment.GameData.HoldLocked = true;
 			else
-				GameDataInstance.HoldLocked = newType != null;
+				_environment.GameData.HoldLocked = newType != null;
 
-			if (Clamped && GameDataInstance.Handling.DCD > 0)
+			if (Clamped && _environment.GameData.Handling.DCD > 0)
 			{
-				GameDataInstance.LDas = Math.Min(GameDataInstance.LDas,
-					GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-				GameDataInstance.LDasIter = GameDataInstance.Handling.ARR;
-				GameDataInstance.RDas = Math.Min(GameDataInstance.RDas,
-					GameDataInstance.Handling.DAS - GameDataInstance.Handling.DCD);
-				GameDataInstance.RDasIter = GameDataInstance.Handling.ARR;
+				_environment.GameData.LDas = Math.Min(_environment.GameData.LDas,
+					_environment.GameData.Handling.DAS - _environment.GameData.Handling.DCD);
+				_environment.GameData.LDasIter = _environment.GameData.Handling.ARR;
+				_environment.GameData.RDas = Math.Min(_environment.GameData.RDas,
+					_environment.GameData.Handling.DAS - _environment.GameData.Handling.DCD);
+				_environment.GameData.RDasIter = _environment.GameData.Handling.ARR;
 			}
 
 			Clamped = false;
 
-			if (!IsLegalAtPos(Type, X, Y, R, GameDataInstance.Board) ||
-			    (!GameDataInstance.Options.NoLockout && HighestYisOver20()))
+			if (!IsLegalAtPos(Type, X, Y, R, _environment.GameData.Board) ||
+			    (!_environment.GameData.Options.NoLockout && HighestYisOver20()))
 			{
-				EnvironmentInstance.IsDead = true;
+				_environment.IsDead = true;
 				Debug.WriteLine("dead");
 			}
 
 
-			EnvironmentInstance.CallOnPieceCreated();
+			_environment.CallOnPieceCreated();
 		}
 
 		public bool HighestYisOver20()
@@ -155,7 +154,7 @@ namespace TetrioVirtualEnvironment
 			return false;
 		}
 
-
+		private readonly Environment _environment;
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
 			if (pos.type != Tetrimino.MinoType.Empty)
@@ -171,9 +170,6 @@ namespace TetrioVirtualEnvironment
 				R = pos.r;
 		}
 
-		//TODO:アクセスすべてできないようにするべき、ゲッターかなんか用意
-		public Environment EnvironmentInstance { get; }
-		public GameData GameDataInstance { get; }
 		public Tetrimino.MinoType Type { get; private set; }
 		public int X { get; internal set; }
 		public int Aox { get; internal set; }
@@ -187,9 +183,6 @@ namespace TetrioVirtualEnvironment
 		public bool Sleep { get; internal set; }
 		public bool DeepSleep { get; }
 
-		/// <summary>
-		/// Last move
-		/// </summary>
 		public LastKind Last { get; internal set; }
 
 		public LastRotationKind LastRotation { get; internal set; }
