@@ -1,16 +1,18 @@
 ﻿using System.Text.Json;
+using TetrioVirtualEnvironment.Env;
 using TetrLoader;
 using TetrLoader.JsonClass.Event;
 using TetrLoader;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
 using static TetrLoader.ReplayLoader;
+using Environment = TetrioVirtualEnvironment.Env.Environment;
 
 namespace TetrioVirtualEnvironment
 {
 	public class Replay
 	{
-		public List<Environment> Environments { get; } = new();
+		public List<Env.Environment> Environments { get; } = new();
 		public ReplayKind ReplayKind { get; }
 		public int ReplayIndex { get; private set; } = -1;
 
@@ -89,7 +91,7 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 
-				Environments.Add(new Environment(fullEvent.data, Environment.NextGenerateKind.Seed, fullEvent.data.options?.username));
+				Environments.Add(new Environment(fullEvent.data, Env.Environment.NextGenerateKind.Seed, fullEvent.data.options?.username));
 				ReplayData.GetReplayEvents(playerIndex, ReplayIndex);
 			}
 			

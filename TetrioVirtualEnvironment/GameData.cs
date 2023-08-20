@@ -1,8 +1,8 @@
 ﻿using TetrioVirtualEnvironment.Constants;
 using TetrLoader.Enum;
-using static TetrioVirtualEnvironment.Environment;
 using TetrLoader.JsonClass;
 using TetrLoader.JsonClass.Event;
+using Environment = TetrioVirtualEnvironment.Env.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -12,7 +12,7 @@ namespace TetrioVirtualEnvironment
 		{
 			_environment = environment;
 		}
-		
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -22,10 +22,9 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="initData"></param>
 		/// <exception cref="Exception"></exception>
-		public void Init(NextGenerateKind envMode, EventFullData eventFull,
+		public void Init(Env.Environment.NextGenerateKind envMode, EventFullData eventFull,
 			int nextSkipCount, FieldData initData)
 		{
-
 			Next = new Queue<Tetrimino.MinoType>();
 			Hold = Tetrimino.MinoType.Empty;
 			ImpendingDamages = new List<IgeData?>();
@@ -46,7 +45,7 @@ namespace TetrioVirtualEnvironment
 			LDasIter = 0;
 			RDasIter = 0;
 			Falling = new Falling(_environment);
-			Gravity =(eventFull.options.g??999);
+			Gravity = (eventFull.options.g ?? 999);
 			SpinBonuses = eventFull.options.spinbonuses ?? SpinBonusesType.TSpins;
 
 
@@ -56,7 +55,7 @@ namespace TetrioVirtualEnvironment
 			InitializeHandling(eventFull);
 
 
-			if (envMode == NextGenerateKind.Array)
+			if (envMode == Environment.NextGenerateKind.Array)
 				Falling.Init(null, false, _environment.NextGenerateMode);
 		}
 
@@ -73,14 +72,15 @@ namespace TetrioVirtualEnvironment
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void InitializeField(NextGenerateKind envMode, in FieldData data, EventFullData initGameData,
-			int nextSkipCount, Environment environment)
+		private void InitializeField(Env.Environment.NextGenerateKind envMode, in FieldData data,
+			EventFullData initGameData,
+			int nextSkipCount, Env.Environment environment)
 		{
 			void InitBoard(FieldData initData)
 			{
 				if (initData.Board == null)
 				{
-					Board = new Tetrimino.MinoType[FIELD_WIDTH * FIELD_HEIGHT];
+					Board = new Tetrimino.MinoType[Environment.FIELD_WIDTH * Environment.FIELD_HEIGHT];
 					Array.Fill(Board, Tetrimino.MinoType.Empty);
 				}
 				else
@@ -89,16 +89,16 @@ namespace TetrioVirtualEnvironment
 				}
 			}
 
-			void InitNext(FieldData initData, NextGenerateKind mode)
+			void InitNext(FieldData initData, Env.Environment.NextGenerateKind mode)
 			{
 				Next = new Queue<Tetrimino.MinoType>();
 
-				if (mode == NextGenerateKind.Array)
+				if (mode == Env.Environment.NextGenerateKind.Array)
 				{
 					foreach (var next in initData.Next)
 						Next.Enqueue(next);
 				}
-				else if (mode == NextGenerateKind.Seed)
+				else if (mode == Env.Environment.NextGenerateKind.Seed)
 				{
 					if (initGameData.options?.nextcount == null)
 						throw new Exception("nextCount is undefined");
@@ -132,7 +132,7 @@ namespace TetrioVirtualEnvironment
 				ImpendingDamages = data.Garbages;
 		}
 
-		private readonly Environment _environment;
+		private readonly Env.Environment _environment;
 		public SpinBonusesType SpinBonuses { get; private set; }
 		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }

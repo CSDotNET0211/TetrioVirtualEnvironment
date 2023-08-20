@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment.Constants;
-using static TetrioVirtualEnvironment.Environment;
+using Environment = TetrioVirtualEnvironment.Env.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -31,7 +31,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		public Falling(Environment environment)
+		public Falling(Env.Environment environment)
 		{
 			Sleep = true;
 			DeepSleep = false;
@@ -66,7 +66,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newType"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(Tetrimino.MinoType? newType, bool isHold, NextGenerateKind environmentMode)
+		public void Init(Tetrimino.MinoType? newType, bool isHold, Env.Environment.NextGenerateKind environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -75,7 +75,7 @@ namespace TetrioVirtualEnvironment
 
 			if (newType == null || newType == Tetrimino.MinoType.Empty)
 			{
-				if (environmentMode == NextGenerateKind.Array)
+				if (environmentMode == Env.Environment.NextGenerateKind.Array)
 				{
 					if (_environment.GameData.Next.Count != 0)
 					{
@@ -129,7 +129,7 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!IsLegalAtPos(Type, X, Y, R, _environment.GameData.Board) ||
+			if (!Environment. IsLegalAtPos(Type, X, Y, R, _environment.GameData.Board) ||
 			    (!_environment.GameData.Options.NoLockout && HighestYisOver20()))
 			{
 				_environment.IsDead = true;

@@ -1,75 +1,110 @@
 ﻿using TetrioVirtualEnvironment.Constants;
 using TetrLoader.Enum;
-using TetrLoader.JsonClass;
 
-namespace TetrioVirtualEnvironment
+namespace TetrioVirtualEnvironment.Env;
+
+public partial class Environment 
 {
-	public partial class Environment
+	
+	/// <summary>
+	/// check all clear
+	/// </summary>
+	internal void AnnounceClear()
 	{
-		private  void FightLines(int attackLine)
+		int emptyLineCount = 0;
+		for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
 		{
-			if (!GameData.Options.HasGarbage)
-				return;
+			if (emptyLineCount >= 2)
+				break;
 
-			CustomStats.TotalSendLine += attackLine;
-			
-			bool count;
-			if (GameData.ImpendingDamages.Count == 0)
-				count = false;
+			for (int x = 0; x < FIELD_WIDTH; x++)
+			{
+				if (GameData.Board[x + y * 10] != Tetrimino.MinoType.Empty)
+					return;
+			}
+
+			emptyLineCount++;
+		}
+
+		//PC
+		FightLines((int)(Constants.Garbage.ALL_CLEAR * GameData.Options.GarbageMultiplier));
+	}
+	
+	internal  bool PushGarbageLine(int line, bool falseValue = false, int whatIsThis = 68)
+	{
+		var newBoardList = new List<Tetrimino.MinoType>();
+		newBoardList.AddRange((Tetrimino.MinoType[])GameData.Board.Clone());
+
+		for (int x = 0; x < FIELD_WIDTH; x++)
+		{
+			//x+y*10
+			if (newBoardList[x] != Tetrimino.MinoType.Empty)
+				return false;
+		}
+
+		//一番てっぺんを消す
+		for (int x = 0; x < FIELD_WIDTH; x++)
+			newBoardList.RemoveAt(x);
+
+		var RValueList = new List<Tetrimino.MinoType>();
+
+		for (var tIndex = 0; tIndex < FIELD_WIDTH; tIndex++)
+		{
+			if (tIndex == line)
+				RValueList.Add(Tetrimino.MinoType.Empty);
 			else
-				count = true;
-
-			var oValue = 0;
-			for (; attackLine > 0 && GameData.ImpendingDamages.Count != 0;)
-			{
-				GameData.ImpendingDamages[0].lines--;
-				if (GameData.ImpendingDamages[0].lines == 0)
-				{
-					GameData.ImpendingDamages.RemoveAt(0);
-				}
-
-				attackLine--;
-				oValue++;
-			}
-
-			if (attackLine > 0)
-			{
-				if (GameData.Options.Passthrough == PassthroughType.Consistent && GameData.NotYetReceivedAttack > 0)
-				{
-					//PlaySound
-				}
-
-				Offence(attackLine);
-			}
+				RValueList.Add(Tetrimino.MinoType.Garbage);
 		}
 
-		private  void Offence(int attackLine)
+		newBoardList.AddRange(RValueList);
+		GameData.Board = newBoardList.ToArray();
+		return true;
+	}
+	private int ClearLines(out int garbageClear, out int stackClear)
+	{
+		List<int> list = new List<int>();
+		garbageClear = 0;
+		stackClear = 0;
+
+		for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
 		{
-			attackLine = attackLine / Math.Max(1, 1);
-			if (!(attackLine < 1))
+			int garbageCount = 0;
+
+			bool flag = true;
+			for (int x = 0; x < FIELD_WIDTH; x++)
 			{
-				foreach (var target in GameData.Targets)
+				if (GameData.Board[x + y * 10] == Tetrimino.MinoType.Empty)
 				{
-					var interactionID = ++GameData.InteractionID;
-
-					if (GameData.Options.Passthrough is PassthroughType.Zero
-					    or PassthroughType.Consistent)
-					{
-						if (!GameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
-							GameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
-
-
-						GameData.GarbageActnowledgements.Outgoing[target].Add(new GarbageData()
-						{
-							iid = interactionID,
-							amt = attackLine
-						});
-					}
+					flag = false;
+					break;
 				}
+				else if (GameData.Board[x + y * 10] == Tetrimino.MinoType.Garbage)
+					garbageCount++;
+			}
+
+			if (flag)
+			{
+				list.Add(y);
+
+				if (garbageCount == FIELD_WIDTH - 1)
+					garbageClear++;
+				else
+					stackClear++;
 			}
 		}
 
-		internal  bool GetAttackPower(int clearLineCount, Falling.SpinTypeKind isTspin)
+		list.Reverse();
+		foreach (var value in list)
+		{
+			DownLine(value, GameData.Board);
+		}
+
+		return list.Count;
+	}
+	
+	
+
+		internal  bool AnnounceLines(int clearLineCount, Falling.SpinTypeKind isTspin)
 		{
 			var isBTB = false;
 
@@ -225,35 +260,4 @@ namespace TetrioVirtualEnvironment
 			}
 		}
 
-		internal  bool PushGarbageLine(int line, bool falseValue = false, int whatIsThis = 68)
-		{
-			var newBoardList = new List<Tetrimino.MinoType>();
-			newBoardList.AddRange((Tetrimino.MinoType[])GameData.Board.Clone());
-
-			for (int x = 0; x < FIELD_WIDTH; x++)
-			{
-				//x+y*10
-				if (newBoardList[x] != Tetrimino.MinoType.Empty)
-					return false;
-			}
-
-			//一番てっぺんを消す
-			for (int x = 0; x < FIELD_WIDTH; x++)
-				newBoardList.RemoveAt(x);
-
-			var RValueList = new List<Tetrimino.MinoType>();
-
-			for (var tIndex = 0; tIndex < FIELD_WIDTH; tIndex++)
-			{
-				if (tIndex == line)
-					RValueList.Add(Tetrimino.MinoType.Empty);
-				else
-					RValueList.Add(Tetrimino.MinoType.Garbage);
-			}
-
-			newBoardList.AddRange(RValueList);
-			GameData.Board = newBoardList.ToArray();
-			return true;
-		}
-	}
 }

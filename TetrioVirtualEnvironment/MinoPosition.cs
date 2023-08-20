@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TetrioVirtualEnvironment.Constants;
-using static TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
