@@ -6,13 +6,13 @@ using TetrLoader;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
 using static TetrLoader.ReplayLoader;
-using Environment = TetrioVirtualEnvironment.Env.Environment;
+using Environment = TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
 	public class Replay
 	{
-		public List<Env.Environment> Environments { get; } = new();
+		public List<Environment> Environments { get; } = new();
 		public ReplayKind ReplayKind { get; }
 		public int ReplayIndex { get; private set; } = -1;
 
@@ -91,7 +91,7 @@ namespace TetrioVirtualEnvironment
 					}
 				}
 
-				Environments.Add(new Environment(fullEvent.data, Env.Environment.NextGenerateKind.Seed, fullEvent.data.options?.username));
+				Environments.Add(new Environment(fullEvent.data, Environment.NextGenerateType.Seed, fullEvent.data.options?.username));
 				ReplayData.GetReplayEvents(playerIndex, ReplayIndex);
 			}
 			
@@ -118,7 +118,7 @@ namespace TetrioVirtualEnvironment
 			{
 				//use checkpoint to back replay faster
 				foreach (var env in Environments)
-					env.ResetGame(env.EventFull, env.NextGenerateMode, env.DataForInitialize, env.NextSkipCount);
+					env.ResetGame(env.EventFull, env.NextGenerateMode, env.InitializeData, env.NextSkipCount);
 
 				for (int i = 0; i < newframe; i++)
 					Update();

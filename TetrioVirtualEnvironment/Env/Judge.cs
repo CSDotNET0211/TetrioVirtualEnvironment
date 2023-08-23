@@ -3,32 +3,37 @@ using TetrLoader.Enum;
 
 namespace TetrioVirtualEnvironment.Env;
 
-public partial class Environment
+public   class Judge
 {
+	private readonly Environment _environment;
+	public Judge(Environment env)
+	{
+		_environment = env;
+	}
 	private Falling.SpinTypeKind IsTspin()
 	{
-		if (GameData.SpinBonuses == SpinBonusesType.None)
+		if (_environment.GameData.SpinBonuses == SpinBonusesType.None)
 			return Falling.SpinTypeKind.Null;
 
-		if (GameData.SpinBonuses == SpinBonusesType.Stupid)
+		if (_environment.GameData.SpinBonuses == SpinBonusesType.Stupid)
 			throw new NotImplementedException();
 
-		if (IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y + 1, GameData.Falling.R,
-			    GameData.Board))
+		if (IsLegalAtPos(_environment.GameData.Falling.Type, _environment.GameData.Falling.X, _environment.GameData.Falling.Y + 1, _environment.GameData.Falling.R,
+			    _environment.GameData.Board))
 			return Falling.SpinTypeKind.Null;
 
-		if (GameData.Falling.Type != Tetrimino.MinoType.T && GameData.SpinBonuses != SpinBonusesType.Handheld)
+		if (_environment.GameData.Falling.Type != Tetrimino.MinoType.T && _environment.GameData.SpinBonuses != SpinBonusesType.Handheld)
 		{
-			if (GameData.SpinBonuses == SpinBonusesType.All)
+			if (_environment.GameData.SpinBonuses == SpinBonusesType.All)
 			{
-				if (!(IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X - 1, GameData.Falling.Y,
-					      GameData.Falling.R, GameData.Board) ||
-				      IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X + 1, GameData.Falling.Y,
-					      GameData.Falling.R, GameData.Board) ||
-				      IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y - 1,
-					      GameData.Falling.R, GameData.Board) ||
-				      IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, GameData.Falling.Y + 1,
-					      GameData.Falling.R, GameData.Board)))
+				if (!(IsLegalAtPos(_environment.GameData.Falling.Type, _environment.GameData.Falling.X - 1, _environment.GameData.Falling.Y,
+					      _environment.GameData.Falling.R, _environment.GameData.Board) ||
+				      IsLegalAtPos(_environment.GameData.Falling.Type, _environment.GameData.Falling.X + 1, _environment.GameData.Falling.Y,
+					      _environment.GameData.Falling.R, _environment.GameData.Board) ||
+				      IsLegalAtPos(_environment.GameData.Falling.Type, _environment.GameData.Falling.X, _environment.GameData.Falling.Y - 1,
+					      _environment.GameData.Falling.R, _environment.GameData.Board) ||
+				      IsLegalAtPos(_environment.GameData.Falling.Type, _environment.GameData.Falling.X, _environment.GameData.Falling.Y + 1,
+					      _environment.GameData.Falling.R, _environment.GameData.Board)))
 					return Falling.SpinTypeKind.Normal;
 				else
 					return Falling.SpinTypeKind.Null;
@@ -37,7 +42,7 @@ public partial class Environment
 				return Falling.SpinTypeKind.Null;
 		}
 
-		if (GameData.Falling.Last != Falling.LastKind.Rotate)
+		if (_environment.GameData.Falling.Last != Falling.LastKind.Rotate)
 			return Falling.SpinTypeKind.Null;
 
 		var cornerCount = 0;
@@ -47,7 +52,7 @@ public partial class Environment
 		{
 			Vector2[][]? minoCorner = null;
 
-			minoCorner = CornerTable.TABLE[(int)GetIndex(GameData.Falling.Type)];
+			minoCorner = CornerTable.TABLE[(int)GetIndex(_environment.GameData.Falling.Type)];
 
 			Tetrimino.MinoType GetIndex(Tetrimino.MinoType type)
 			{
@@ -66,15 +71,15 @@ public partial class Environment
 				}
 			}
 
-			if (!IsEmptyPos((int)(GameData.Falling.X + minoCorner[GameData.Falling.R][index].x),
-				    (int)(GameData.Falling.Y + minoCorner[GameData.Falling.R][index].y), GameData.Board))
+			if (!IsEmptyPos((int)(_environment.GameData.Falling.X + minoCorner[_environment.GameData.Falling.R][index].x),
+				    (int)(_environment.GameData.Falling.Y + minoCorner[_environment.GameData.Falling.R][index].y), _environment.GameData.Board))
 			{
 				cornerCount++;
 
 				//AdditinalTableは無理やり追加したものなのでx,yは関係ない
-				if (!(GameData.Falling.Type != Tetrimino.MinoType.T ||
-				      (GameData.Falling.R != CornerTable.ADDITIONAL_TABLE[GameData.Falling.R][index].x &&
-				       GameData.Falling.R != CornerTable.ADDITIONAL_TABLE[GameData.Falling.R][index].y)))
+				if (!(_environment.GameData.Falling.Type != Tetrimino.MinoType.T ||
+				      (_environment.GameData.Falling.R != CornerTable.ADDITIONAL_TABLE[_environment.GameData.Falling.R][index].x &&
+				       _environment.GameData.Falling.R != CornerTable.ADDITIONAL_TABLE[_environment.GameData.Falling.R][index].y)))
 					a++;
 			}
 		}
@@ -85,10 +90,10 @@ public partial class Environment
 
 		var spinType = Falling.SpinTypeKind.Normal;
 
-		if (GameData.Falling.Type == Tetrimino.MinoType.T && a != 2)
+		if (_environment.GameData.Falling.Type == Tetrimino.MinoType.T && a != 2)
 			spinType = Falling.SpinTypeKind.Mini;
 
-		if (GameData.Falling.LastKick == 4)
+		if (_environment.GameData.Falling.LastKick == 4)
 			spinType = Falling.SpinTypeKind.Normal;
 
 
@@ -105,8 +110,8 @@ public partial class Environment
 	/// <returns>Is empty</returns>
 	private static bool IsEmptyPos(int x, int y, IReadOnlyList<Tetrimino.MinoType> field)
 	{
-		if (!(x is >= 0 and < FIELD_WIDTH &&
-		      y is >= 0 and < FIELD_HEIGHT))
+		if (!(x is >= 0 and < Environment.FIELD_WIDTH &&
+		      y is >= 0 and < Environment.FIELD_HEIGHT))
 			return false;
 
 		return field[x + y * 10] == Tetrimino.MinoType.Empty;
@@ -128,8 +133,8 @@ public partial class Environment
 
 		foreach (var position in positions)
 		{
-			if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < FIELD_WIDTH &&
-			      position.y + y - diff.y >= 0 && position.y + y - diff.y < FIELD_HEIGHT))
+			if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < Environment.FIELD_WIDTH &&
+			      position.y + y - diff.y >= 0 && position.y + y - diff.y < Environment.FIELD_HEIGHT))
 				return false;
 		}
 
@@ -144,8 +149,8 @@ public partial class Environment
 	/// <returns></returns>
 	public static bool IsLegalField(int x, double y)
 	{
-		return x is >= 0 and < FIELD_WIDTH &&
-		       y is >= 0 and < FIELD_HEIGHT;
+		return x is >= 0 and < Environment.FIELD_WIDTH &&
+		       y is >= 0 and < Environment.FIELD_HEIGHT;
 	}
 
 	/// <summary>
@@ -165,8 +170,8 @@ public partial class Environment
 
 		foreach (var position in positions)
 		{
-			if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < FIELD_WIDTH &&
-			      position.y + y - diff.y >= 0 && position.y + y - diff.y < FIELD_HEIGHT &&
+			if (!(position.x + x - diff.x >= 0 && position.x + x - diff.x < Environment.FIELD_WIDTH &&
+			      position.y + y - diff.y >= 0 && position.y + y - diff.y < Environment.FIELD_HEIGHT &&
 			      field[(int)position.x + x - (int)diff.x + (int)(position.y + y - (int)diff.y) * 10] ==
 			      Tetrimino.MinoType.Empty))
 				return false;

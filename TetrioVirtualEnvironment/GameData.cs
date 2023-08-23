@@ -2,7 +2,7 @@
 using TetrLoader.Enum;
 using TetrLoader.JsonClass;
 using TetrLoader.JsonClass.Event;
-using Environment = TetrioVirtualEnvironment.Env.Environment;
+using Environment = TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -22,7 +22,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="nextSkipCount"></param>
 		/// <param name="initData"></param>
 		/// <exception cref="Exception"></exception>
-		public void Init(Env.Environment.NextGenerateKind envMode, EventFullData eventFull,
+		public void Init(Environment.NextGenerateType envMode, EventFullData eventFull,
 			int nextSkipCount, FieldData initData)
 		{
 			Next = new Queue<Tetrimino.MinoType>();
@@ -55,7 +55,7 @@ namespace TetrioVirtualEnvironment
 			InitializeHandling(eventFull);
 
 
-			if (envMode == Environment.NextGenerateKind.Array)
+			if (envMode == Environment.NextGenerateType.Array)
 				Falling.Init(null, false, _environment.NextGenerateMode);
 		}
 
@@ -64,19 +64,27 @@ namespace TetrioVirtualEnvironment
 			if (eventFull.game == null)
 				Handling = new PlayerOptions((double)eventFull.options?.handling.arr,
 					(double)eventFull.options?.handling.das, (double)eventFull.options?.handling.dcd,
-					(double)eventFull.options?.handling.sdf,
+					(int)eventFull.options?.handling.sdf,
 					(bool)eventFull.options?.handling.safelock ? 1 : 0, (bool)eventFull.options?.handling.cancel);
 			else
 				Handling = new PlayerOptions((double)eventFull.game.handling.arr, (double)eventFull.game.handling.das,
-					(double)eventFull.game.handling.dcd, (double)eventFull.game.handling.sdf,
+					(double)eventFull.game.handling.dcd, (int)eventFull.game.handling.sdf,
 					(bool)eventFull.game.handling.safelock ? 1 : 0, (bool)eventFull.game.handling.cancel);
 		}
 
-		private void InitializeField(Env.Environment.NextGenerateKind envMode, in FieldData data,
+		private void InitializeField(Environment.NextGenerateType envMode, in FieldData data,
 			EventFullData initGameData,
-			int nextSkipCount, Env.Environment environment)
+			int nextSkipCount, Environment environment)
 		{
-			void InitBoard(FieldData initData)
+			InitializeBoard(data);
+			InitializeNext(data, envMode);
+
+			Hold = data.Hold;
+
+			if (data.Garbages != null)
+				ImpendingDamages = data.Garbages;
+			
+			void InitializeBoard(FieldData initData)
 			{
 				if (initData.Board == null)
 				{
@@ -89,16 +97,16 @@ namespace TetrioVirtualEnvironment
 				}
 			}
 
-			void InitNext(FieldData initData, Env.Environment.NextGenerateKind mode)
+			void InitializeNext(FieldData initData, Environment.NextGenerateType mode)
 			{
 				Next = new Queue<Tetrimino.MinoType>();
 
-				if (mode == Env.Environment.NextGenerateKind.Array)
+				if (mode == Environment.NextGenerateType.Array)
 				{
 					foreach (var next in initData.Next)
 						Next.Enqueue(next);
 				}
-				else if (mode == Env.Environment.NextGenerateKind.Seed)
+				else if (mode == Environment.NextGenerateType.Seed)
 				{
 					if (initGameData.options?.nextcount == null)
 						throw new Exception("nextCount is undefined");
@@ -120,19 +128,11 @@ namespace TetrioVirtualEnvironment
 						environment.RefreshNext(Next, false);
 				}
 			}
-
-			InitBoard(data);
-			InitNext(data, envMode);
-
-
-			//	if (data.Hold != null)
-			Hold = data.Hold;
-
-			if (data.Garbages != null)
-				ImpendingDamages = data.Garbages;
 		}
+		
+		
 
-		private readonly Env.Environment _environment;
+		private readonly Environment _environment;
 		public SpinBonusesType SpinBonuses { get; private set; }
 		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }

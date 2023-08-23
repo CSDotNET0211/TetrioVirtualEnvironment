@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment.Constants;
-using Environment = TetrioVirtualEnvironment.Env.Environment;
+using Environment = TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
 {
@@ -31,7 +31,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		public Falling(Env.Environment environment)
+		public Falling(Environment environment)
 		{
 			Sleep = true;
 			DeepSleep = false;
@@ -66,7 +66,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newType"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(Tetrimino.MinoType? newType, bool isHold, Env.Environment.NextGenerateKind environmentMode)
+		public void Init(Tetrimino.MinoType? newType, bool isHold, Environment.NextGenerateType environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -75,7 +75,7 @@ namespace TetrioVirtualEnvironment
 
 			if (newType == null || newType == Tetrimino.MinoType.Empty)
 			{
-				if (environmentMode == Env.Environment.NextGenerateKind.Array)
+				if (environmentMode == Environment.NextGenerateType.Array)
 				{
 					if (_environment.GameData.Next.Count != 0)
 					{

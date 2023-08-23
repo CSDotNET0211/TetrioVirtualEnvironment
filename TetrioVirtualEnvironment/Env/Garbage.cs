@@ -3,11 +3,17 @@ using TetrLoader.JsonClass;
 
 namespace TetrioVirtualEnvironment.Env;
 
-public partial class Environment
+public   class Garbage
 {
+	
+	private readonly Environment _environment;
+	public Garbage(Environment env)
+	{
+		_environment = env;
+	}
 	private void IncomingAttack(GarbageData data, string? sender = null, string? id1 = null, int? id2 = null)
 	{
-		if (GameData.Options.Passthrough == PassthroughType.Consistent)
+		if (_environment.GameData.Options.Passthrough == PassthroughType.Consistent)
 		{
 			data.amt = GetAmt(data, id1);
 		}
@@ -21,7 +27,7 @@ public partial class Environment
 		}
 
 
-		WaitFrames(GameData.Options.GarbageSpeed, "incoming-attack-hit", new IgeData()
+		WaitFrames(_environment.GameData.Options.GarbageSpeed, "incoming-attack-hit", new IgeData()
 		{
 			data = data,
 			sender = sender,
@@ -31,7 +37,7 @@ public partial class Environment
 
 		int GetImpendingGarbageLineAtID(int? garbageID)
 		{
-			foreach (var garbage in GameData.ImpendingDamages)
+			foreach (var garbage in _environment.GameData.ImpendingDamages)
 			{
 				if (garbage.cid == garbageID)
 					return garbage.lines;
@@ -43,24 +49,24 @@ public partial class Environment
 
 	private void FightLines(int attackLine)
 	{
-		if (!GameData.Options.HasGarbage)
+		if (!_environment.GameData.Options.HasGarbage)
 			return;
 
-		CustomStats.TotalSendLine += attackLine;
+		Custom_environment.Stats.TotalSendLine += attackLine;
 
 		bool count;
-		if (GameData.ImpendingDamages.Count == 0)
+		if (_environment.GameData.ImpendingDamages.Count == 0)
 			count = false;
 		else
 			count = true;
 
 		var oValue = 0;
-		for (; attackLine > 0 && GameData.ImpendingDamages.Count != 0;)
+		for (; attackLine > 0 && _environment.GameData.ImpendingDamages.Count != 0;)
 		{
-			GameData.ImpendingDamages[0].lines--;
-			if (GameData.ImpendingDamages[0].lines == 0)
+			_environment.GameData.ImpendingDamages[0].lines--;
+			if (_environment.GameData.ImpendingDamages[0].lines == 0)
 			{
-				GameData.ImpendingDamages.RemoveAt(0);
+				_environment.GameData.ImpendingDamages.RemoveAt(0);
 			}
 
 			attackLine--;
@@ -69,7 +75,7 @@ public partial class Environment
 
 		if (attackLine > 0)
 		{
-			if (GameData.Options.Passthrough == PassthroughType.Consistent && GameData.NotYetReceivedAttack > 0)
+			if (_environment.GameData.Options.Passthrough == PassthroughType.Consistent && _environment.GameData.NotYetReceivedAttack > 0)
 			{
 				//PlaySound
 			}
@@ -88,18 +94,18 @@ public partial class Environment
 		attackLine = attackLine / Math.Max(1, 1);
 		if (!(attackLine < 1))
 		{
-			foreach (var target in GameData.Targets)
+			foreach (var target in _environment.GameData.Targets)
 			{
-				var interactionID = ++GameData.InteractionID;
+				var interactionID = ++_environment.GameData.InteractionID;
 
-				if (GameData.Options.Passthrough is PassthroughType.Zero
+				if (_environment.GameData.Options.Passthrough is PassthroughType.Zero
 				    or PassthroughType.Consistent)
 				{
-					if (!GameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
-						GameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
+					if (!_environment.GameData.GarbageActnowledgements.Outgoing.ContainsKey(target))
+						_environment.GameData.GarbageActnowledgements.Outgoing.Add(target, new List<GarbageData>());
 
 
-					GameData.GarbageActnowledgements.Outgoing[target].Add(new GarbageData()
+					_environment.GameData.GarbageActnowledgements.Outgoing[target].Add(new GarbageData()
 					{
 						iid = interactionID,
 						amt = attackLine
@@ -111,12 +117,12 @@ public partial class Environment
 
 	private void IncomingAttackHit(GarbageData data, string sender, int? cid)
 	{
-		GameData.NotYetReceivedAttack--;
+		_environment.GameData.NotYetReceivedAttack--;
 
 		if (cid != null)
 		{
 			//ActiveDamage Function
-			foreach (var garbage in GameData.ImpendingDamages)
+			foreach (var garbage in _environment.GameData.ImpendingDamages)
 			{
 				if (garbage.cid == cid)
 					garbage.active = true;
@@ -132,16 +138,16 @@ public partial class Environment
 	{
 		var amt_value = data.amt;
 
-		if (GameData.Options.Passthrough == PassthroughType.Zero)
+		if (_environment.GameData.Options.Passthrough == PassthroughType.Zero)
 		{
 			amt_value = GetAmt(data, id1);
 		}
 
 		if (!(amt_value <= 0))
 		{
-			GameData.ImpendingDamages.Add(new IgeData()
+			_environment.GameData.ImpendingDamages.Add(new IgeData()
 			{
-				id = ++GameData.GarbageID,
+				id = ++_environment.GameData.GarbageID,
 				type = data.type,
 				active = id2 == null,
 				lines = amt_value,
@@ -155,47 +161,47 @@ public partial class Environment
 	
 	private void TakeAllDamage()
 	{
-		if (!GameData.Options.HasGarbage)
+		if (!_environment.GameData.Options.HasGarbage)
 			return;
 
 		var ABoolValue = true;
 		int maxReceiveGarbage =
-			false ? 400 : (int)Math.Min(GameData.Options.GarbageCapMax, GameData.Options.GarbageCap);
+			false ? 400 : (int)Math.Min(_environment.GameData.Options.GarbageCapMax, _environment.GameData.Options.GarbageCap);
 		var oValue = false;
 		var iArray = new List<IgeData>();
 
-		for (var impendingIndex = GameData.ImpendingDamages.Count - 1; impendingIndex >= 0; impendingIndex--)
+		for (var impendingIndex = _environment.GameData.ImpendingDamages.Count - 1; impendingIndex >= 0; impendingIndex--)
 		{
-			if (!GameData.ImpendingDamages[impendingIndex].active)
+			if (!_environment.GameData.ImpendingDamages[impendingIndex].active)
 			{
-				iArray.Insert(0, GameData.ImpendingDamages[impendingIndex]);
-				GameData.ImpendingDamages.RemoveAt(impendingIndex);
+				iArray.Insert(0, _environment.GameData.ImpendingDamages[impendingIndex]);
+				_environment.GameData.ImpendingDamages.RemoveAt(impendingIndex);
 			}
 		}
 
-		for (var i = 0; i < maxReceiveGarbage && GameData.ImpendingDamages.Count != 0; i++)
+		for (var i = 0; i < maxReceiveGarbage && _environment.GameData.ImpendingDamages.Count != 0; i++)
 		{
-			GameData.ImpendingDamages[0].lines--;
+			_environment.GameData.ImpendingDamages[0].lines--;
 			oValue = true;
 			bool rValue;
-			if (GameData.ImpendingDamages[0].lines <= 0)
+			if (_environment.GameData.ImpendingDamages[0].lines <= 0)
 				rValue = true;
 			else
 				rValue = i >= maxReceiveGarbage - 1;
 
-			if (!PushGarbageLine(GameData.ImpendingDamages[0].column, false,
+			if (!PushGarbageLine(_environment.GameData.ImpendingDamages[0].column, false,
 				    (ABoolValue ? 64 : 0) | (rValue ? 4 : 0)))
 				break;
 
 			ABoolValue = false;
 
-			if (!(GameData.ImpendingDamages[0].lines > 0))
+			if (!(_environment.GameData.ImpendingDamages[0].lines > 0))
 			{
-				GameData.ImpendingDamages.RemoveAt(0);
+				_environment.GameData.ImpendingDamages.RemoveAt(0);
 				ABoolValue = true;
 			}
 		}
 
-		GameData.ImpendingDamages.AddRange(iArray.ToArray());
+		_environment.GameData.ImpendingDamages.AddRange(iArray.ToArray());
 	}
 }

@@ -3,8 +3,13 @@ using TetrLoader.Enum;
 
 namespace TetrioVirtualEnvironment.Env;
 
-public partial class Environment 
+public  class BoardInfo
 {
+	private readonly Environment _environment;
+	public BoardInfo(Environment env)
+	{
+		_environment = env;
+	}
 	
 	/// <summary>
 	/// check all clear
@@ -12,14 +17,14 @@ public partial class Environment
 	internal void AnnounceClear()
 	{
 		int emptyLineCount = 0;
-		for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+		for (int y = Environment.FIELD_HEIGHT - 1; y >= 0; y--)
 		{
 			if (emptyLineCount >= 2)
 				break;
 
-			for (int x = 0; x < FIELD_WIDTH; x++)
+			for (int x = 0; x <Environment.FIELD_WIDTH; x++)
 			{
-				if (GameData.Board[x + y * 10] != Tetrimino.MinoType.Empty)
+				if (_environment.GameData.Board[x + y * 10] != Tetrimino.MinoType.Empty)
 					return;
 			}
 
@@ -27,15 +32,15 @@ public partial class Environment
 		}
 
 		//PC
-		FightLines((int)(Constants.Garbage.ALL_CLEAR * GameData.Options.GarbageMultiplier));
+		FightLines((int)(Constants.Garbage.ALL_CLEAR * _environment.GameData.Options.GarbageMultiplier));
 	}
 	
 	internal  bool PushGarbageLine(int line, bool falseValue = false, int whatIsThis = 68)
 	{
 		var newBoardList = new List<Tetrimino.MinoType>();
-		newBoardList.AddRange((Tetrimino.MinoType[])GameData.Board.Clone());
+		newBoardList.AddRange((Tetrimino.MinoType[])_environment.GameData.Board.Clone());
 
-		for (int x = 0; x < FIELD_WIDTH; x++)
+		for (int x = 0; x < Environment.FIELD_WIDTH; x++)
 		{
 			//x+y*10
 			if (newBoardList[x] != Tetrimino.MinoType.Empty)
@@ -43,12 +48,12 @@ public partial class Environment
 		}
 
 		//一番てっぺんを消す
-		for (int x = 0; x < FIELD_WIDTH; x++)
+		for (int x = 0; x < Environment.FIELD_WIDTH; x++)
 			newBoardList.RemoveAt(x);
 
 		var RValueList = new List<Tetrimino.MinoType>();
 
-		for (var tIndex = 0; tIndex < FIELD_WIDTH; tIndex++)
+		for (var tIndex = 0; tIndex < Environment.FIELD_WIDTH; tIndex++)
 		{
 			if (tIndex == line)
 				RValueList.Add(Tetrimino.MinoType.Empty);
@@ -57,7 +62,7 @@ public partial class Environment
 		}
 
 		newBoardList.AddRange(RValueList);
-		GameData.Board = newBoardList.ToArray();
+		_environment.GameData.Board = newBoardList.ToArray();
 		return true;
 	}
 	private int ClearLines(out int garbageClear, out int stackClear)
@@ -66,19 +71,19 @@ public partial class Environment
 		garbageClear = 0;
 		stackClear = 0;
 
-		for (int y = FIELD_HEIGHT - 1; y >= 0; y--)
+		for (int y = Environment.FIELD_HEIGHT - 1; y >= 0; y--)
 		{
 			int garbageCount = 0;
 
 			bool flag = true;
-			for (int x = 0; x < FIELD_WIDTH; x++)
+			for (int x = 0; x < Environment.FIELD_WIDTH; x++)
 			{
-				if (GameData.Board[x + y * 10] == Tetrimino.MinoType.Empty)
+				if (_environment.GameData.Board[x + y * 10] == Tetrimino.MinoType.Empty)
 				{
 					flag = false;
 					break;
 				}
-				else if (GameData.Board[x + y * 10] == Tetrimino.MinoType.Garbage)
+				else if (_environment.GameData.Board[x + y * 10] == Tetrimino.MinoType.Garbage)
 					garbageCount++;
 			}
 
@@ -86,7 +91,7 @@ public partial class Environment
 			{
 				list.Add(y);
 
-				if (garbageCount == FIELD_WIDTH - 1)
+				if (garbageCount == Environment.FIELD_WIDTH - 1)
 					garbageClear++;
 				else
 					stackClear++;
@@ -96,7 +101,7 @@ public partial class Environment
 		list.Reverse();
 		foreach (var value in list)
 		{
-			DownLine(value, GameData.Board);
+			DownLine(value, _environment.GameData.Board);
 		}
 
 		return list.Count;
@@ -110,8 +115,8 @@ public partial class Environment
 
 			if (clearLineCount > 0)
 			{
-				Stats.Combo++;
-				Stats.TopCombo = Math.Max(Stats.Combo, Stats.TopCombo);
+				_environment.Stats.Combo++;
+				_environment.Stats.TopCombo = Math.Max(_environment.Stats.Combo, _environment.Stats.TopCombo);
 
 				if (clearLineCount == 4)
 					isBTB = true;
@@ -123,18 +128,18 @@ public partial class Environment
 
 				if (isBTB)
 				{
-					Stats.BTB++;
-					Stats.TopBTB = Math.Max(Stats.BTB, Stats.TopBTB);
+					_environment.Stats.BTB++;
+					_environment.Stats.TopBTB = Math.Max(_environment.Stats.BTB, _environment.Stats.TopBTB);
 				}
 				else
 				{
-					Stats.BTB = 0;
+					_environment.Stats.BTB = 0;
 				}
 			}
 			else
 			{
-				Stats.Combo = 0;
-				Stats.CurrentComboPower = 0;
+				_environment.Stats.Combo = 0;
+				_environment.Stats.CurrentComboPower = 0;
 			}
 
 
@@ -183,20 +188,20 @@ public partial class Environment
 			}
 
 
-			if (clearLineCount > 0 && Stats.BTB > 1)
+			if (clearLineCount > 0 && _environment.Stats.BTB > 1)
 			{
-				if (GameData.Options.BTBChaining)
+				if (_environment.GameData.Options.BTBChaining)
 				{
 					double tempValue;
-					if (Stats.BTB - 1 == 1)
+					if (_environment.Stats.BTB - 1 == 1)
 						tempValue = 0;
 					else
-						tempValue = 1 + (Math.Log((Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
+						tempValue = 1 + (Math.Log((_environment.Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG + 1) % 1);
 
 
 					var btb_bonus = Constants.Garbage.BACKTOBACK_BONUS *
 					                (Math.Floor(1 +
-					                            Math.Log((Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG +
+					                            Math.Log((_environment.Stats.BTB - 1) * Constants.Garbage.BACKTOBACK_BONUS_LOG +
 					                                     1)) + (tempValue / 3));
 
 					garbageValue += btb_bonus;
@@ -206,9 +211,9 @@ public partial class Environment
 						//AddFire
 					}
 
-					if ((int)btb_bonus > GameData.CurrentBTBChainPower)
+					if ((int)btb_bonus > _environment.GameData.CurrentBTBChainPower)
 					{
-						GameData.CurrentBTBChainPower = (int)btb_bonus;
+						_environment.GameData.CurrentBTBChainPower = (int)btb_bonus;
 					}
 				}
 				else
@@ -216,31 +221,31 @@ public partial class Environment
 			}
 			else
 			{
-				if (clearLineCount > 0 && Stats.BTB <= 1)
-					GameData.CurrentBTBChainPower = 0;
+				if (clearLineCount > 0 && _environment.Stats.BTB <= 1)
+					_environment.GameData.CurrentBTBChainPower = 0;
 			}
 
-			if (Stats.Combo > 1)
+			if (_environment.Stats.Combo > 1)
 			{
-				garbageValue *= 1 + Constants.Garbage.COMBO_BONUS * (Stats.Combo - 1);
+				garbageValue *= 1 + Constants.Garbage.COMBO_BONUS * (_environment.Stats.Combo - 1);
 			}
 
-			if (Stats.Combo > 2)
+			if (_environment.Stats.Combo > 2)
 			{
 				garbageValue = Math.Max(Math.Log(Constants.Garbage.COMBO_MINIFIER *
-					(Stats.Combo - 1) * Constants.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
+					(_environment.Stats.Combo - 1) * Constants.Garbage.COMBO_MINIFIER_LOG + 1), garbageValue);
 			}
 
 
-			int totalPower = (int)(garbageValue * GameData.Options.GarbageMultiplier);
-			if (Stats.Combo > 2)
-				Stats.CurrentComboPower = Math.Max(Stats.CurrentComboPower, totalPower);
+			int totalPower = (int)(garbageValue * _environment.GameData.Options.GarbageMultiplier);
+			if (_environment.Stats.Combo > 2)
+				_environment.Stats.CurrentComboPower = Math.Max(_environment.Stats.CurrentComboPower, totalPower);
 
-			if (clearLineCount > 0 && Stats.Combo > 1 && Stats.CurrentComboPower >= 7)
+			if (clearLineCount > 0 && _environment.Stats.Combo > 1 && _environment.Stats.CurrentComboPower >= 7)
 			{
 			}
 			
-			switch (GameData.Options.GarbageBlocking)
+			switch (_environment.GameData.Options.GarbageBlocking)
 			{
 				case GarbageBlockingType.ComboBlocking:
 					if (clearLineCount > 0)

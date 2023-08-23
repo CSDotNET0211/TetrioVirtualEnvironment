@@ -19,10 +19,10 @@ namespace TetrioVirtualEnvironment
 
 		public MinoPosition(Falling falling)
 		{
-			this.type = falling.Type;
-			this.x = falling.X;
-			this.y = (int)falling.Y;
-			this.r = falling.R;
+			type = falling.Type;
+			x = falling.X;
+			y = (int)falling.Y;
+			r = falling.R;
 		}
 
 	public Tetrimino.MinoType type;
