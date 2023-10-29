@@ -1,11 +1,11 @@
 ﻿namespace TetrioVirtualEnvironment.Constants;
 
-public class KickTable
+public abstract class KickTable
 {
 	/// <summary>
 	/// Kickset of SRS+
 	/// </summary>
-	internal static Dictionary<int, Vector2[]> SRSPLUS { get; } = new()
+	internal static readonly Dictionary<int, Vector2[]> SRSPLUS  = new()
 	{
 		{
 			01,
@@ -75,7 +75,7 @@ public class KickTable
 	/// <summary>
 	/// Kickset of SRS+ I-piece
 	/// </summary>
-	internal static Dictionary<int, Vector2[]> SRSPLUS_I { get; } = new()
+	internal static readonly Dictionary<int, Vector2[]> SRSPLUS_I  = new()
 	{
 		{ 01, new[] { new Vector2(1, 0), new Vector2(-2, 0), new Vector2(-2, 1), new Vector2(1, -2), } },
 		{ 10, new[] { new Vector2(-1, 0), new Vector2(2, 0), new Vector2(-1, 2), new Vector2(2, -1), } },

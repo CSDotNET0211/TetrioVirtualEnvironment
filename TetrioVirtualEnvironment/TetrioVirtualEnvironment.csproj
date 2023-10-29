@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\TetrLoader\TetrLoader\TetrLoader.csproj" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-preview.7.23375.6" />
 	</ItemGroup>
 
 

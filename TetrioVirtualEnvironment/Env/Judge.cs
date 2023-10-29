@@ -10,7 +10,7 @@ public   class Judge
 	{
 		_environment = env;
 	}
-	private Falling.SpinTypeKind IsTspin()
+	internal Falling.SpinTypeKind IsTspin()
 	{
 		if (_environment.GameData.SpinBonuses == SpinBonusesType.None)
 			return Falling.SpinTypeKind.Null;

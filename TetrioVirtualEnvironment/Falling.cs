@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using TetrioVirtualEnvironment.Constants;
+using TetrioVirtualEnvironment.Env;
 using Environment = TetrioVirtualEnvironment.Environment;
 
 namespace TetrioVirtualEnvironment
@@ -33,6 +34,11 @@ namespace TetrioVirtualEnvironment
 
 		public Falling(Environment environment)
 		{
+			_environment = environment;
+		}
+
+		public void Init()
+		{
 			Sleep = true;
 			DeepSleep = false;
 			Locking = 0;
@@ -53,12 +59,8 @@ namespace TetrioVirtualEnvironment
 			Ihs = 0;
 			Aox = 0;
 			Aoy = 0;
-
-			_environment = environment;
 		}
 
-		
-		
 
 		/// <summary>
 		/// 
@@ -66,7 +68,7 @@ namespace TetrioVirtualEnvironment
 		/// <param name="newType"></param>
 		/// <param name="isHold"></param>
 		/// <param name="environmentMode"></param>
-		public void Init(Tetrimino.MinoType? newType, bool isHold, Environment.NextGenerateType environmentMode)
+		public void Create(Tetrimino.MinoType? newType, bool isHold, Environment.NextGenerateType environmentMode)
 		{
 			Locking = 0;
 			ForceLock = false;
@@ -129,7 +131,7 @@ namespace TetrioVirtualEnvironment
 
 			Clamped = false;
 
-			if (!Environment. IsLegalAtPos(Type, X, Y, R, _environment.GameData.Board) ||
+			if (!Judge.IsLegalAtPos(Type, X, Y, R, _environment.GameData.Board) ||
 			    (!_environment.GameData.Options.NoLockout && HighestYisOver20()))
 			{
 				_environment.IsDead = true;
@@ -155,6 +157,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 		private readonly Environment _environment;
+
 		public void ForceMoveTetriminoPos(MinoPosition pos)
 		{
 			if (pos.type != Tetrimino.MinoType.Empty)
@@ -176,12 +179,12 @@ namespace TetrioVirtualEnvironment
 		public double Y { get; internal set; }
 		public int Aoy { get; internal set; }
 		public int R { get; internal set; }
-		public int Irs { get; }
-		public int Ihs { get; }
+		public int Irs { get; private set; }
+		public int Ihs { get; private set; }
 		public int SafeLock { get; internal set; }
 		public bool ForceLock { get; internal set; }
 		public bool Sleep { get; internal set; }
-		public bool DeepSleep { get; }
+		public bool DeepSleep { get; private set; }
 
 		public LastKind Last { get; internal set; }
 

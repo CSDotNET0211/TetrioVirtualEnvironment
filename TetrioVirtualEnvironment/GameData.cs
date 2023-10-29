@@ -8,9 +8,11 @@ namespace TetrioVirtualEnvironment
 {
 	public class GameData
 	{
-		public GameData(Environment environment)
+		public GameData(Environment environment,Falling falling,Options options)
 		{
 			_environment = environment;
+			_options = options;
+			Falling = falling;
 		}
 
 		/// <summary>
@@ -34,7 +36,7 @@ namespace TetrioVirtualEnvironment
 			Targets = new List<string>();
 			NotYetReceivedAttack = 0;
 			GarbageID = 0;
-			Options = new Options(eventFull.options);
+			Options = _options;
 			SubFrame = 0;
 			LShift = false;
 			RShift = false;
@@ -44,7 +46,8 @@ namespace TetrioVirtualEnvironment
 			LastShift = 0;
 			LDasIter = 0;
 			RDasIter = 0;
-			Falling = new Falling(_environment);
+			Falling.Init();
+		//	Falling = new Falling(_environment);
 			Gravity = (eventFull.options.g ?? 999);
 			SpinBonuses = eventFull.options.spinbonuses ?? SpinBonusesType.TSpins;
 
@@ -56,7 +59,7 @@ namespace TetrioVirtualEnvironment
 
 
 			if (envMode == Environment.NextGenerateType.Array)
-				Falling.Init(null, false, _environment.NextGenerateMode);
+				Falling.Create(null, false, _environment.NextGenerateMode);
 		}
 
 		private void InitializeHandling(EventFullData eventFull)
@@ -133,6 +136,7 @@ namespace TetrioVirtualEnvironment
 		
 
 		private readonly Environment _environment;
+		private readonly Options _options;
 		public SpinBonusesType SpinBonuses { get; private set; }
 		public Tetrimino.MinoType[] Board { get; internal set; }
 		public int CurrentBTBChainPower { get; internal set; }

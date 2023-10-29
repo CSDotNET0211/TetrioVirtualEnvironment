@@ -118,7 +118,9 @@ namespace TetrioVirtualEnvironment
 			{
 				//use checkpoint to back replay faster
 				foreach (var env in Environments)
+				{
 					env.ResetGame(env.EventFull, env.NextGenerateMode, env.InitializeData, env.NextSkipCount);
+				}
 
 				for (int i = 0; i < newframe; i++)
 					Update();

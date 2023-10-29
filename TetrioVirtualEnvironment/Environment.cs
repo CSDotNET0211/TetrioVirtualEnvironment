@@ -1,26 +1,31 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using TetrioVirtualEnvironment.Constants;
+using TetrioVirtualEnvironment.Env;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass;
 using TetrLoader.JsonClass.Event;
 
 namespace TetrioVirtualEnvironment
 {
-	public  class Environment
+	public class Environment
 	{
-		
 		public const int FIELD_WIDTH = 10;
 		public const int FIELD_HEIGHT = 40;
 
+		/// <summary>
+		/// Event Callback Managed Class
+		/// </summary>
 		public EventManager EventManager;
 
-		public CustomStats CustomStats;
-		public GameData GameData { get; }
 		public Stats Stats { get; private set; }
+		public CustomStats CustomStats { get; private set; }
+		public readonly GameData GameData;
 		private Rng Rng { get; }
 
 		private List<int>? GarbageIDs { get; set; }
 
+		public readonly string Username;
 
 		/// <summary>
 		/// RNG Generator
@@ -29,7 +34,7 @@ namespace TetrioVirtualEnvironment
 		public NextGenerateType NextGenerateMode { get; }
 
 		public int NextSkipCount;
-
+		public int GeneratedRngCount { get; private set; }
 
 		/// <summary>
 		/// for process events at same frame.
@@ -38,13 +43,13 @@ namespace TetrioVirtualEnvironment
 
 		public int CurrentFrame { get; private set; }
 		public bool IsDead { get; internal set; } = false;
-
+		public readonly bool InfinityHold;
 
 		/// <summary>
 		/// event data of 'full'.use it for reset the game.
 		/// full event is first event after game started existing in ttr/ttrm.
 		/// </summary>
-		internal EventFullData EventFull { get; }
+		internal readonly EventFullData EventFull;
 
 		/// <summary>
 		/// initialize game data.
@@ -87,6 +92,13 @@ namespace TetrioVirtualEnvironment
 			KeyUp
 		}
 
+		internal BoardInfo BoardInfo;
+		internal FallingOprations FallingOprations;
+		internal Env.Garbage Garbage;
+		internal Judge Judge;
+
+		internal ServiceProvider Provider;
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -100,17 +112,50 @@ namespace TetrioVirtualEnvironment
 			bool infinityHold = false,
 			FieldData? initializeData = null, int nextSkipCount = 0)
 		{
-			initializeData ??= new FieldData();
+			InfinityHold = infinityHold;
 
-			GameData = new GameData(this);
+			initializeData ??= new FieldData();
+			EventFull = eventFull;
+			InitDependencyInjection(eventFull);
+			if (Provider == null)
+				throw new NullReferenceException();
+
+
+			BoardInfo = Provider.GetService<BoardInfo>() ?? throw new InvalidOperationException();
+			FallingOprations = Provider.GetService<FallingOprations>() ?? throw new InvalidOperationException();
+			Judge = Provider.GetService<Judge>() ?? throw new InvalidOperationException();
+			Garbage = Provider.GetService<Env.Garbage>() ?? throw new InvalidOperationException();
+			GameData = Provider.GetService<GameData>() ?? throw new InvalidOperationException();
+
+
 			Rng = new Rng();
 			Username = username;
 			NextGenerateMode = nextGenType;
-			EventFull = eventFull;
 			InitializeData = initializeData;
 			NextSkipCount = nextSkipCount;
 
-			ResetGame(eventFull, nextGenType, initializeData, nextSkipCount);
+			ResetGame(Provider.GetService<EventFullData>(), nextGenType,
+				initializeData, nextSkipCount);
+		}
+
+		private void InitDependencyInjection(EventFullData eventFull)
+		{
+			ServiceCollection service = new ServiceCollection();
+			service.AddSingleton<GameData, GameData>();
+			service.AddSingleton<EventFullData>(eventFull);
+			service.AddSingleton<Environment>(this);
+			service.AddSingleton<Falling>();
+			service.AddSingleton<BoardInfo>();
+			service.AddSingleton<FallingOprations>();
+			service.AddSingleton<Judge>();
+			service.AddSingleton<Env.Garbage>();
+			service.AddSingleton(prov =>
+			{
+				var data = prov.GetRequiredService<EventFullData>();
+				return new Options(data.options ?? throw new InvalidOperationException());
+			});
+
+			Provider = service.BuildServiceProvider();
 		}
 
 		/// <summary>
@@ -125,12 +170,12 @@ namespace TetrioVirtualEnvironment
 		{
 			EventManager = new EventManager();
 
-			Stats = new Stats();
 			Rng.Init(eventFull.options.seed);
+			Stats = new Stats();
 			CustomStats = new CustomStats();
 
 
-			IsDead = false;
+			IsDead = false; 
 			GeneratedRngCount = 0;
 			GarbageIDs = new List<int>();
 			CurrentFrame = 0;
@@ -146,12 +191,12 @@ namespace TetrioVirtualEnvironment
 			{
 				if (@event.subframe > GameData.SubFrame)
 				{
-					ProcessShift(false, @event.subframe - GameData.SubFrame);
+					FallingOprations.ProcessShift(false, @event.subframe - GameData.SubFrame);
 					FallEvent(null, @event.subframe - GameData.SubFrame);
 					GameData.SubFrame = @event.subframe;
 				}
 
-				if (@event.key == "moveLeft")
+				if (@event.key == KeyType.MoveLeft)
 				{
 					GameData.LShift = true;
 					GameData.LastShift = -1;
@@ -159,11 +204,11 @@ namespace TetrioVirtualEnvironment
 					if (GameData.Options.Version >= 12)
 						GameData.LDasIter = GameData.Handling.ARR;
 
-					ProcessLShift(true, GameData.Options.Version >= 15 ? 0 : 1);
+					FallingOprations.ProcessLShift(true, GameData.Options.Version >= 15 ? 0 : 1);
 					return;
 				}
 
-				if (@event.key == "moveRight")
+				if (@event.key == KeyType.MoveRight)
 				{
 					GameData.RShift = true;
 					GameData.LastShift = 1;
@@ -171,11 +216,11 @@ namespace TetrioVirtualEnvironment
 					if (GameData.Options.Version >= 12)
 						GameData.RDasIter = GameData.Handling.ARR;
 
-					ProcessRShift(true, GameData.Options.Version >= 15 ? 0 : 1);
+					FallingOprations.ProcessRShift(true, GameData.Options.Version >= 15 ? 0 : 1);
 					return;
 				}
 
-				if (@event.key == "softDrop")
+				if (@event.key == KeyType.SoftDrop)
 				{
 					GameData.SoftDrop = true;
 					return;
@@ -187,37 +232,37 @@ namespace TetrioVirtualEnvironment
 				}
 				else
 				{
-					if (@event.key == "rotateCCW")
+					if (@event.key == KeyType.RotateCCW)
 					{
 						var e = GameData.Falling.R - 1;
 						if (e < 0)
 							e = 3;
-						RotatePiece(e);
+						FallingOprations.RotatePiece(e);
 					}
 
-					if (@event.key == "rotateCW")
+					if (@event.key == KeyType.RotateCW)
 					{
 						var e = GameData.Falling.R + 1;
 						if (e > 3)
 							e = 0;
-						RotatePiece(e);
+						FallingOprations.RotatePiece(e);
 					}
 
-					if (@event.key == "rotate180" && GameData.Options.Allow180)
+					if (@event.key == KeyType.Rotate180 && GameData.Options.Allow180)
 					{
 						var e = GameData.Falling.R + 2;
 						if (e > 3)
 							e -= 4;
-						RotatePiece(e);
+						FallingOprations.RotatePiece(e);
 					}
 
-					if (@event.key == "hardDrop" && GameData.Options.AllowHardDrop &&
+					if (@event.key == KeyType.HardDrop && GameData.Options.AllowHardDrop &&
 					    GameData.Falling.SafeLock == 0)
 					{
 						FallEvent(int.MaxValue, 1);
 					}
 
-					if (@event.key == "hold")
+					if (@event.key == KeyType.Hold)
 					{
 						if (!GameData.HoldLocked || InfinityHold)
 						{
@@ -232,12 +277,12 @@ namespace TetrioVirtualEnvironment
 			{
 				if (@event.subframe > GameData.SubFrame)
 				{
-					ProcessShift(false, @event.subframe - GameData.SubFrame);
+					FallingOprations.ProcessShift(false, @event.subframe - GameData.SubFrame);
 					FallEvent(null, @event.subframe - GameData.SubFrame);
 					GameData.SubFrame = @event.subframe;
 				}
 
-				if (@event.key == "moveLeft")
+				if (@event.key == KeyType.MoveLeft)
 				{
 					GameData.LShift = false;
 					GameData.LDas = 0;
@@ -251,7 +296,7 @@ namespace TetrioVirtualEnvironment
 					return;
 				}
 
-				if (@event.key == "moveRight")
+				if (@event.key ==KeyType.MoveRight)
 				{
 					GameData.RShift = false;
 					GameData.RDas = 0;
@@ -265,7 +310,7 @@ namespace TetrioVirtualEnvironment
 					return;
 				}
 
-				if (@event.key == "softDrop")
+				if (@event.key == KeyType.SoftDrop)
 					GameData.SoftDrop = false;
 			}
 		}
@@ -284,7 +329,7 @@ namespace TetrioVirtualEnvironment
 				return false;
 
 			CurrentFrame++;
-			ProcessShift(false, 1 - GameData.SubFrame);
+			FallingOprations.ProcessShift(false, 1 - GameData.SubFrame);
 			FallEvent(null, 1 - GameData.SubFrame);
 
 			if (events == null)
@@ -326,7 +371,7 @@ namespace TetrioVirtualEnvironment
 							break;
 
 						case EventType.Full:
-							GameData.Falling.Init(null, false, NextGenerateMode);
+							GameData.Falling.Create(null, false, NextGenerateMode);
 							break;
 
 						case EventType.Keydown:
@@ -366,7 +411,7 @@ namespace TetrioVirtualEnvironment
 							switch (garbageEvent.data.data.type)
 							{
 								case "attack":
-									IncomingAttack(new GarbageData()
+									Garbage.IncomingAttack(new GarbageData()
 									{
 										type = "garbage",
 										amt = garbageEvent.data.data.lines,
@@ -388,7 +433,8 @@ namespace TetrioVirtualEnvironment
 													: null;
 											else
 												idValue = garbageEvent.data.data.sender_id;
-											StartingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+											Garbage.StartingAttack(garbageEvent.data.data.data,
+												garbageEvent.data.data.sender,
 												idValue, garbageEvent.data.data.cid);
 
 											break;
@@ -408,7 +454,8 @@ namespace TetrioVirtualEnvironment
 											else
 												id = garbageEvent.data.data.sender_id;
 
-											IncomingAttack(garbageEvent.data.data.data, garbageEvent.data.data.sender,
+											Garbage.IncomingAttack(garbageEvent.data.data.data,
+												garbageEvent.data.data.sender,
 												id, garbageEvent.data.data.cid);
 											break;
 									}
@@ -437,7 +484,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		private void WaitFrames(int waitFrame, string type, object data)
+		internal void WaitFrames(int waitFrame, string type, object data)
 		{
 			GameData.WaitingFrames.Add(new WaitingFrameData()
 			{
@@ -464,7 +511,7 @@ namespace TetrioVirtualEnvironment
 			if (data.type == "incoming-attack-hit")
 			{
 				var igedata = (IgeData)data.AdditionalData;
-				IncomingAttackHit(igedata.data, igedata.sender, igedata.cid);
+				Garbage.IncomingAttackHit(igedata.data, igedata.sender, igedata.cid);
 			}
 			else if (data.type == "outgoing-attack-hit")
 			{
@@ -489,7 +536,7 @@ namespace TetrioVirtualEnvironment
 		}
 
 
-		private int GetAmt(GarbageData data, string? id = null)
+		internal int GetAmt(GarbageData data, string? id = null)
 		{
 			GameData.GarbageActnowledgements.Incoming[id] = data.iid;
 
@@ -513,7 +560,7 @@ namespace TetrioVirtualEnvironment
 				}
 
 				GameData.GarbageActnowledgements.Outgoing[id] = garbageList;
-				;
+				
 			}
 
 			return amt;
@@ -547,7 +594,7 @@ namespace TetrioVirtualEnvironment
 
 			if (!GameData.Options.InfiniteMovement &&
 			    GameData.Falling.LockResets >= (int)GameData.Options.LockResets &&
-			    !Env.Environment.IsLegalAtPos((Tetrimino.MinoType)GameData.Falling.Type, GameData.Falling.X,
+			    !Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
 				    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 			{
 				subfFrameGravity = 20;
@@ -599,9 +646,9 @@ namespace TetrioVirtualEnvironment
 			if (yPos2 % 1 == 0)
 				yPos2 -= 0.00002;
 
-			if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos1, GameData.Falling.R,
+			if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos1, GameData.Falling.R,
 				    GameData.Board) &&
-			    Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos2, GameData.Falling.R,
+			    Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X, yPos2, GameData.Falling.R,
 				    GameData.Board))
 			{
 				var highestY = GameData.Falling.HighestY;
@@ -648,27 +695,27 @@ namespace TetrioVirtualEnvironment
 					GameData.Falling.SafeLock = 7;
 			}
 
-			var isTspin = IsTspin();
+			var isTspin = Judge.IsTspin();
 
 			EventManager.Trigger_OnPiecePlaced(this, EventArgs.Empty);
 			CustomStats.TotalPiecePlaced++;
 
-			var clearedLineCount = ClearLines(out var garbageClear, out var stackClear);
+			var clearedLineCount = BoardInfo.ClearLines(out var garbageClear, out var stackClear);
 
 			CustomStats.TotalGarbageClear += garbageClear;
 			CustomStats.TotalStackClear += stackClear;
 
-			var announceLine = AnnounceLines(clearedLineCount, isTspin);
+			var announceLine = BoardInfo.AnnounceLines(clearedLineCount, isTspin);
 
 
-			AnnounceClear();
+			BoardInfo.AnnounceClear();
 
 
 			if (!announceLine)
-				TakeAllDamage();
+				Garbage.TakeAllDamage();
 
 
-			GameData.Falling.Init(null, false, NextGenerateMode);
+			GameData.Falling.Create(null, false, NextGenerateMode);
 		}
 
 		internal void CallOnPieceCreated()
@@ -682,13 +729,13 @@ namespace TetrioVirtualEnvironment
 			switch (action)
 			{
 				case Action.MoveRight:
-					if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X + 1,
+					if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X + 1,
 						    GameData.Falling.Y, GameData.Falling.R, GameData.Board))
 						GameData.Falling.X++;
 					break;
 
 				case Action.MoveLeft:
-					if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X - 1,
+					if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X - 1,
 						    GameData.Falling.Y, GameData.Falling.R, GameData.Board))
 						GameData.Falling.X--;
 					break;
@@ -697,21 +744,21 @@ namespace TetrioVirtualEnvironment
 					var e = GameData.Falling.R - 1;
 					if (e < 0)
 						e = 3;
-					RotatePiece(e);
+					FallingOprations.RotatePiece(e);
 					break;
 
 				case Action.RotateRight:
 					e = GameData.Falling.R + 1;
 					if (e > 3)
 						e = 0;
-					RotatePiece(e);
+					FallingOprations.RotatePiece(e);
 					break;
 
 				case Action.Rotate180:
 					e = GameData.Falling.R + 2;
 					if (e > 3)
 						e -= 4;
-					RotatePiece(e);
+					FallingOprations.RotatePiece(e);
 					break;
 
 				case Action.Hold:
@@ -725,7 +772,7 @@ namespace TetrioVirtualEnvironment
 				case Action.QuickSoftdrop:
 					while (true)
 					{
-						if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+						if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
 							    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 							GameData.Falling.Y++;
 						else
@@ -735,13 +782,13 @@ namespace TetrioVirtualEnvironment
 					break;
 
 				case Action.MoveUp:
-					if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+					if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
 						    GameData.Falling.Y - 1, GameData.Falling.R, GameData.Board))
 						GameData.Falling.Y--;
 					break;
 
 				case Action.MoveDown:
-					if (Env.Environment.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
+					if (Judge.IsLegalAtPos(GameData.Falling.Type, GameData.Falling.X,
 						    GameData.Falling.Y + 1, GameData.Falling.R, GameData.Board))
 						GameData.Falling.Y++;
 					break;
@@ -779,7 +826,7 @@ namespace TetrioVirtualEnvironment
 			int testY = 1;
 			while (true)
 			{
-				if (Env.Environment.IsLegalAtPos(type, x, y + testY,
+				if (Judge.IsLegalAtPos(type, x, y + testY,
 					    r, GameData.Board))
 					testY++;
 				else
@@ -798,7 +845,7 @@ namespace TetrioVirtualEnvironment
 		/// </summary>
 		/// <param name="value">y座標</param>
 		/// <param name="field">盤面</param>
-		private void DownLine(int value, Tetrimino.MinoType[] field)
+		internal void DownLine(int value, Tetrimino.MinoType[] field)
 		{
 			for (int y = value; y >= 0; y--)
 			{
@@ -879,7 +926,7 @@ namespace TetrioVirtualEnvironment
 		private void SwapHold()
 		{
 			var tempCurrentType = GameData.Falling.Type;
-			GameData.Falling.Init(GameData.Hold, true, NextGenerateMode);
+			GameData.Falling.Create(GameData.Hold, true, NextGenerateMode);
 			GameData.Hold = tempCurrentType;
 		}
 	}

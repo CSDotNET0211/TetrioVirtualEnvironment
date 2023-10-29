@@ -3,19 +3,20 @@ using TetrLoader.JsonClass;
 
 namespace TetrioVirtualEnvironment.Env;
 
-public   class Garbage
+public class Garbage
 {
-	
 	private readonly Environment _environment;
+
 	public Garbage(Environment env)
 	{
 		_environment = env;
 	}
-	private void IncomingAttack(GarbageData data, string? sender = null, string? id1 = null, int? id2 = null)
+
+	internal void IncomingAttack(GarbageData data, string? sender = null, string? id1 = null, int? id2 = null)
 	{
 		if (_environment.GameData.Options.Passthrough == PassthroughType.Consistent)
 		{
-			data.amt = GetAmt(data, id1);
+			data.amt = _environment.GetAmt(data, id1);
 		}
 		else
 		{
@@ -27,7 +28,7 @@ public   class Garbage
 		}
 
 
-		WaitFrames(_environment.GameData.Options.GarbageSpeed, "incoming-attack-hit", new IgeData()
+		_environment.WaitFrames(_environment.GameData.Options.GarbageSpeed, "incoming-attack-hit", new IgeData()
 		{
 			data = data,
 			sender = sender,
@@ -47,12 +48,12 @@ public   class Garbage
 		}
 	}
 
-	private void FightLines(int attackLine)
+	internal void FightLines(int attackLine)
 	{
 		if (!_environment.GameData.Options.HasGarbage)
 			return;
 
-		Custom_environment.Stats.TotalSendLine += attackLine;
+		_environment.CustomStats.TotalSendLine += attackLine;
 
 		bool count;
 		if (_environment.GameData.ImpendingDamages.Count == 0)
@@ -75,7 +76,8 @@ public   class Garbage
 
 		if (attackLine > 0)
 		{
-			if (_environment.GameData.Options.Passthrough == PassthroughType.Consistent && _environment.GameData.NotYetReceivedAttack > 0)
+			if (_environment.GameData.Options.Passthrough == PassthroughType.Consistent &&
+			    _environment.GameData.NotYetReceivedAttack > 0)
 			{
 				//PlaySound
 			}
@@ -84,12 +86,12 @@ public   class Garbage
 		}
 	}
 
-	private void StartingAttack(GarbageData data, string sender, string? id1, int? id2)
+	internal void StartingAttack(GarbageData data, string sender, string? id1, int? id2)
 	{
 		InsertDamage(data, sender, id1, id2);
 	}
 
-	private void Offence(int attackLine)
+	internal void Offence(int attackLine)
 	{
 		attackLine = attackLine / Math.Max(1, 1);
 		if (!(attackLine < 1))
@@ -115,7 +117,7 @@ public   class Garbage
 		}
 	}
 
-	private void IncomingAttackHit(GarbageData data, string sender, int? cid)
+	internal void IncomingAttackHit(GarbageData data, string sender, int? cid)
 	{
 		_environment.GameData.NotYetReceivedAttack--;
 
@@ -140,7 +142,7 @@ public   class Garbage
 
 		if (_environment.GameData.Options.Passthrough == PassthroughType.Zero)
 		{
-			amt_value = GetAmt(data, id1);
+			amt_value = _environment.GetAmt(data, id1);
 		}
 
 		if (!(amt_value <= 0))
@@ -158,19 +160,23 @@ public   class Garbage
 			});
 		}
 	}
-	
-	private void TakeAllDamage()
+
+	internal void TakeAllDamage()
 	{
 		if (!_environment.GameData.Options.HasGarbage)
 			return;
 
 		var ABoolValue = true;
 		int maxReceiveGarbage =
-			false ? 400 : (int)Math.Min(_environment.GameData.Options.GarbageCapMax, _environment.GameData.Options.GarbageCap);
+			false
+				? 400
+				: (int)Math.Min(_environment.GameData.Options.GarbageCapMax, _environment.GameData.Options.GarbageCap);
 		var oValue = false;
 		var iArray = new List<IgeData>();
 
-		for (var impendingIndex = _environment.GameData.ImpendingDamages.Count - 1; impendingIndex >= 0; impendingIndex--)
+		for (var impendingIndex = _environment.GameData.ImpendingDamages.Count - 1;
+		     impendingIndex >= 0;
+		     impendingIndex--)
 		{
 			if (!_environment.GameData.ImpendingDamages[impendingIndex].active)
 			{
@@ -189,7 +195,7 @@ public   class Garbage
 			else
 				rValue = i >= maxReceiveGarbage - 1;
 
-			if (!PushGarbageLine(_environment.GameData.ImpendingDamages[0].column, false,
+			if (!_environment.BoardInfo.PushGarbageLine(_environment.GameData.ImpendingDamages[0].column, false,
 				    (ABoolValue ? 64 : 0) | (rValue ? 4 : 0)))
 				break;
 
