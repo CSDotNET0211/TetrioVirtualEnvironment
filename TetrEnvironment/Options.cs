@@ -21,8 +21,8 @@ public class Options
 	public bool AllowHardDrop { get; internal set; }
 	public bool? DisplayHold { get; internal set; }
 	public int? LockTime { get; internal set; }
-	public SpinBonusesType SpinBonuses { get; private set; }
-	public ComboTableType ComboTable { get; private set; }
+	public SpinBonusesType SpinBonuses { get; internal set; }
+	public ComboTableType ComboTable { get; internal set; }
 	public bool BTBChaining { get; internal set; }
 	public GarbageTargetBonusType GarbageTargetBonus { get; internal set; }
 	public bool GarbageAttackCap { get; internal set; }

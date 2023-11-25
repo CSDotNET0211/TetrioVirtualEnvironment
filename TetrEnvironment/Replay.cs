@@ -4,7 +4,7 @@ namespace TetrEnvironment;
 
 public class Replay
 {
-	private IReplayData _replayData;
+	private readonly IReplayData _replayData;
 
 	//TODO: プロパティ使ってフレーム取得
 	public List<Environment> Environments { get; private set; }

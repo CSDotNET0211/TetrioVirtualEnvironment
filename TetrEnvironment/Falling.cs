@@ -49,7 +49,7 @@ public class Falling
 	public bool Ihs { get; internal set; }
 	public int Aox { get; internal set; }
 	public int Aoy { get; internal set; }
-	public int Keys;
+	public int Keys{ get; private set; }
 	public SpinTypeKind SpinType { get; internal set; }
 
 	public Falling()

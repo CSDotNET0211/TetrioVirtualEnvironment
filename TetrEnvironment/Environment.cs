@@ -98,11 +98,11 @@ public class Environment
 		service.AddSingleton<Environment>(this);
 		service.AddSingleton<Handling>(new Handling()
 		{
+			ARR = fullData.options.handling.arr ?? 5,
+			DAS = fullData.options.handling.das ?? 12,
+			SDF = fullData.options.handling.sdf ?? 20,
 			Cancel = fullData.options.handling.cancel ?? false,
 			SafeLock = fullData.options.handling.safelock == true ? 1 : 0,
-			DAS = fullData.options.handling.das ?? 12,
-			ARR = fullData.options.handling.arr ?? 5,
-			SDF = fullData.options.handling.sdf ?? 20,
 		});
 
 		provider = service.BuildServiceProvider();

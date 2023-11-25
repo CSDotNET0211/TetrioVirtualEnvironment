@@ -84,11 +84,11 @@ public class GameData
 	public int InteractionId { get; internal set; }
 	public (Dictionary<String, int?> Incoming, Dictionary<string, List<GarbageData>> Outgoing) GarbageAckNowledgements { get; internal set; }
 	public List<WaitingFrameData> WaitingFrames { get; internal set; }
-	public Rng Rng;
-	public int? LastGenerated;
-	public List<Tetromino.MinoType> Bag { get; private set; }
+	public Rng Rng{ get; internal set; }
+	public int? LastGenerated{ get; internal set; }
+	public List<Tetromino.MinoType> Bag { get; internal set; }
 	public Tetromino.MinoType Hold { get; internal set; }
-	public int GarbageId;
-	public int LastReceivedCount;
-	public int GarbageAreLockedUntil;
+	public int GarbageId{ get; internal set; }
+	public int LastReceivedCount{ get; internal set; }
+	public int GarbageAreLockedUntil{ get; internal set; }
 }
