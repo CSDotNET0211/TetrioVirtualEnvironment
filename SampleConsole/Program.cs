@@ -16,83 +16,79 @@ static extern bool GetConsoleMode(IntPtr handle, out int mode);
 [DllImport("kernel32.dll", SetLastError = true)]
 static extern IntPtr GetStdHandle(int handle);
 
-
-string filePath = @"C:\Users\CSDotNET\Downloads\v16__2HfCA1pM.ttrm";
-
-// ファイルの内容をすべて読み取る
-
-
-/*	// TestMode
-while (true)
-{
-string path = Console.ReadLine();
-using (StreamReader reader = new StreamReader(path))
-{
-	string content = reader.ReadToEnd();
-	var replayData = ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
-	TestAll(replayData);
-}
-}*/
-
-
-START: ;
-// PlayMode
-
-var handle = GetStdHandle( -11 );
+var handle = GetStdHandle(-11);
 int mode;
-GetConsoleMode( handle, out mode );
-SetConsoleMode( handle, mode | 0x4 );
-/*
-for (int i=0;i<255;i++ )
+GetConsoleMode(handle, out mode);
+SetConsoleMode(handle, mode | 0x4);
+
+Console.WriteLine("Enter replay filepath or 'd' to all test mode.");
+string input = Console.ReadLine();
+
+if (input == "d")
 {
-	//Console.
-	if ((i + 1) % 10 == 0)
-		Console.Write(i);
-	Console.Write( "\x1b[48;5;" + i + "m　" );
-	if ((i + 1) % 10 == 0)
-		Console.WriteLine();
-}
-Console.ReadLine();
-*/
-
-
-
-
-using (StreamReader reader = new StreamReader(filePath))
-{
-	string content = reader.ReadToEnd();
-	var replayData = ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
-	Replay replay = new Replay(replayData);
-	replay.LoadGame(4);
-
 	while (true)
 	{
-		PrintBoard(replay.Environments);
-		var input = Console.ReadLine();
-		if (input == "")
+		string path = Console.ReadLine();
+		using (StreamReader reader = new StreamReader(path))
 		{
-			if (!replay.NextFrame())
-				break;
+			string content = reader.ReadToEnd();
+			var replayData =
+				ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
+			TestAll(replayData);
 		}
-		else
-			replay.JumpFrame(int.Parse(input));
+	}
+}
+else
+{
+	using (StreamReader reader = new StreamReader(input))
+	{
+		string content = reader.ReadToEnd();
+		var replayData =
+			ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
+		Replay replay = new Replay(replayData);
+
+		START: ;
+		Console.Clear();
+		Console.WriteLine("Select game to play.");
+		for (int i = 0; i < replayData.GetGamesCount(); i++)
+		{
+			Console.WriteLine($"{i}");
+		}
+
+
+		replay.LoadGame(int.Parse(Console.ReadLine()));
+		Console.Clear();
+		while (true)
+		{
+			PrintBoard(replay.Environments);
+			input = Console.ReadLine();
+			if (input == "")
+			{
+				if (!replay.NextFrame())
+					break;
+			}
+			else
+				replay.JumpFrame(int.Parse(input));
+		}
+
+		goto START;
 	}
 }
 
-goto START;
 
 Console.ReadKey();
 
 void TestAll(IReplayData data)
 {
-	var replayCount = data.GetReplayCount();
-	Console.WriteLine("テスト開始");
-	Console.WriteLine($"ゲーム数:{replayCount}");
+	var replayCount = data.GetGamesCount();
+	Console.WriteLine("Start testing...");
+	Console.WriteLine($"Game count:{replayCount}");
 
 	for (int replayIndex = 0; replayIndex < replayCount; replayIndex++)
 	{
-		Console.WriteLine($"{replayIndex + 1}番目のテスト");
-		Console.WriteLine($"予想フレーム数:{data.GetEndEventFrame(0, replayIndex)}/{data.GetEndEventFrame(1, replayIndex)}");
+		Console.WriteLine($"Test {replayIndex + 1}");
+		Console.WriteLine(
+			$"End frame:{data.GetEndEventFrame(0, replayIndex)}/{data.GetEndEventFrame(1, replayIndex)}");
 		Replay replay = new Replay(data);
 		replay.LoadGame(replayIndex);
 
@@ -102,10 +98,11 @@ void TestAll(IReplayData data)
 				break;
 		}
 
-		Console.WriteLine($"終了フレーム:{replay.Environments[0].CurrentFrame}/{replay.Environments[1].CurrentFrame}");
+		Console.WriteLine(
+			$"Real frame:{replay.Environments[0].CurrentFrame}/{replay.Environments[1].CurrentFrame}");
 	}
 
-	Console.WriteLine("テスト正常終了");
+	Console.WriteLine("Test exit successfully.");
 }
 
 void PrintBoard(List<Environment> environments)
@@ -140,8 +137,10 @@ void PrintBoard(List<Environment> environments)
 			{
 				newBoard[(int)((pos.x + environments[playerIndex].GameData.Falling.X -
 				                Tetromino.DIFFS[(int)environments[playerIndex].GameData.Falling.Type].x) +
-				               (int)(pos.y + (int)Math.Ceiling(environments[playerIndex].GameData.Falling.Y) - Tetromino
-					               .DIFFS[(int)environments[playerIndex].GameData.Falling.Type].y) * 10)] =
+				               (int)(pos.y + (int)Math.Ceiling(environments[playerIndex].GameData.Falling.Y) -
+				                     Tetromino
+					                     .DIFFS[(int)environments[playerIndex].GameData.Falling.Type].y) *
+				               10)] =
 					environments[playerIndex].GameData.Falling.Type;
 			}
 
@@ -153,43 +152,42 @@ void PrintBoard(List<Environment> environments)
 				switch (newBoard[x + y * 10])
 				{
 					case Tetromino.MinoType.Empty:
-						output += "\x1b[48;5;" + 0 + "m　" ;
+						output += "\x1b[48;5;" + 0 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.Z:
-						output += "\x1b[48;5;" + 196 + "m　" ;
+						output += "\x1b[48;5;" + 196 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.S:
-						output += "\x1b[48;5;" + 10 + "m　" ;
+						output += "\x1b[48;5;" + 10 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.O:
-						output += "\x1b[48;5;" + 226 + "m　" ;
+						output += "\x1b[48;5;" + 226 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.J:
-						output += "\x1b[48;5;" + 21 + "m　" ;
+						output += "\x1b[48;5;" + 21 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.I:
-						output += "\x1b[48;5;" + 39 + "m　" ;
+						output += "\x1b[48;5;" + 39 + "m　";
 						break;
-						
+
 					case Tetromino.MinoType.L:
-						output += "\x1b[48;5;" + 208 + "m　" ;
+						output += "\x1b[48;5;" + 208 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.Garbage:
-						output += "\x1b[48;5;" + 8 + "m　" ;
+						output += "\x1b[48;5;" + 8 + "m　";
 						break;
-					
+
 					case Tetromino.MinoType.T:
-						output += "\x1b[48;5;" + 128 + "m　" ;
+						output += "\x1b[48;5;" + 128 + "m　";
 						break;
-					
 				}
-				
+
 				/*if (newBoard[x + y * 10] == Tetromino.MinoType.Empty)
 				{
 					output += "□";
@@ -204,7 +202,7 @@ void PrintBoard(List<Environment> environments)
 		}
 
 		output += "\r\n";
-		output += "\x1b[48;5;" + 0 + "m　" ;
+		output += "\x1b[48;5;" + 0 + "m　";
 		Console.WriteLine(output);
 	}
 
@@ -219,7 +217,8 @@ void PrintBoard(List<Environment> environments)
 		Console.CursorLeft = 35;
 		foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
 		{
-			Console.Write($"amt:{garbage.amt} status:{garbage.status} id:{garbage.id}  status:{garbage.active} /");
+			Console.Write(
+				$"amt:{garbage.amt} status:{garbage.status} id:{garbage.id}  status:{garbage.active} /");
 		}
 
 		Console.CursorLeft = 35;

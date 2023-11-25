@@ -37,16 +37,18 @@ public class Replay
 			foreach (var environment in Environments)
 				environment.Reset();
 
-			while (frame != Environments[0].CurrentFrame)
+			while (frame > Environments[0].CurrentFrame)
 			{
-				NextFrame();
+				if (!NextFrame())
+					break;
 			}
 		}
 		else
 		{
-			while (frame != Environments[0].CurrentFrame)
+			while (frame > Environments[0].CurrentFrame)
 			{
-				NextFrame();
+				if (!NextFrame())
+					break;
 			}
 		}
 	}
