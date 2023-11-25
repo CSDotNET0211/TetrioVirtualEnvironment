@@ -1,10 +1,21 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Runtime.InteropServices;
 using TetrEnvironment;
 using TetrEnvironment.Constants;
 using TetrLoader;
 using TetrLoader.Enum;
 using Environment = TetrEnvironment.Environment;
+
+[DllImport("kernel32.dll", SetLastError = true)]
+static extern bool SetConsoleMode(IntPtr hConsoleHandle, int mode);
+
+[DllImport("kernel32.dll", SetLastError = true)]
+static extern bool GetConsoleMode(IntPtr handle, out int mode);
+
+[DllImport("kernel32.dll", SetLastError = true)]
+static extern IntPtr GetStdHandle(int handle);
+
 
 string filePath = @"C:\Users\CSDotNET\Downloads\v16__2HfCA1pM.ttrm";
 
@@ -26,6 +37,27 @@ using (StreamReader reader = new StreamReader(path))
 
 START: ;
 // PlayMode
+
+var handle = GetStdHandle( -11 );
+int mode;
+GetConsoleMode( handle, out mode );
+SetConsoleMode( handle, mode | 0x4 );
+/*
+for (int i=0;i<255;i++ )
+{
+	//Console.
+	if ((i + 1) % 10 == 0)
+		Console.Write(i);
+	Console.Write( "\x1b[48;5;" + i + "m　" );
+	if ((i + 1) % 10 == 0)
+		Console.WriteLine();
+}
+Console.ReadLine();
+*/
+
+
+
+
 using (StreamReader reader = new StreamReader(filePath))
 {
 	string content = reader.ReadToEnd();
@@ -118,21 +150,61 @@ void PrintBoard(List<Environment> environments)
 		{
 			for (int x = 0; x < 10; x++)
 			{
-				if (newBoard[x + y * 10] == Tetromino.MinoType.Empty)
+				switch (newBoard[x + y * 10])
+				{
+					case Tetromino.MinoType.Empty:
+						output += "\x1b[48;5;" + 0 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.Z:
+						output += "\x1b[48;5;" + 196 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.S:
+						output += "\x1b[48;5;" + 10 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.O:
+						output += "\x1b[48;5;" + 226 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.J:
+						output += "\x1b[48;5;" + 21 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.I:
+						output += "\x1b[48;5;" + 39 + "m　" ;
+						break;
+						
+					case Tetromino.MinoType.L:
+						output += "\x1b[48;5;" + 208 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.Garbage:
+						output += "\x1b[48;5;" + 8 + "m　" ;
+						break;
+					
+					case Tetromino.MinoType.T:
+						output += "\x1b[48;5;" + 128 + "m　" ;
+						break;
+					
+				}
+				
+				/*if (newBoard[x + y * 10] == Tetromino.MinoType.Empty)
 				{
 					output += "□";
 				}
 				else
 				{
 					output += "■";
-				}
+				}*/
 			}
 
 			output += "\r\n";
 		}
 
 		output += "\r\n";
-
+		output += "\x1b[48;5;" + 0 + "m　" ;
 		Console.WriteLine(output);
 	}
 

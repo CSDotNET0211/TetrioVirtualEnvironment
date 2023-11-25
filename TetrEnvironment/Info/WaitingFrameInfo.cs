@@ -1,5 +1,4 @@
-﻿using TetrEnvironment.Constants;
-using TetrLoader.Ige;
+﻿using TetrLoader.Ige;
 
 namespace TetrEnvironment.Info;
 
@@ -12,7 +11,7 @@ public class WaitingFrameInfo
 		_manager = manager;
 	}
 
-	public void WaitFrames(int frame, string type, object data)
+	public void WaitFrames(int frame, GarbageInfo.WaitingFrameType type, object data)
 	{
 		_manager.GameData.WaitingFrames.Add(new WaitingFrameData()
 		{
@@ -38,32 +37,32 @@ public class WaitingFrameInfo
 	{
 		switch (data.type)
 		{
-			case "are":
+			case GarbageInfo.WaitingFrameType.Are:
 				_manager.FallInfo.Next(null);
 				break;
 
-			case "incoming-attack-hit":
+			case GarbageInfo.WaitingFrameType.IncomingAttackHit:
 				var garbage = data.data as GarbageData;
 				_manager.GarbageInfo.IncomingAttackHit((int)garbage.gid);
 				break;
 
-			case "outgoing-attack-hit":
+			case GarbageInfo.WaitingFrameType.OutgoingAttackHit:
 				_manager.GarbageInfo.OutgoingAttackHit();
 				break;
 
-			case "process-garbage-status":
+			case GarbageInfo.WaitingFrameType.ProcessGarbageStatus:
 				_manager.GarbageInfo.ProcessGarbageStatus();
 				break;
 
-			case "push-garbage-line":
+			case GarbageInfo.WaitingFrameType.PushGarbageLine:
 				var garbageData = data.data as GarbageData;
 				_manager.BoardInfo.PushGarbageLine((int)garbageData.column, (int)garbageData.size);
 				break;
 
-			case "freeze-counters":
+			case GarbageInfo.WaitingFrameType.FreezeCounters:
 				break;
 
-			case "revive-from-stock-loss":
+			case GarbageInfo.WaitingFrameType.ReviveFromStackLoss:
 				break;
 		}
 	}

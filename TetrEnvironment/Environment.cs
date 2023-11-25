@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
 using TetrEnvironment.Info;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
@@ -25,7 +23,7 @@ public class Environment
 	//////////Class Data//////////
 	public GameData GameData { get; private set; }
 	public CustomStats CustomStats { get; private set; }
-	private readonly ServiceProvider _provider;
+	private ServiceProvider _provider;
 
 	//////////Data//////////
 	private readonly IReadOnlyList<Event> _events;
@@ -52,9 +50,7 @@ public class Environment
 				"some of games in this replay has no FULL event! it will be ignored in TETR.IO. please consider to remove spetific game.");
 		}
 
-		InitDI(_eventFull, ref _provider);
-		SolveWithDI(_provider);
-		GameData = new GameData(_provider);
+		Reset();
 
 		Username = _eventFull.options.username;
 	}
@@ -141,5 +137,8 @@ public class Environment
 
 	public void Reset()
 	{
+		InitDI(_eventFull, ref _provider);
+		SolveWithDI(_provider);
+		GameData = new GameData(_provider);
 	}
 }

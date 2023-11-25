@@ -1,6 +1,4 @@
-﻿using TetrEnvironment;
-
-namespace TetrioVirtualEnvironment.Constants;
+﻿namespace TetrioVirtualEnvironment.Constants;
 
 public abstract class Garbage
 {

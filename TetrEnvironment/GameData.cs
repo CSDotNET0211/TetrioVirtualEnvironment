@@ -1,9 +1,7 @@
-﻿using System.Security;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using TetrEnvironment.Constants;
 using TetrEnvironment.Info;
 using TetrEnvironment.Struct;
-using TetrLoader.Enum;
 using TetrLoader.Ige;
 using TetrLoader.JsonClass.Event;
 
@@ -19,7 +17,7 @@ public class GameData
 		WaitingFrames = new List<WaitingFrameData>();
 		Gravity = (double)provider.GetService<EventFullData>().options.g;
 		provider.GetService<BoardInfo>().SetupBoard(out _board);
-		Bag = new List<Tetromino.MinoType>();
+		Bag = new Queue<Tetromino.MinoType>();
 		Hold = Tetromino.MinoType.Empty;
 		HoldLocked = false;
 		Rng = new Rng();
@@ -50,7 +48,7 @@ public class GameData
 	}
 
 	public Stats Stats { get; internal set; }
-	public double SubFrame  { get; internal set; }
+	public double SubFrame { get; internal set; }
 	public bool LShift { get; internal set; }
 	public bool RShift { get; internal set; }
 	public int LastShift { get; internal set; }
@@ -77,18 +75,24 @@ public class GameData
 	//not used
 	public Offensive lastoffensive { get; internal set; }
 	public int CurrentBTBChainPower { get; internal set; }
-	public List<string> Enemies  { get; internal set; }= new List<string>();
-	public List<string> Targets  { get; internal set; }= new List<string>();
+	public List<string> Enemies { get; internal set; } = new List<string>();
+	public List<string> Targets { get; internal set; } = new List<string>();
 	public int GarbageBonus { get; internal set; }
 	public List<GarbageData> ImpendingDamage { get; internal set; }
 	public int InteractionId { get; internal set; }
-	public (Dictionary<String, int?> Incoming, Dictionary<string, List<GarbageData>> Outgoing) GarbageAckNowledgements { get; internal set; }
+
+	public (Dictionary<String, int?> Incoming, Dictionary<string, List<GarbageData>> Outgoing) GarbageAckNowledgements
+	{
+		get;
+		internal set;
+	}
+
 	public List<WaitingFrameData> WaitingFrames { get; internal set; }
-	public Rng Rng{ get; internal set; }
-	public int? LastGenerated{ get; internal set; }
-	public List<Tetromino.MinoType> Bag { get; internal set; }
+	public Rng Rng { get; internal set; }
+	public int? LastGenerated { get; internal set; }
+	public Queue<Tetromino.MinoType> Bag { get; internal set; }
 	public Tetromino.MinoType Hold { get; internal set; }
-	public int GarbageId{ get; internal set; }
-	public int LastReceivedCount{ get; internal set; }
-	public int GarbageAreLockedUntil{ get; internal set; }
+	public int GarbageId { get; internal set; }
+	public int LastReceivedCount { get; internal set; }
+	public int GarbageAreLockedUntil { get; internal set; }
 }

@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using TetrEnvironment.Constants;
-using TetrEnvironment.Struct;
+﻿using TetrEnvironment.Constants;
 using TetrioVirtualEnvironment.Constants;
 using TetrLoader.Enum;
 
@@ -157,18 +155,19 @@ public class FallInfo
 
 		var lines = _manager.LineInfo.ClearLines();
 		var are = lines != 0 ? _manager.GameData.Options.LineClearAre : _manager.GameData.Options.Are;
-		if (_manager.GameData.Options.GarbageEntry == "piece-are")
+		if (_manager.GameData.Options.GarbageEntry == GarbageEntryType.PieceAre)
 			are = Math.Max(are, _manager.GameData.LastReceivedCount * _manager.GameData.Options.GarbageAre);
 
 
 		if (are != 0)
-			_manager.WaitingFrameInfo.WaitFrames(are, "are", null);
+			_manager.WaitingFrameInfo.WaitFrames(are, GarbageInfo.WaitingFrameType.Are, null);
 		else
 			Next(null);
 	}
 
-	//TODO: empty or null
-	//empty means first swap hold, null means normal, the other means swap hold 
+	//empty means first swap,
+	//null means normal,
+	//the other means swap 
 	public void Next(Tetromino.MinoType? newMino)
 	{
 		if (_manager.GameData.Falling.DeepSleep)

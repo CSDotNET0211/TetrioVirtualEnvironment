@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Vector2 = TetrEnvironment.Struct.Vector2;
+﻿using Vector2 = TetrEnvironment.Struct.Vector2;
 
 namespace TetrEnvironment.Constants;
 

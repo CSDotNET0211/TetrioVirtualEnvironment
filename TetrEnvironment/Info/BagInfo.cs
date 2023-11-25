@@ -1,5 +1,4 @@
-﻿using System.Dynamic;
-using TetrEnvironment.Constants;
+﻿using TetrEnvironment.Constants;
 using TetrLoader.Enum;
 
 namespace TetrEnvironment.Info;
@@ -16,13 +15,10 @@ public class BagInfo
 	public Tetromino.MinoType PullFromBag()
 	{
 		for (; _manager.GameData.Bag.Count < 14;)
-		{
 			PopulateBag();
-		}
 
-		var value = _manager.GameData.Bag[0];
-		_manager.GameData.Bag.RemoveAt(0);
-		return value;
+
+		return _manager.GameData.Bag.Dequeue();
 	}
 
 	public void PopulateBag()
@@ -54,15 +50,15 @@ public class BagInfo
 				break;
 
 			case BagType.Pairs:
-				var a = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
-				_manager.GameData.Rng.ShuffleArray(a);
+				var minos = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
+				_manager.GameData.Rng.ShuffleArray(minos);
 				var array = new Tetromino.MinoType[6];
-				array[0] = a[0];
-				array[1] = a[0];
-				array[2] = a[0];
-				array[3] = a[1];
-				array[4] = a[1];
-				array[5] = a[1];
+				array[0] = minos[0];
+				array[1] = minos[0];
+				array[2] = minos[0];
+				array[3] = minos[1];
+				array[4] = minos[1];
+				array[5] = minos[1];
 				_manager.GameData.Rng.ShuffleArray(array);
 				list = array.ToList();
 				break;
@@ -79,7 +75,7 @@ public class BagInfo
 
 			case BagType.Bag7_oo:
 				throw new NotImplementedException();
-				a = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
+				minos = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
 				break;
 
 			default:
@@ -88,6 +84,7 @@ public class BagInfo
 				break;
 		}
 
-		_manager.GameData.Bag.AddRange(list);
+		foreach (var mino in list)
+			_manager.GameData.Bag.Enqueue(mino);
 	}
 }

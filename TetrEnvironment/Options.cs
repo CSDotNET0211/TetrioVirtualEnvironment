@@ -36,7 +36,7 @@ public class Options
 	public bool AllClears { get; internal set; }
 	public int LineClearAre { get; internal set; }
 	public int Are { get; internal set; }
-	public string GarbageEntry { get; internal set; }
+	public GarbageEntryType GarbageEntry { get; internal set; }
 	public int GarbageAre { get; internal set; }
 	public bool Shielded { get; internal set; }
 	public bool HasGarbage { get; internal set; }
@@ -76,10 +76,10 @@ public class Options
 		AllClears = fullData.options.allclears ?? true;
 		LineClearAre = fullData.options.lineclear_are ?? 0;
 		Are = fullData.options.are ?? 0;
-		GarbageEntry = fullData.options.garbageentry ?? "instant";
+		GarbageEntry = fullData.options.garbageentry ?? GarbageEntryType.Instant;
 		GarbageAre = (int)(Math.Max(1, fullData.options.garbageare ?? 5));
 		Shielded = fullData.options.shielded ?? false;
 		HasGarbage = fullData.options.hasgarbage ?? true;
-		GarbageCapMax= fullData.options.garbagecapmax ?? 40;
+		GarbageCapMax = fullData.options.garbagecapmax ?? 40;
 	}
 }

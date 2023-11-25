@@ -32,9 +32,22 @@ public class Replay
 
 	public void JumpFrame(int frame)
 	{
-		while (frame != Environments[0].CurrentFrame)
+		if (Environments[0].CurrentFrame > frame)
 		{
-			NextFrame();
+			foreach (var environment in Environments)
+				environment.Reset();
+
+			while (frame != Environments[0].CurrentFrame)
+			{
+				NextFrame();
+			}
+		}
+		else
+		{
+			while (frame != Environments[0].CurrentFrame)
+			{
+				NextFrame();
+			}
 		}
 	}
 

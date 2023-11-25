@@ -1,15 +1,23 @@
-﻿using System.Data;
-using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
-using TetrioVirtualEnvironment.Constants;
-using TetrLoader.Enum;
+﻿using TetrLoader.Enum;
 using TetrLoader.Ige;
 
 namespace TetrEnvironment.Info;
 
 public class GarbageInfo
 {
-	private Environment _manager;
+	private readonly Environment _manager;
+
+	public enum WaitingFrameType
+	{
+		Are,
+		IncomingAttackHit,
+		ProcessGarbageStatus,
+		PushGarbageLine,
+		OutgoingAttackHit,
+		FreezeCounters,
+		ReviveFromStackLoss
+	}
+
 
 	public GarbageInfo(Environment manager)
 	{
@@ -45,13 +53,13 @@ public class GarbageInfo
 		var size = data.size ?? _manager.GameData.Options.GarbageHoleSize;
 		var x = data.x;
 		var y = data.y;
-		string status = "spawn";
+		GarbageStatus status = GarbageStatus.Spawn;
 
 		if (queued || delay >= 1)
 		{
-			status = "caution";
+			status = GarbageStatus.Caution;
 			if (_manager.GameData.ImpendingDamage.Count > 0 && queued)
-				status = "sleeping";
+				status = GarbageStatus.Sleeping;
 		}
 
 		GarbageData newGarbageData = new GarbageData()
@@ -74,7 +82,7 @@ public class GarbageInfo
 		};
 
 		_manager.GameData.ImpendingDamage.Add(newGarbageData);
-		//TODO: IncomingAttack
+		
 		if (cid == null)
 			IncomingAttack(newGarbageData, null, null);
 	}
@@ -166,7 +174,7 @@ public class GarbageInfo
 	public void IncomingAttack(GarbageData data, string? target, int? targetCid)
 	{
 		if (_manager.GameData.Options.Passthrough == PassthroughType.Consistent && target != null)
-			data.amt = renameThis(data, target);
+			data.amt = CounterAttack(data, target);
 		else
 		{
 			if (targetCid != null)
@@ -187,7 +195,7 @@ public class GarbageInfo
   (t.killer.name = data.username),
   (t.killer.gameid = sender),
 		 */
-		_manager.WaitingFrameInfo.WaitFrames(_manager.GameData.Options.GarbageSpeed, "incoming-attack-hit",
+		_manager.WaitingFrameInfo.WaitFrames(_manager.GameData.Options.GarbageSpeed, WaitingFrameType.IncomingAttackHit,
 			new GarbageData() { gid = data.id });
 	}
 
@@ -202,7 +210,7 @@ public class GarbageInfo
 		return null;
 	}
 
-	private int renameThis(GarbageData data, string? target)
+	private int CounterAttack(GarbageData data, string? target)
 	{
 		if (!_manager.GameData.GarbageAckNowledgements.Incoming.ContainsKey(target))
 			_manager.GameData.GarbageAckNowledgements.Incoming.Add(target, null);
@@ -272,7 +280,7 @@ public class GarbageInfo
 		{
 			switch (garbageData.status)
 			{
-				case "sleeping":
+				case GarbageStatus.Sleeping:
 					if (garbageData.queued == true)
 					{
 						//NOTE: 参照は同じはずなので、OK 
@@ -280,32 +288,32 @@ public class GarbageInfo
 						{
 							if (garbageData.delay >= 1)
 							{
-								garbageData.status = "caution";
-								_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, "process-garbage-status",
+								garbageData.status =GarbageStatus.Caution;
+								_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, WaitingFrameType.ProcessGarbageStatus,
 									garbageData.id);
 							}
 							else
-								garbageData.status = "spawn";
+								garbageData.status =GarbageStatus.Spawn;
 						}
 						else
 						{
-							garbageData.status = "caution";
-							_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, "process-garbage-status",
+							garbageData.status = GarbageStatus.Caution;
+							_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, WaitingFrameType.ProcessGarbageStatus,
 								garbageData.id);
 						}
 					}
 
 					break;
 
-				case "caution":
+				case GarbageStatus.Caution:
 					if (garbageData.firstcycle == true)
-						garbageData.status = "danger";
-					_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, "process-garbage-status",
+						garbageData.status = GarbageStatus.Danger;
+					_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, WaitingFrameType.ProcessGarbageStatus,
 						garbageData.id);
 					break;
 
-				case "danger":
-					garbageData.status = "spawn";
+				case GarbageStatus.Danger:
+					garbageData.status = GarbageStatus.Spawn;
 					break;
 			}
 		}
@@ -339,7 +347,7 @@ public class GarbageInfo
 		for (int eIndex = _manager.GameData.ImpendingDamage.Count - 1; eIndex >= 0; eIndex--)
 		{
 			var garbage = _manager.GameData.ImpendingDamage[eIndex];
-			if (!((bool)garbage.active && garbage.status == "spawn"))
+			if (!((bool)garbage.active && garbage.status == GarbageStatus.Spawn))
 			{
 				list.Insert(0, garbage);
 			//	_manager.GameData.ImpendingDamage[eIndex] = garbage;
@@ -359,10 +367,10 @@ public class GarbageInfo
 			//iiii = true;
 			switch (_manager.GameData.Options.GarbageEntry)
 			{
-				case "piece-are":
+				case GarbageEntryType.PieceAre:
 					_manager.WaitingFrameInfo.WaitFrames(
 						_manager.GameData.Options.GarbageAre * (sIndex + 1),
-						"push-garbage-line",
+						WaitingFrameType.PushGarbageLine,
 						new GarbageData()
 						{
 							column = column,
@@ -371,10 +379,10 @@ public class GarbageInfo
 					);
 					break;
 
-				case "are":
+				case GarbageEntryType.Are:
 					var a = _manager.GameData.Options.GarbageAre * (sIndex + 1);
 					_manager.GameData.GarbageAreLockedUntil = _manager.FrameInfo.CurrentFrame + a;
-					_manager.WaitingFrameInfo.WaitFrames(a, "push-garbage-line",
+					_manager.WaitingFrameInfo.WaitFrames(a, WaitingFrameType.PushGarbageLine,
 						new GarbageData()
 						{
 							column = column,

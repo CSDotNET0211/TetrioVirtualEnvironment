@@ -1,6 +1,4 @@
-﻿using TetrEnvironment.Constants;
-using TetrLoader.Enum;
-using TetrLoader.Ige;
+﻿using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
 
 namespace TetrEnvironment.Info;
