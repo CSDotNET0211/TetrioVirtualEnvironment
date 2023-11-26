@@ -64,6 +64,7 @@ public class WaitingFrameInfo
 
 			case GarbageInfo.WaitingFrameType.ReviveFromStackLoss:
 				break;
+			default: throw new Exception("unknown");
 		}
 	}
 

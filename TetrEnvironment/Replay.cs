@@ -1,4 +1,5 @@
 ﻿using TetrLoader;
+using TetrLoader.JsonClass;
 
 namespace TetrEnvironment;
 
@@ -25,8 +26,9 @@ public class Replay
 
 		for (int playerIndex = 0; playerIndex < playerCount; playerIndex++)
 		{
-			Environments.Add(new Environment(
-				_replayData.GetReplayEvents(playerIndex, gameIndex)));
+			var events = _replayData.GetReplayEvents(playerIndex, gameIndex);
+			(_replayData as ReplayDataTTRM)?.ProcessReplayData((_replayData as ReplayDataTTRM),events);
+			Environments.Add(new Environment(events));
 		}
 	}
 
@@ -42,6 +44,8 @@ public class Replay
 				if (!NextFrame())
 					break;
 			}
+
+			Console.Clear();
 		}
 		else
 		{
@@ -50,6 +54,8 @@ public class Replay
 				if (!NextFrame())
 					break;
 			}
+
+			Console.Clear();
 		}
 	}
 

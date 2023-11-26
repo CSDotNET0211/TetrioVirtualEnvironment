@@ -42,9 +42,6 @@ public class FrameInfo
 					_manager.HandleInfo.KeyUp(eventInput.data);
 					break;
 
-				case EventType.Targets:
-					break;
-
 				case EventType.Ige:
 					///EventIgeData igeEvent = (EventIgeData)(events[_currentIndex] as EventIge).data.Clone();
 					dynamic igeEvent = events[_currentIndex] as EventIge;
@@ -65,7 +62,6 @@ public class FrameInfo
 					if (data.type == "interaction" &&
 					    data.data.type == "garbage")
 					{
-						//	var garbageData = (igeEvent as EventIge).data.data as IgeInteraction;
 						_manager.GarbageInfo.AddPendingGarbage(data.data, gameId, data.cid);
 					}
 
@@ -74,8 +70,9 @@ public class FrameInfo
 						switch (data.data.type)
 						{
 							case "garbage":
-								//	var igeInteraction =  (igeEvent as EventIge).data.data as IgeInteractionConfirm;
-								//	var garbage = igeInteraction.data as GarbageData;
+								//_manager.GarbageInfo.AddPendingGarbage(data.data, gameId, data.cid);
+
+
 								_manager.GarbageInfo.IncomingAttack(data.data, gameId, data.cid);
 								break;
 

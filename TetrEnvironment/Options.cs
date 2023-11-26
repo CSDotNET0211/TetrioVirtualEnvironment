@@ -42,6 +42,7 @@ public class Options
 	public bool HasGarbage { get; internal set; }
 	public int GarbageCapMax { get; internal set; }
 
+	public bool ClipListenIDs { get; internal set; }
 
 	public Options(EventFullData fullData)
 	{
@@ -81,5 +82,6 @@ public class Options
 		Shielded = fullData.options.shielded ?? false;
 		HasGarbage = fullData.options.hasgarbage ?? true;
 		GarbageCapMax = fullData.options.garbagecapmax ?? 40;
+		ClipListenIDs = true;
 	}
 }

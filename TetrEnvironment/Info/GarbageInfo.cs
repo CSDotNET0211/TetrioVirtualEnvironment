@@ -339,7 +339,7 @@ public class GarbageInfo
 			return;
 
 		var nnnnnn = true;
-		var ooooo = hasGarbageCap ? 400 : GetGarbageCap();
+		var garbageCap = hasGarbageCap ? 400 : GetGarbageCap();
 		//	var iiii = false;
 		var rrrr = false;
 
@@ -356,7 +356,7 @@ public class GarbageInfo
 		}
 
 
-		for (int sIndex = 0; sIndex < ooooo && _manager.GameData.ImpendingDamage.Count != 0; sIndex++)
+		for (int sIndex = 0; sIndex < garbageCap && _manager.GameData.ImpendingDamage.Count != 0; sIndex++)
 		{
 			var garbage = _manager.GameData.ImpendingDamage[0];
 			garbage.amt--;
