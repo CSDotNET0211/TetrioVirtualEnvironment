@@ -48,7 +48,7 @@ public class GarbageInfo
 		var active = data.active ?? cid == null;
 		var column = data.column;
 		var username = data.username;
-		var delay = data.delay ?? (_manager.GameData.Options.GarbagePhase ? 1 : 0);
+		var delay = data.delay ?? _manager.GameData.Options.GarbagePhase;
 		var queued = data.queued ?? _manager.GameData.Options.GarbageQueue;
 		var size = data.size ?? _manager.GameData.Options.GarbageHoleSize;
 		var x = data.x;
@@ -57,7 +57,7 @@ public class GarbageInfo
 
 		if (queued || delay >= 1)
 		{
-			status = GarbageStatus.Caution;
+			status = delay >= 1 ? GarbageStatus.Caution : GarbageStatus.Spawn;
 			if (_manager.GameData.ImpendingDamage.Count > 0 && queued)
 				status = GarbageStatus.Sleeping;
 		}
@@ -82,7 +82,7 @@ public class GarbageInfo
 		};
 
 		_manager.GameData.ImpendingDamage.Add(newGarbageData);
-		
+
 		if (cid == null)
 			IncomingAttack(newGarbageData, null, null);
 	}
@@ -121,7 +121,7 @@ public class GarbageInfo
 	public void FightLines(int attackLines)
 	{
 		int newGarbage = 0;
-		if (_manager.GameData.Options.GarbageTargetBonus == GarbageTargetBonusType.Countering)
+		if (_manager.GameData.Options.GarbageTargetBonus == GarbageTargetBonusType.Defensive)
 			newGarbage += (int)(_manager.GameData.GarbageBonus * _manager.GameData.Options.GarbageMultiplier);
 
 		//int i = 0;
@@ -267,10 +267,13 @@ public class GarbageInfo
 		//none
 	}
 
-	public void ProcessGarbageStatus(int? id = null)
+	public void ProcessGarbageStatus(int? id = int.MaxValue)
 	{
-		if (id == null && _manager.GameData.ImpendingDamage.Count == 0)
-			id = null;
+		if (id == int.MaxValue)
+			if (_manager.GameData.ImpendingDamage.Count == 0)
+				id = null;
+			else
+				id = _manager.GameData.ImpendingDamage[0].id;
 
 		if (id == null || id == 0)
 			return;
@@ -288,17 +291,19 @@ public class GarbageInfo
 						{
 							if (garbageData.delay >= 1)
 							{
-								garbageData.status =GarbageStatus.Caution;
-								_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, WaitingFrameType.ProcessGarbageStatus,
+								garbageData.status = GarbageStatus.Caution;
+								_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay,
+									WaitingFrameType.ProcessGarbageStatus,
 									garbageData.id);
 							}
 							else
-								garbageData.status =GarbageStatus.Spawn;
+								garbageData.status = GarbageStatus.Spawn;
 						}
 						else
 						{
 							garbageData.status = GarbageStatus.Caution;
-							_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay, WaitingFrameType.ProcessGarbageStatus,
+							_manager.WaitingFrameInfo.WaitFrames((int)garbageData.delay,
+								WaitingFrameType.ProcessGarbageStatus,
 								garbageData.id);
 						}
 					}
@@ -316,6 +321,8 @@ public class GarbageInfo
 					garbageData.status = GarbageStatus.Spawn;
 					break;
 			}
+
+			garbageData.firstcycle = true;
 		}
 	}
 
@@ -350,8 +357,8 @@ public class GarbageInfo
 			if (!((bool)garbage.active && garbage.status == GarbageStatus.Spawn))
 			{
 				list.Insert(0, garbage);
-			//	_manager.GameData.ImpendingDamage[eIndex] = garbage;
-			_manager.GameData.ImpendingDamage.RemoveAt(eIndex);
+				//	_manager.GameData.ImpendingDamage[eIndex] = garbage;
+				_manager.GameData.ImpendingDamage.RemoveAt(eIndex);
 			}
 		}
 
@@ -367,7 +374,7 @@ public class GarbageInfo
 			//iiii = true;
 			switch (_manager.GameData.Options.GarbageEntry)
 			{
-				case GarbageEntryType.PieceAre:
+				case GarbageEntryType.Delayed:
 					_manager.WaitingFrameInfo.WaitFrames(
 						_manager.GameData.Options.GarbageAre * (sIndex + 1),
 						WaitingFrameType.PushGarbageLine,
@@ -379,7 +386,7 @@ public class GarbageInfo
 					);
 					break;
 
-				case GarbageEntryType.Are:
+				case GarbageEntryType.Continuous:
 					var a = _manager.GameData.Options.GarbageAre * (sIndex + 1);
 					_manager.GameData.GarbageAreLockedUntil = _manager.FrameInfo.CurrentFrame + a;
 					_manager.WaitingFrameInfo.WaitFrames(a, WaitingFrameType.PushGarbageLine,

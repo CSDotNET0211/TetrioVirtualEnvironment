@@ -155,7 +155,7 @@ public class FallInfo
 
 		var lines = _manager.LineInfo.ClearLines();
 		var are = lines != 0 ? _manager.GameData.Options.LineClearAre : _manager.GameData.Options.Are;
-		if (_manager.GameData.Options.GarbageEntry == GarbageEntryType.PieceAre)
+		if (_manager.GameData.Options.GarbageEntry == GarbageEntryType.Delayed)
 			are = Math.Max(are, _manager.GameData.LastReceivedCount * _manager.GameData.Options.GarbageAre);
 
 

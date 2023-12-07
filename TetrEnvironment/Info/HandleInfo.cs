@@ -13,9 +13,11 @@ public class HandleInfo
 		_manager = manager;
 	}
 
-	//そのまま
-	public void KeyDown(EventKeyInputData @event)
+	public void KeyDown(EventKeyInputData @event)	
 	{
+		if ((int)@event.key < 8)
+			_manager.PressedKeys[(int)@event.key] = true;
+		
 		if (@event.subframe > _manager.GameData.SubFrame)
 		{
 			_manager.HandleInfo.ProcessShift(false, @event.subframe - _manager.GameData.SubFrame);
@@ -135,6 +137,9 @@ public class HandleInfo
 
 	public void KeyUp(EventKeyInputData @event)
 	{
+		if ((int)@event.key < 8)
+			_manager.PressedKeys[(int)@event.key] = false;
+		
 		if (@event.subframe > _manager.GameData.SubFrame)
 		{
 			_manager.HandleInfo.ProcessShift(false, @event.subframe - _manager.GameData.SubFrame);
@@ -174,7 +179,6 @@ public class HandleInfo
 			_manager.GameData.SoftDrop = false;
 	}
 
-//note 以前のからコピー
 	internal void RotatePiece(int newRotation)
 	{
 		var currentRotation = _manager.GameData.Falling.R;
@@ -251,7 +255,7 @@ public class HandleInfo
 
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.O)
 			return;
-
+	
 		var kicktable = Kickset.SRSPLUS[currentNewRotation];
 
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.I)

@@ -237,7 +237,7 @@ public class LineInfo
 					break;
 			}
 
-			if (_manager.GameData.Options.GarbageTargetBonus == GarbageTargetBonusType.Normal)
+			if (_manager.GameData.Options.GarbageTargetBonus == GarbageTargetBonusType.Offensive)
 				garbageValue += enemyBonus;
 			else
 				_manager.GameData.GarbageBonus = (int)(enemyBonus * _manager.GameData.Options.GarbageMultiplier);

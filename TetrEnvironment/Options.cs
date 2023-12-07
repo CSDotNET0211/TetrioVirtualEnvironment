@@ -30,7 +30,7 @@ public class Options
 	public PassthroughType Passthrough { get; internal set; }
 	public int GarbageSpeed { get; internal set; }
 	public BagType BagType { get; internal set; }
-	public bool GarbagePhase { get; internal set; }
+	public int GarbagePhase { get; internal set; }
 	public bool GarbageQueue { get; internal set; }
 	public int GarbageHoleSize { get; internal set; }
 	public bool AllClears { get; internal set; }
@@ -71,7 +71,7 @@ public class Options
 		Passthrough = fullData.options.passthrough ?? PassthroughType.Limited;
 		GarbageSpeed = fullData.options.garbagespeed ?? 20;
 		BagType = fullData.options.bagtype ?? BagType.Bag7;
-		GarbagePhase = fullData.options.garbagephase ?? false;
+		GarbagePhase = fullData.options.garbagephase ?? 0;
 		GarbageQueue = fullData.options.garbagequeue ?? false;
 		GarbageHoleSize = fullData.options.garbageholesize ?? 1;
 		AllClears = fullData.options.allclears ?? true;

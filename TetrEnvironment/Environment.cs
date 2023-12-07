@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using TetrEnvironment.Info;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
@@ -29,6 +30,7 @@ public class Environment
 	private readonly IReadOnlyList<Event> _events;
 	private readonly EventFullData _eventFull;
 	public string? Username { get; private set; }
+	public bool[] PressedKeys { get; private set; }
 
 	public int CurrentFrame
 	{
@@ -40,6 +42,7 @@ public class Environment
 	{
 		_manager = this;
 		_events = events;
+
 		try
 		{
 			_eventFull = (events.First(@event => @event.type == EventType.Full) as EventFull).data;
@@ -97,6 +100,7 @@ public class Environment
 			ARR = fullData.options.handling.arr ?? 5,
 			DAS = fullData.options.handling.das ?? 12,
 			SDF = fullData.options.handling.sdf ?? 20,
+			DCD = fullData.options.handling.dcd ?? 20,
 			Cancel = fullData.options.handling.cancel ?? false,
 			SafeLock = fullData.options.handling.safelock == true ? 1 : 0,
 		});
@@ -110,7 +114,8 @@ public class Environment
 			return false;
 
 		GameData.SubFrame = 0;
-
+		if (_manager.Username == "ponpoko")
+			Debug.WriteLine(_manager.GameData.LDas);
 		_manager.FrameInfo.PullEvent(_events);
 		CurrentFrame++;
 
@@ -140,5 +145,6 @@ public class Environment
 		InitDI(_eventFull, ref _provider);
 		SolveWithDI(_provider);
 		GameData = new GameData(_provider);
+		PressedKeys = new bool[8];
 	}
 }

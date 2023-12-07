@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Data.Common;
 using System.Runtime.InteropServices;
 using TetrEnvironment;
 using TetrEnvironment.Constants;
@@ -34,7 +35,7 @@ if (input == "d")
 			string content = reader.ReadToEnd();
 			var replayData =
 				ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
-			TestAll(replayData);
+			//	TestAll(replayData);
 		}
 	}
 }
@@ -60,7 +61,7 @@ else
 		Console.Clear();
 		while (true)
 		{
-			PrintBoard(replay.Environments);
+			PrintBoard(replay.Environments,true);
 			input = Console.ReadLine();
 			if (input == "")
 			{
@@ -77,7 +78,7 @@ else
 
 
 Console.ReadKey();
-
+/*
 void TestAll(IReplayData data)
 {
 	var replayCount = data.GetGamesCount();
@@ -86,9 +87,11 @@ void TestAll(IReplayData data)
 
 	for (int replayIndex = 0; replayIndex < replayCount; replayIndex++)
 	{
+		var fullEvent = data.GetEndContext();
+
 		Console.WriteLine($"Test {replayIndex + 1}");
 		Console.WriteLine(
-			$"End frame:{data.GetEndEventFrame(0, replayIndex)}/{data.GetEndEventFrame(1, replayIndex)}");
+			$"End frame:{data.GetEndEventFrame(data.GetUsername(0,), replayIndex)}/{data.GetEndEventFrame(1, replayIndex)}");
 		Replay replay = new Replay(data);
 		replay.LoadGame(replayIndex);
 
@@ -103,10 +106,13 @@ void TestAll(IReplayData data)
 	}
 
 	Console.WriteLine("Test exit successfully.");
-}
+}*/
 
-void PrintBoard(List<Environment> environments)
+void PrintBoard(List<Environment> environments, bool clearConsole)
 {
+	if (clearConsole)
+		Console.Clear();
+
 	for (int playerIndex = 0; playerIndex < environments.Count; playerIndex++)
 	{
 		string output = "";
@@ -119,8 +125,32 @@ void PrintBoard(List<Environment> environments)
 
 		output += "CurrentFrame:";
 		output += environments[playerIndex].CurrentFrame + "\r\n";
-		output += environments[playerIndex].GameData.Falling.LockResets + "\r\n";
-		output += environments[playerIndex].GameData.Falling.Locking.ToString("00") + "\r\n";
+
+		for (int i = 0; i < environments[playerIndex].PressedKeys.Length; i++)
+		{
+			output += ((KeyType)i).ToString() + ":" + (environments[playerIndex].PressedKeys[i] ? "1" : "0");
+			output += " ";
+		}
+
+		output += "\r\n";
+		output += "Garbage ";
+		foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
+		{
+			output += garbage.id + " " + garbage.amt + " " + garbage.status.ToString() + " " + garbage.active+" / ";
+		}
+
+		output += "\r\n";
+		output += "WaitingFrames  ";
+		foreach (var waitingframe in environments[playerIndex].GameData.WaitingFrames)
+		{
+			output += waitingframe.target + " " + waitingframe.type.ToString()  +" / ";
+		}
+		
+		output += "\r\n";
+
+		output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";
+		output += "DeepSleep:" + (environments[playerIndex].GameData.Falling.DeepSleep ? "1" : "0") + "\r\n";
+
 		foreach (var next in environments[playerIndex].GameData.Bag)
 		{
 			output += next.ToString();
@@ -208,6 +238,7 @@ void PrintBoard(List<Environment> environments)
 
 
 	//debug
+	return;
 	for (int playerIndex = 0; playerIndex < environments.Count; playerIndex++)
 	{
 		Console.CursorLeft = 35;

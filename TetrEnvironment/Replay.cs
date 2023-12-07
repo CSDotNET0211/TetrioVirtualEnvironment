@@ -9,6 +9,7 @@ public class Replay
 
 	//TODO: プロパティ使ってフレーム取得
 	public List<Environment> Environments { get; private set; }
+	public string[] Usernames { get; private set; }
 
 	public Replay(IReplayData replayData)
 	{
@@ -16,18 +17,19 @@ public class Replay
 		_replayData = replayData;
 	}
 
-	//TODO: boardとreplay比較して、usernameの違いを見る
 	public void LoadGame(int gameIndex)
 	{
+		Usernames = _replayData.GetUsernames();
+
 		Environments.Clear();
-		int playerCount = _replayData.GetPlayerCount();
-		if (playerCount > 2)
+
+		if (Usernames.Length > 2)
 			throw new Exception("over 3 players replay is not supported");
 
-		for (int playerIndex = 0; playerIndex < playerCount; playerIndex++)
+		for (int playerIndex = 0; playerIndex < Usernames.Length; playerIndex++)
 		{
-			var events = _replayData.GetReplayEvents(playerIndex, gameIndex);
-			(_replayData as ReplayDataTTRM)?.ProcessReplayData((_replayData as ReplayDataTTRM),events);
+			var events = _replayData.GetReplayEvents(Usernames[playerIndex], gameIndex);
+			(_replayData as ReplayDataTTRM)?.ProcessReplayData((_replayData as ReplayDataTTRM), events);
 			Environments.Add(new Environment(events));
 		}
 	}

@@ -1,4 +1,5 @@
-﻿using TetrLoader.Ige;
+﻿using TetrLoader.Enum;
+using TetrLoader.Ige;
 
 namespace TetrEnvironment.Info;
 
@@ -57,6 +58,9 @@ public class WaitingFrameInfo
 			case GarbageInfo.WaitingFrameType.PushGarbageLine:
 				var garbageData = data.data as GarbageData;
 				_manager.BoardInfo.PushGarbageLine((int)garbageData.column, (int)garbageData.size);
+				if (_manager.GameData.Options.GarbageEntry != GarbageEntryType.Delayed)
+					_manager.BoardInfo.PushUpFallingIfNeeded();
+
 				break;
 
 			case GarbageInfo.WaitingFrameType.FreezeCounters:

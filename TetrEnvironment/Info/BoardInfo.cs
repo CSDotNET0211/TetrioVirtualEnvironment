@@ -131,8 +131,6 @@ public class BoardInfo
 
 	public void RemoveLinesFromStack(List<int> completedLines)
 	{
-		//TODO: やれ
-		//下から消す
 		foreach (var value in completedLines)
 		{
 			for (int y = value; y >= 0; y--)
@@ -174,6 +172,21 @@ public class BoardInfo
 		return true;
 	}
 
+	public void PushUpFallingIfNeeded()
+	{
+		if (!_manager.GameData.Falling.DeepSleep && !IsLegalAtPos(_manager.GameData.Falling.Type,
+			    _manager.GameData.Falling.X, _manager.GameData.Falling.Y, _manager.GameData.Falling.R))
+		{
+			if (!IsLegalAtPos(_manager.GameData.Falling.Type, _manager.GameData.Falling.X,
+				    _manager.GameData.Falling.Y - 1,
+				    _manager.GameData.Falling.R))
+			{
+			}
+
+			_manager.GameData.Falling.Y--;
+		}
+	}
+
 	//perma line is not supported
 	public int HighestLineOfPerma()
 	{
@@ -183,6 +196,7 @@ public class BoardInfo
 
 
 	HashSet<int> GarbageHolesSet = new HashSet<int>();
+
 	public HashSet<int> MaybeCalcHolePos(int column, int size)
 	{
 		GarbageHolesSet.Clear();
