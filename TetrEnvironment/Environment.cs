@@ -58,6 +58,14 @@ public class Environment
 		Username = _eventFull.options.username;
 	}
 
+	//for self environment
+	public Environment(EventFullData fullData)
+	{
+		_manager = this;
+		_eventFull = fullData;
+		Reset();
+	}
+
 	private void SolveWithDI(ServiceProvider provider)
 	{
 		GarbageInfo = provider.GetService<GarbageInfo>() ?? throw new InvalidOperationException();
@@ -108,15 +116,14 @@ public class Environment
 		provider = service.BuildServiceProvider();
 	}
 
+
 	public bool NextFrame()
 	{
 		if (_manager.FrameInfo._currentIndex >= _events.Count)
 			return false;
 
 		GameData.SubFrame = 0;
-		if (_manager.Username == "ponpoko")
-			Debug.WriteLine(_manager.GameData.LDas);
-		_manager.FrameInfo.PullEvent(_events);
+		_manager.FrameInfo.PullEvents(_events);
 		CurrentFrame++;
 
 		_manager.HandleInfo.ProcessShift(false, 1 - GameData.SubFrame);
@@ -139,6 +146,39 @@ public class Environment
 
 		return true;
 	}
+
+	/// <summary>
+	/// for self environment
+	/// </summary>
+	/// <param name="event"></param>
+	public void NextFrame(Queue<Event> events)
+	{
+		GameData.SubFrame = 0;
+
+		while (events.Count!=0)
+		{
+			var @event = events.Dequeue();
+			_manager.FrameInfo.PullEvent(@event);
+		}
+
+		CurrentFrame++;
+
+		_manager.HandleInfo.ProcessShift(false, 1 - GameData.SubFrame);
+		_manager.FallInfo.FallEvent(null, 1 - GameData.SubFrame);
+		_manager.WaitingFrameInfo.ExcuteWaitingFrames();
+
+		if (_manager.GameData.Options.GravityIncrease > 0 &&
+		    CurrentFrame > _manager.GameData.Options.GravityMargin)
+			_manager.GameData.Gravity += _manager.GameData.Options.GravityIncrease / 60;
+
+		if (_manager.GameData.Options.GarbageIncrease > 0 &&
+		    CurrentFrame > _manager.GameData.Options.GarbageMargin)
+			_manager.GameData.Options.GarbageMultiplier += _manager.GameData.Options.GarbageIncrease / 60;
+
+		if (_manager.GameData.Options.GarbageCapIncrease > 0)
+			_manager.GameData.Options.GarbageCap += _manager.GameData.Options.GarbageCapIncrease / 60;
+	}
+
 
 	public void Reset()
 	{
