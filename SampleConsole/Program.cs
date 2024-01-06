@@ -22,38 +22,23 @@ int mode;
 GetConsoleMode(handle, out mode);
 SetConsoleMode(handle, mode | 0x4);
 
-Console.WriteLine("Enter replay filepath or 'd' to all test mode.");
+Console.WriteLine("Enter replay filepath.");
 string input = Console.ReadLine();
 
-if (input == "d")
+using (StreamReader reader = new StreamReader(input))
 {
+	string content = reader.ReadToEnd();
+	var replayData =
+		ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
+	Replay replay = new Replay(replayData);
+
 	while (true)
 	{
-		string path = Console.ReadLine();
-		using (StreamReader reader = new StreamReader(path))
-		{
-			string content = reader.ReadToEnd();
-			var replayData =
-				ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
-			//	TestAll(replayData);
-		}
-	}
-}
-else
-{
-	using (StreamReader reader = new StreamReader(input))
-	{
-		string content = reader.ReadToEnd();
-		var replayData =
-			ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
-		Replay replay = new Replay(replayData);
-
-		START: ;
 		Console.Clear();
 		Console.WriteLine("Select game to play.");
 		for (int i = 0; i < replayData.GetGamesCount(); i++)
 		{
-			Console.WriteLine($"{i}");
+			Console.WriteLine(i);
 		}
 
 
@@ -61,9 +46,9 @@ else
 		Console.Clear();
 		while (true)
 		{
-			PrintBoard(replay.Environments,true);
-			input = Console.ReadLine();
-			if (input == "")
+			//PrintBoard(replay.Environments, true);
+			//	input = Console.ReadLine();
+			if (input == "" || true)
 			{
 				if (!replay.NextFrame())
 					break;
@@ -71,42 +56,9 @@ else
 			else
 				replay.JumpFrame(int.Parse(input));
 		}
-
-		goto START;
 	}
 }
 
-
-Console.ReadKey();
-/*
-void TestAll(IReplayData data)
-{
-	var replayCount = data.GetGamesCount();
-	Console.WriteLine("Start testing...");
-	Console.WriteLine($"Game count:{replayCount}");
-
-	for (int replayIndex = 0; replayIndex < replayCount; replayIndex++)
-	{
-		var fullEvent = data.GetEndContext();
-
-		Console.WriteLine($"Test {replayIndex + 1}");
-		Console.WriteLine(
-			$"End frame:{data.GetEndEventFrame(data.GetUsername(0,), replayIndex)}/{data.GetEndEventFrame(1, replayIndex)}");
-		Replay replay = new Replay(data);
-		replay.LoadGame(replayIndex);
-
-		while (true)
-		{
-			if (!replay.NextFrame())
-				break;
-		}
-
-		Console.WriteLine(
-			$"Real frame:{replay.Environments[0].CurrentFrame}/{replay.Environments[1].CurrentFrame}");
-	}
-
-	Console.WriteLine("Test exit successfully.");
-}*/
 
 void PrintBoard(List<Environment> environments, bool clearConsole)
 {
@@ -126,9 +78,9 @@ void PrintBoard(List<Environment> environments, bool clearConsole)
 		output += "CurrentFrame:";
 		output += environments[playerIndex].CurrentFrame + "\r\n";
 
-		for (int i = 0; i < environments[playerIndex].PressedKeys.Length; i++)
+		for (int i = 0; i < environments[playerIndex].PressingKeys.Length; i++)
 		{
-			output += ((KeyType)i).ToString() + ":" + (environments[playerIndex].PressedKeys[i] ? "1" : "0");
+			output += ((KeyType)i).ToString() + ":" + (environments[playerIndex].PressingKeys[i] ? "1" : "0");
 			output += " ";
 		}
 
@@ -136,16 +88,16 @@ void PrintBoard(List<Environment> environments, bool clearConsole)
 		output += "Garbage ";
 		foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
 		{
-			output += garbage.id + " " + garbage.amt + " " + garbage.status.ToString() + " " + garbage.active+" / ";
+			output += garbage.id + " " + garbage.amt + " " + garbage.status.ToString() + " " + garbage.active + " / ";
 		}
 
 		output += "\r\n";
 		output += "WaitingFrames  ";
 		foreach (var waitingframe in environments[playerIndex].GameData.WaitingFrames)
 		{
-			output += waitingframe.target + " " + waitingframe.type.ToString()  +" / ";
+			output += waitingframe.target + " " + waitingframe.type.ToString() + " / ";
 		}
-		
+
 		output += "\r\n";
 
 		output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";

@@ -7,6 +7,7 @@ namespace TetrEnvironment.Info;
 public class FallInfo
 {
 	private Environment _manager;
+	private readonly double TERA10 = Math.Pow(10, 13);
 
 	public FallInfo(Environment manager)
 	{
@@ -84,13 +85,13 @@ public class FallInfo
 
 	public bool FallInner(double value, double value2)
 	{
-		var yPos1 = Math.Floor(Math.Pow(10, 13) * _manager.GameData.Falling.Y) /
-			Math.Pow(10, 13) + value;
+		var yPos1 = Math.Floor(TERA10 * _manager.GameData.Falling.Y) /
+			TERA10 + value;
 
 		if (yPos1 % 1 == 0)
 			yPos1 += 0.00001;
 
-		var yPos2 = Math.Floor(Math.Pow(10, 13) * _manager.GameData.Falling.Y) / Math.Pow(10, 13) + 1;
+		var yPos2 = Math.Floor(TERA10 * _manager.GameData.Falling.Y) / TERA10 + 1;
 		if (yPos2 % 1 == 0)
 			yPos2 -= 0.00002;
 
@@ -131,7 +132,7 @@ public class FallInfo
 		if (_manager.GameData.Options.Version >= 15)
 			_manager.GameData.Falling.Locking += subframe;
 		else
-			_manager.GameData.Falling.Locking += 1;
+			_manager.GameData.Falling.Locking ++;
 
 		if (!_manager.GameData.Falling.Floored)
 			_manager.GameData.Falling.Floored = true;

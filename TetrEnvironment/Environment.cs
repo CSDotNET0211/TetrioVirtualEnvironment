@@ -30,9 +30,9 @@ public class Environment
 	private readonly IReadOnlyList<Event> _events;
 	private readonly EventFullData _eventFull;
 	public string? Username { get; private set; }
-	public bool[] PressedKeys { get; private set; }
+	public bool[] PressingKeys { get; private set; }
 
-	public int CurrentFrame
+	public int CurrentFrame	
 	{
 		get => _manager.FrameInfo.CurrentFrame;
 		set => _manager.FrameInfo.CurrentFrame = value;
@@ -77,10 +77,7 @@ public class Environment
 		TargetInfo = provider.GetService<TargetInfo>() ?? throw new InvalidOperationException();
 		BagInfo = provider.GetService<BagInfo>() ?? throw new InvalidOperationException();
 		CustomStats = provider.GetService<CustomStats>() ?? throw new InvalidOperationException();
-		LineInfo = provider.GetService<LineInfo>() ?? throw new InvalidOperationException();
-		//
-
-		//	GameData = _provider.GetService<GameData>() ?? throw new InvalidOperationException();
+		LineInfo = provider.GetService<LineInfo>() ?? throw new InvalidOperationException(); 
 	}
 
 	private void InitDI(EventFullData fullData, ref ServiceProvider provider)
@@ -185,6 +182,6 @@ public class Environment
 		InitDI(_eventFull, ref _provider);
 		SolveWithDI(_provider);
 		GameData = new GameData(_provider);
-		PressedKeys = new bool[8];
+		PressingKeys = new bool[8];
 	}
 }
