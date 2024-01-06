@@ -15,12 +15,13 @@ public class GameData
 		Handling = provider.GetService<Handling>();
 		SubFrame = 0;
 		WaitingFrames = new List<WaitingFrameData>();
-		Gravity = (double)provider.GetService<EventFullData>().options.g;
+		Gravity =Options.Gravity;
 		provider.GetService<BoardInfo>().SetupBoard(out _board);
 		Bag = new Queue<Tetromino.MinoType>();
 		Hold = Tetromino.MinoType.Empty;
 		HoldLocked = false;
 		Rng = new Rng();
+	//	var temp = provider.GetService<EventFullData>().options;
 		Rng.Init(provider.GetService<EventFullData>().options.seed);
 		LastGenerated = null;
 		Falling = provider.GetService<Falling>();

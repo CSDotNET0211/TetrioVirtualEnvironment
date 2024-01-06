@@ -46,8 +46,8 @@ using (StreamReader reader = new StreamReader(input))
 		Console.Clear();
 		while (true)
 		{
-			//PrintBoard(replay.Environments, true);
-			//	input = Console.ReadLine();
+			PrintBoard(replay.Environments, false);
+				input = Console.ReadLine();
 			if (input == "" || true)
 			{
 				if (!replay.NextFrame())

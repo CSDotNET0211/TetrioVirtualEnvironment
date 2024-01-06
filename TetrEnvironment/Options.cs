@@ -83,5 +83,6 @@ public class Options
 		HasGarbage = fullData.options.hasgarbage ?? true;
 		GarbageCapMax = fullData.options.garbagecapmax ?? 40;
 		ClipListenIDs = true;
+	 
 	}
 }
