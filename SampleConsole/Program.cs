@@ -22,8 +22,12 @@ int mode;
 GetConsoleMode(handle, out mode);
 SetConsoleMode(handle, mode | 0x4);
 
-Console.WriteLine("Enter replay filepath.");
-string input = Console.ReadLine();
+string input;
+do
+{
+	Console.WriteLine("Enter replay filepath.");
+	input = Console.ReadLine();
+} while (!File.Exists(input));
 
 using (StreamReader reader = new StreamReader(input))
 {
@@ -37,24 +41,26 @@ using (StreamReader reader = new StreamReader(input))
 		Console.Clear();
 		Console.WriteLine("Select game to play.");
 		for (int i = 0; i < replayData.GetGamesCount(); i++)
-		{
 			Console.WriteLine(i);
-		}
 
 
 		replay.LoadGame(int.Parse(Console.ReadLine()));
 		Console.Clear();
 		while (true)
 		{
+			int inputInt = -1;
 			PrintBoard(replay.Environments, false);
-				input = Console.ReadLine();
-			if (input == "" || true)
+
+			input = Console.ReadLine();
+			int.TryParse(input, out inputInt);
+
+			if (input == string.Empty)
 			{
 				if (!replay.NextFrame())
 					break;
 			}
 			else
-				replay.JumpFrame(int.Parse(input));
+				replay.JumpFrame(inputInt);
 		}
 	}
 }
@@ -102,6 +108,8 @@ void PrintBoard(List<Environment> environments, bool clearConsole)
 
 		output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";
 		output += "DeepSleep:" + (environments[playerIndex].GameData.Falling.DeepSleep ? "1" : "0") + "\r\n";
+		output += "Level:" + (environments[playerIndex].GameData.Stats.Level) + "\r\n";
+		output += "LevelLinesNeeded:" + (environments[playerIndex].GameData.Stats.LevelLinesNeeded) + "\r\n";
 
 		foreach (var next in environments[playerIndex].GameData.Bag)
 		{
@@ -186,32 +194,5 @@ void PrintBoard(List<Environment> environments, bool clearConsole)
 		output += "\r\n";
 		output += "\x1b[48;5;" + 0 + "m　";
 		Console.WriteLine(output);
-	}
-
-
-	//debug
-	return;
-	for (int playerIndex = 0; playerIndex < environments.Count; playerIndex++)
-	{
-		Console.CursorLeft = 35;
-		Console.CursorTop = playerIndex * 31;
-
-		Console.Write("                                                                 ");
-		Console.CursorLeft = 35;
-		foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
-		{
-			Console.Write(
-				$"amt:{garbage.amt} status:{garbage.status} id:{garbage.id}  status:{garbage.active} /");
-		}
-
-		Console.CursorLeft = 35;
-		Console.CursorTop = playerIndex * 32;
-
-		Console.Write("                                                                 ");
-		Console.CursorLeft = 35;
-		foreach (var garbage in environments[playerIndex].GameData.GarbageAckNowledgements.Outgoing.ToList())
-		{
-			Console.Write($"{garbage.Key}:{garbage.Value.Count}/");
-		}
 	}
 }

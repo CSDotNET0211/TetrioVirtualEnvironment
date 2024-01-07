@@ -7,6 +7,9 @@ public class Stats
 	public int BTB { get; internal set; }
 	public int TopBTB { get; internal set; }
 	public double CurrentComboPower { get; internal set; }
+	public int Level { get; internal set; }
+	public double LevelLines { get;internal set; }
+	public double LevelLinesNeeded { get; internal set; }
 
 	public Stats()
 	{
@@ -15,5 +18,8 @@ public class Stats
 		BTB = 0;
 		TopBTB = 0;
 		CurrentComboPower = 0;
+		Level = 0;
+		LevelLines = 0;
+		LevelLinesNeeded = 1;
 	}
 }

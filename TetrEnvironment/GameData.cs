@@ -2,6 +2,7 @@
 using TetrEnvironment.Constants;
 using TetrEnvironment.Info;
 using TetrEnvironment.Struct;
+using TetrLoader.Enum;
 using TetrLoader.Ige;
 using TetrLoader.JsonClass.Event;
 
@@ -9,20 +10,34 @@ namespace TetrEnvironment;
 
 public class GameData
 {
-	public GameData(ServiceProvider provider)
+	public GameData()
+	{
+	}
+
+	public void Initialize(ServiceProvider provider,GameType? gametype)
 	{
 		Options = provider.GetService<Options>();
 		Handling = provider.GetService<Handling>();
 		SubFrame = 0;
 		WaitingFrames = new List<WaitingFrameData>();
-		Gravity =Options.Gravity;
+		Gravity = Options.Gravity;
 		provider.GetService<BoardInfo>().SetupBoard(out _board);
 		Bag = new Queue<Tetromino.MinoType>();
 		Hold = Tetromino.MinoType.Empty;
 		HoldLocked = false;
+
+		var eventFull = provider.GetService<EventFullData>();
 		Rng = new Rng();
-	//	var temp = provider.GetService<EventFullData>().options;
-		Rng.Init(provider.GetService<EventFullData>().options.seed);
+		Rng.Init(eventFull.options.seed);
+		provider.GetService<Environment>().BagInfo.PopulateBag();
+		if (eventFull.options.no_szo == true && Bag.Count != 0)
+		{
+			for (int i = 0;
+			     i < Bag.Count && (Bag.Peek() is Tetromino.MinoType.S or Tetromino.MinoType.Z or Tetromino.MinoType.O);
+			     i++)
+				Bag.Enqueue(Bag.Dequeue());
+		}
+
 		LastGenerated = null;
 		Falling = provider.GetService<Falling>();
 		FallingRotations = 0;
@@ -46,6 +61,13 @@ public class GameData
 			(new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData>>());
 		LastReceivedCount = 0;
 		GarbageAreLockedUntil = 0;
+
+		if (gametype == GameType.Blitz)
+		{
+			//TODO: startinglevel
+			provider.GetService<Environment>().LineInfo.LevelLines(0,true,1);
+		
+		}
 	}
 
 	public Stats Stats { get; internal set; }

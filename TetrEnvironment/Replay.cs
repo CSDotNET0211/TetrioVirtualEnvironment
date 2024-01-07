@@ -30,8 +30,6 @@ public class Replay
 
 	public void LoadGame(int gameIndex)
 	{
-		
-
 		Environments.Clear();
 
 		if (Usernames.Length > 2)
@@ -41,7 +39,7 @@ public class Replay
 		{
 			var events = ReplayData.GetReplayEvents(Usernames[playerIndex], gameIndex);
 			(ReplayData as ReplayDataTTRM)?.ProcessReplayData((ReplayData as ReplayDataTTRM), events);
-			Environments.Add(new Environment(events));
+			Environments.Add(new Environment(events, ReplayData.GetGameType()));
 		}
 
 		ReplayStatus = ReplayStatusEnum.Loaded;

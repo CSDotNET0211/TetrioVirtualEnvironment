@@ -6,6 +6,13 @@ namespace TetrEnvironment;
 public class Options
 {
 	public int Version { get; internal set; }
+	public bool Levels { get; internal set; }
+	public double GBase { get; internal set; }
+	public double GSpeed { get; internal set; }
+	public double? LevelSpeed { get; internal set; }
+	public bool MasterLevels { get; internal set; }
+	public bool LevelStatic { get; internal set; }
+	public double? LevelStaticSpeed { get; internal set; }
 	public double GravityIncrease { get; internal set; }
 	public int GravityMargin { get; internal set; }
 	public double Gravity { get; internal set; }
@@ -46,6 +53,12 @@ public class Options
 
 	public Options(EventFullData fullData)
 	{
+		Levels = fullData.options.levels ?? false;
+		GBase = fullData.options.gbase ?? 0.65;
+		GSpeed = fullData.options.gspeed ?? 0.007;
+		LevelSpeed = fullData.options.levelspeed ?? 0.42;
+		MasterLevels = fullData.options.masterlevels ?? false;
+
 		Version = fullData.options.version;
 		GravityIncrease = fullData.options.gincrease ?? 0;
 		GravityMargin = fullData.options.gmargin ?? 0;
@@ -83,6 +96,5 @@ public class Options
 		HasGarbage = fullData.options.hasgarbage ?? true;
 		GarbageCapMax = fullData.options.garbagecapmax ?? 40;
 		ClipListenIDs = true;
-	 
 	}
 }

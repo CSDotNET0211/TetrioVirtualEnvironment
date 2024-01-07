@@ -41,9 +41,60 @@ public class LineInfo
 		return completedLines.Count;
 	}
 
-	public void LevelLines()
+	public void LevelLines(int clearedLineCount, bool value = false, int newLevel = 1)
 	{
-		throw new NotImplementedException();
+		if (value)
+		{
+			
+			_manager.GameData.Stats.Level = newLevel;
+			_manager.GameData.Gravity = Math.Min(int.MaxValue - 1,
+				1.0 / 60 / Math.Pow(
+					Math.Max(0.000000001,
+						(_manager.GameData.Options.GBase  ) - (_manager.GameData.Stats.Level - 1) *
+						(_manager.GameData.Options.GSpeed  )), _manager.GameData.Stats.Level - 1));
+			_manager.GameData.Stats.LevelLines = 0;
+
+			if (_manager.GameData.Options.LevelStatic)
+				_manager.GameData.Stats.LevelLinesNeeded = _manager.GameData.Options.LevelStaticSpeed ?? 10;
+			else
+				_manager.GameData.Stats.LevelLinesNeeded = Math.Ceiling(_manager.GameData.Stats.Level *
+				                                                        (_manager.GameData.Options.LevelSpeed ?? 1) *
+				                                                        5);
+			if (_manager.GameData.Options.MasterLevels && _manager.GameData.Stats.Level > 20)
+				_manager.GameData.Options.LockTime = 30 - Math.Min(25, _manager.GameData.Stats.Level - 20);
+			if (_manager.GameData.Options.MasterLevels && _manager.GameData.Stats.Level > 45)
+				_manager.GameData.Options.LockResets = 15 - Math.Min(10, _manager.GameData.Stats.Level - 45);
+		}
+		else
+		{
+			_manager.GameData.Stats.LevelLines += clearedLineCount;
+
+			if (_manager.GameData.Stats.LevelLines >= _manager.GameData.Stats.LevelLinesNeeded)
+			{
+				for (; _manager.GameData.Stats.LevelLines >= _manager.GameData.Stats.LevelLinesNeeded;)
+				{
+					_manager.GameData.Stats.LevelLines -= _manager.GameData.Stats.LevelLinesNeeded;
+					_manager.GameData.Stats.Level++;
+					_manager.GameData.Gravity = Math.Min(int.MaxValue - 1,
+						1f / 60 / Math.Pow(
+							Math.Max(0.000000001,
+								(_manager.GameData.Options.GBase) - (_manager.GameData.Stats.Level - 1) *
+								(_manager.GameData.Options.GSpeed)), _manager.GameData.Stats.Level - 1));
+
+					if (_manager.GameData.Options.LevelStatic)
+						_manager.GameData.Stats.LevelLinesNeeded = _manager.GameData.Options.LevelStaticSpeed ?? 10;
+					else
+						_manager.GameData.Stats.LevelLinesNeeded = Math.Ceiling(_manager.GameData.Stats.Level *
+							(_manager.GameData.Options.LevelSpeed ?? 1) *
+							5);
+					
+					if (_manager.GameData.Options.MasterLevels && _manager.GameData.Stats.Level > 20)
+						_manager.GameData.Options.LockTime = 30 - Math.Min(25, _manager.GameData.Stats.Level - 20);
+					if (_manager.GameData.Options.MasterLevels && _manager.GameData.Stats.Level > 45)
+						_manager.GameData.Options.LockResets = 15 - Math.Min(10, _manager.GameData.Stats.Level - 45);
+				}
+			}
+		}
 	}
 
 	public void AnnounceDownstack()
@@ -54,6 +105,8 @@ public class LineInfo
 	public bool AnnounceLines(int completedLineCount, Falling.SpinTypeKind spinbonus)
 	{
 		bool isBTB = false;
+		if (_manager.GameData.Options.Levels)
+			LevelLines(completedLineCount);
 
 		if (completedLineCount > 0)
 		{
