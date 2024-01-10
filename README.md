@@ -9,8 +9,8 @@ See ConsoleApp/Program.cs
 - ○ Blitz
 - ○ TETRA LEAGUE
 - ○ Custom game
-- ○ One or Two players in game.  
-- × Custom board size 
+- ○ One or Two players in game.   
+- × Custom constants such as combo-table, board-size, tetromino shape
 
 supported version is from alpha to v16  
 if you need to use old replay, please use v15 release
