@@ -75,24 +75,7 @@ public class BoardInfo
 		}
 
 		return true;
-
-		foreach (var position in positions)
-		{
-			var testx = (int)(position.x + x - diff.x);
-			var testy = (int)(position.y + y - diff.y);
-			if (!(testx >= 0 && testx < Width &&
-			      testy >= 0 && testy < Height &&
-			      _manager.GameData.Board[testx + testy * Width] == Tetromino.MinoType.Empty
-			    ))
-				return false;
-		}
-
-		return true;
-		/*
-		var position = 10 + Math.Ceiling(y) * (2 * Width) + x;
-		bool l = true;
-		for(int s=0;s<Tetromino.MINOTYPES)
-		*/
+ 
 	}
 
 	public void PushActiveToStack()

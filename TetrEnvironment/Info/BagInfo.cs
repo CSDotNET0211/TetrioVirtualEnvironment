@@ -52,7 +52,7 @@ public class BagInfo
 			case BagType.Pairs:
 				var minos = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
 				_manager.GameData.Rng.ShuffleArray(minos);
-				var array = new Tetromino.MinoType[6];
+				var array = new Tetromino.MinoType[6];	
 				array[0] = minos[0];
 				array[1] = minos[0];
 				array[2] = minos[0];

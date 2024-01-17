@@ -32,6 +32,7 @@ public class Environment
 	private readonly GameType? _gameType;
 	public string? Username { get; private set; }
 	public bool[] PressingKeys { get; private set; }
+	public int TotalFrame { get; private set; }
 
 	public int CurrentFrame
 	{
@@ -39,10 +40,11 @@ public class Environment
 		set => _manager.FrameInfo.CurrentFrame = value;
 	}
 
-	public Environment(IReadOnlyList<Event> events, GameType? gametype)
+	public Environment(IReadOnlyList<Event> events, GameType? gametype, int totalFrame)
 	{
 		_manager = this;
 		_events = events;
+		TotalFrame = totalFrame;
 
 		try
 		{
@@ -63,6 +65,7 @@ public class Environment
 	//for self environment
 	public Environment(EventFullData fullData)
 	{
+		TotalFrame = -1;
 		_manager = this;
 		_eventFull = fullData;
 		Reset();
@@ -118,7 +121,7 @@ public class Environment
 
 	public bool NextFrame()
 	{
-		if (_manager.FrameInfo._currentIndex >= _events.Count)
+		if (_manager.FrameInfo.CurrentFrame > TotalFrame)
 			return false;
 
 		GameData.SubFrame = 0;
