@@ -18,7 +18,6 @@ public class Replay
 
 	public List<Environment> Environments { get; private set; }
 	public string[] Usernames { get; private set; }
-	public int TotalFrame { get; private set; }
 	public int LoadedIndex { get; private set; }
 
 	public Replay(IReplayData replayData)

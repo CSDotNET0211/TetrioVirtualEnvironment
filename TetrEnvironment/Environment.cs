@@ -8,9 +8,8 @@ namespace TetrEnvironment;
 
 public class Environment
 {
-	private readonly Environment _manager;
+	#region Infos
 
-	//////////Info//////////
 	public GarbageInfo GarbageInfo { get; private set; }
 	public HandleInfo HandleInfo { get; private set; }
 	public FallInfo FallInfo { get; private set; }
@@ -21,18 +20,19 @@ public class Environment
 	public TargetInfo TargetInfo { get; private set; }
 	public LineInfo LineInfo { get; private set; }
 
-	//////////Class Data//////////
-	public GameData GameData { get; private set; }
-	public CustomStats CustomStats { get; private set; }
-	private ServiceProvider _provider;
+	#endregion
 
-	//////////Data//////////
+	#region Fields
+
 	private readonly IReadOnlyList<Event> _events;
-	private readonly EventFullData _eventFull;
 	private readonly GameType? _gameType;
-	public string? Username { get; private set; }
-	public bool[] PressingKeys { get; private set; }
-	public int TotalFrame { get; private set; }
+	private readonly Environment _manager;
+	private ServiceProvider _provider;
+	private readonly EventFullData _eventFull;
+
+	#endregion
+
+	#region Property
 
 	public int CurrentFrame
 	{
@@ -40,8 +40,26 @@ public class Environment
 		set => _manager.FrameInfo.CurrentFrame = value;
 	}
 
+	public string? Username { get; private set; }
+	public bool[] PressingKeys { get; private set; }
+	public int TotalFrame { get; private set; }
+	public bool IsSelfControlMode { get; private set; }
+	public GameData GameData { get; private set; }
+	public CustomStats CustomStats { get; private set; }
+
+	#endregion
+
+
+	/// <summary>
+	/// normally this is managed by Replay class
+	/// </summary>
+	/// <param name="events">events by IReplayData.GetReplayEvents</param>
+	/// <param name="gametype">for blitz, others will be ignored</param>
+	/// <exception cref="NotImplementedException"></exception>
+	/// <exception cref="Exception"></exception>
 	public Environment(IReadOnlyList<Event> events, GameType? gametype)
 	{
+		IsSelfControlMode = false;
 		_manager = this;
 		_events = events;
 
@@ -67,9 +85,13 @@ public class Environment
 		Username = _eventFull.options.username;
 	}
 
-	//for self environment
+	/// <summary>
+	/// for self control 
+	/// </summary>
+	/// <param name="fullData"></param>
 	public Environment(EventFullData fullData)
 	{
+		IsSelfControlMode = true;
 		TotalFrame = -1;
 		_manager = this;
 		_eventFull = fullData;
@@ -120,6 +142,11 @@ public class Environment
 			SafeLock = fullData.options.handling.safelock == true ? 1 : 0,
 		});
 
+#if DEBUG
+		if (fullData.options?.handling?.arr == null)
+			Debug.WriteLine("options.handling is initialized by default. it is wrong in most case.");
+#endif
+
 		provider = service.BuildServiceProvider();
 	}
 
@@ -155,11 +182,14 @@ public class Environment
 	}
 
 	/// <summary>
-	/// for self environment
+	/// for self control
 	/// </summary>
 	/// <param name="event"></param>
 	public void NextFrame(Queue<Event> events)
 	{
+		if (!IsSelfControlMode)
+			throw new Exception("This NextFrame is for self control, please consider using normal NextFrame.");
+
 		GameData.SubFrame = 0;
 
 		while (events.Count != 0)

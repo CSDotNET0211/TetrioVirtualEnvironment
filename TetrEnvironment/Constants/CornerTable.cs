@@ -1,7 +1,6 @@
-﻿using TetrEnvironment.Constants;
-using TetrEnvironment.Struct;
+﻿using TetrEnvironment.Struct;
 
-namespace TetrioVirtualEnvironment.Constants;
+namespace TetrEnvironment.Constants;
 
 public class CornerTable
 {

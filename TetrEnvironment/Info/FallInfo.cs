@@ -1,5 +1,4 @@
 ﻿using TetrEnvironment.Constants;
-using TetrioVirtualEnvironment.Constants;
 using TetrLoader.Enum;
 
 namespace TetrEnvironment.Info;
