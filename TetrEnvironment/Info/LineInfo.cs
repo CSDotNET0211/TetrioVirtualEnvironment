@@ -267,7 +267,7 @@ public class LineInfo
 		}
 		else
 		{
-			var combotable = Garbage.ComboTable[(int)_manager.GameData.Options.ComboTable];
+			var combotable = Garbage.COMBO_TABLE[(int)_manager.GameData.Options.ComboTable];
 			garbageValue += combotable[Math.Max(0, Math.Min(_manager.GameData.Stats.Combo - 2, combotable.Length - 1))];
 		}
 

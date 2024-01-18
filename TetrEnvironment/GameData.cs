@@ -26,6 +26,7 @@ public class GameData
 		Hold = Tetromino.MinoType.Empty;
 		HoldLocked = false;
 
+		//next rng
 		var eventFull = provider.GetService<EventFullData>();
 		Rng = new Rng();
 		Rng.Init(eventFull.options.seed);

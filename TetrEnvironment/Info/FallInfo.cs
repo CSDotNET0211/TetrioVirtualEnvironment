@@ -1,4 +1,5 @@
 ﻿using TetrEnvironment.Constants;
+using TetrEnvironment.Constants.Kickset;
 using TetrLoader.Enum;
 
 namespace TetrEnvironment.Info;
@@ -185,12 +186,12 @@ public class FallInfo
 			_manager.GameData.Falling.Type = (Tetromino.MinoType)newMino;
 
 		var type = _manager.GameData.Falling.Type;
-		var offset = Kickset.ADDITIONAL_OFFSETS ?? Kickset.ADDITIONAL_OFFSETS_EMPTY;
+		var offset = _manager.Kickset.ADDITIONAL_OFFSETS ?? _manager.Kickset.ADDITIONAL_OFFSETS_EMPTY;
 		int spawnRotation;
-		if (Kickset.SPAWN_ROTATION == null)
+		if (_manager.Kickset.SPAWN_ROTATION == null)
 			spawnRotation = 0;
 		else
-			spawnRotation = Kickset.SPAWN_ROTATION[(int)type];
+			spawnRotation = _manager.Kickset.SPAWN_ROTATION[(int)type];
 
 		_manager.GameData.Falling.Aox = (int)offset[spawnRotation].x;
 		_manager.GameData.Falling.Aoy = (int)offset[spawnRotation].y;

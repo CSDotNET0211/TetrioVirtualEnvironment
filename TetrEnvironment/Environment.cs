@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using TetrEnvironment.Constants.Kickset;
 using TetrEnvironment.Info;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
@@ -46,6 +47,7 @@ public class Environment
 	public bool IsSelfControlMode { get; private set; }
 	public GameData GameData { get; private set; }
 	public CustomStats CustomStats { get; private set; }
+	internal readonly KicksetBase Kickset;
 
 	#endregion
 
@@ -62,6 +64,8 @@ public class Environment
 		IsSelfControlMode = false;
 		_manager = this;
 		_events = events;
+		//todo:implement it in Options
+		Kickset = new KicksetSRSPlus();
 
 		var eventEnd = (events.First(@event => @event.type == EventType.End) as EventEnd);
 		if (eventEnd != null)

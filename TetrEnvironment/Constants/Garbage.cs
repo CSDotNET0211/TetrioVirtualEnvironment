@@ -25,7 +25,7 @@ public abstract class Garbage
 	public const double COMBO_BONUS = 0.25;
 	public const int ALL_CLEAR = 10;
 
-	public static readonly int[][] ComboTable = new int[][]
+	public static readonly int[][] COMBO_TABLE = new int[][]
 	{
 		new int[] { 0 },
 		new int[] { 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 },

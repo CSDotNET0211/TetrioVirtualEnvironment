@@ -1,4 +1,5 @@
 ﻿using TetrEnvironment.Constants;
+using TetrEnvironment.Constants.Kickset;
 using TetrLoader.Enum;
 using TetrLoader.JsonClass.Event;
 
@@ -256,10 +257,10 @@ public class HandleInfo
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.O)
 			return;
 	
-		var kicktable = Kickset.SRSPLUS[currentNewRotation];
+		var kicktable = _manager.Kickset.KICKSET_TABLE[currentNewRotation];
 
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.I)
-			kicktable = Kickset.SRSPLUS_I[currentNewRotation];
+			kicktable = _manager.Kickset.KICKSET_TABLE_I[currentNewRotation];
 
 		for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 		{
