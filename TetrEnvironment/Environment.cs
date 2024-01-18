@@ -40,11 +40,16 @@ public class Environment
 		set => _manager.FrameInfo.CurrentFrame = value;
 	}
 
-	public Environment(IReadOnlyList<Event> events, GameType? gametype, int totalFrame)
+	public Environment(IReadOnlyList<Event> events, GameType? gametype)
 	{
 		_manager = this;
 		_events = events;
-		TotalFrame = totalFrame;
+
+		var eventEnd = (events.First(@event => @event.type == EventType.End) as EventEnd);
+		if (eventEnd != null)
+			TotalFrame = (int)eventEnd.frame;
+		else //TODO: EventExit instead of EventEnd?
+			throw new NotImplementedException();
 
 		try
 		{

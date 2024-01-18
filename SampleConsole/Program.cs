@@ -66,7 +66,7 @@ using (StreamReader reader = new StreamReader(input))
 }
 
 
-void PrintBoard(List<Environment> environments, bool clearConsole)
+void PrintBoard(List<Environment> environments, bool clearConsole, bool detail = false)
 {
 	if (clearConsole)
 		Console.Clear();
@@ -80,36 +80,39 @@ void PrintBoard(List<Environment> environments, bool clearConsole)
 
 		//output += "Player" + (playerIndex + 1) + "\r\n";
 		output += "Player:" + environments[playerIndex].Username + "\r\n";
-
 		output += "CurrentFrame:";
 		output += environments[playerIndex].CurrentFrame + "\r\n";
 
-		for (int i = 0; i < environments[playerIndex].PressingKeys.Length; i++)
+		if (detail)
 		{
-			output += ((KeyType)i).ToString() + ":" + (environments[playerIndex].PressingKeys[i] ? "1" : "0");
-			output += " ";
+			for (int i = 0; i < environments[playerIndex].PressingKeys.Length; i++)
+			{
+				output += ((KeyType)i).ToString() + ":" + (environments[playerIndex].PressingKeys[i] ? "1" : "0");
+				output += " ";
+			}
+
+			output += "\r\n";
+			output += "Garbage ";
+			foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
+			{
+				output += garbage.id + " " + garbage.amt + " " + garbage.status.ToString() + " " + garbage.active +
+				          " / ";
+			}
+
+			output += "\r\n";
+			output += "WaitingFrames  ";
+			foreach (var waitingframe in environments[playerIndex].GameData.WaitingFrames)
+			{
+				output += waitingframe.target + " " + waitingframe.type.ToString() + " / ";
+			}
+
+			output += "\r\n";
+
+			output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";
+			output += "DeepSleep:" + (environments[playerIndex].GameData.Falling.DeepSleep ? "1" : "0") + "\r\n";
+			output += "Level:" + (environments[playerIndex].GameData.Stats.Level) + "\r\n";
+			output += "LevelLinesNeeded:" + (environments[playerIndex].GameData.Stats.LevelLinesNeeded) + "\r\n";
 		}
-
-		output += "\r\n";
-		output += "Garbage ";
-		foreach (var garbage in environments[playerIndex].GameData.ImpendingDamage)
-		{
-			output += garbage.id + " " + garbage.amt + " " + garbage.status.ToString() + " " + garbage.active + " / ";
-		}
-
-		output += "\r\n";
-		output += "WaitingFrames  ";
-		foreach (var waitingframe in environments[playerIndex].GameData.WaitingFrames)
-		{
-			output += waitingframe.target + " " + waitingframe.type.ToString() + " / ";
-		}
-
-		output += "\r\n";
-
-		output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";
-		output += "DeepSleep:" + (environments[playerIndex].GameData.Falling.DeepSleep ? "1" : "0") + "\r\n";
-		output += "Level:" + (environments[playerIndex].GameData.Stats.Level) + "\r\n";
-		output += "LevelLinesNeeded:" + (environments[playerIndex].GameData.Stats.LevelLinesNeeded) + "\r\n";
 
 		foreach (var next in environments[playerIndex].GameData.Bag)
 		{

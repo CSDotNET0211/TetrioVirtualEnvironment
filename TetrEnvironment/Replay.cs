@@ -16,7 +16,6 @@ public class Replay
 
 	public readonly IReplayData ReplayData;
 
-	//TODO: プロパティ使ってフレーム取得
 	public List<Environment> Environments { get; private set; }
 	public string[] Usernames { get; private set; }
 	public int TotalFrame { get; private set; }
@@ -43,7 +42,7 @@ public class Replay
 			var events = ReplayData.GetReplayEvents(Usernames[playerIndex], gameIndex);
 			(ReplayData as ReplayDataTTRM)?.ProcessReplayData((ReplayData as ReplayDataTTRM), events);
 			Environments.Add(
-				new Environment(events, ReplayData.GetGameType(), ReplayData.GetGameTotalFrames(gameIndex)));
+				new Environment(events, ReplayData.GetGameType()));
 		}
 
 		LoadedIndex = gameIndex;
@@ -79,14 +78,15 @@ public class Replay
 
 	public bool NextFrame()
 	{
-		bool finishFlag = false;
+		int endEnvCount = 0;
+
 		foreach (var environment in Environments)
 		{
 			if (!environment.NextFrame())
-				finishFlag = true;
+				endEnvCount++;
 		}
 
-		if (finishFlag)
+		if (endEnvCount == Environments.Count)
 		{
 			ReplayStatus = ReplayStatusEnum.End;
 			return false;
