@@ -59,7 +59,7 @@ public class Environment
 	/// <param name="gametype">for blitz, others will be ignored</param>
 	/// <exception cref="NotImplementedException"></exception>
 	/// <exception cref="Exception"></exception>
-	public Environment(IReadOnlyList<Event> events, GameType? gametype)
+	public Environment(IReadOnlyList<Event>? events, GameType? gametype)
 	{
 		IsSelfControlMode = false;
 		_manager = this;
@@ -67,11 +67,11 @@ public class Environment
 		//todo:implement it in Options
 		Kickset = new KicksetSRSPlus();
 
-		var eventEnd = (events.First(@event => @event.type == EventType.End) as EventEnd);
-		if (eventEnd != null)
+		if (events != null &&
+		    events.FirstOrDefault(@event => @event.type == EventType.End) is EventEnd eventEnd)
 			TotalFrame = (int)eventEnd.frame;
 		else //TODO: EventExit instead of EventEnd?
-			throw new NotImplementedException();
+			throw new Exception("no end event detected!");
 
 		try
 		{
