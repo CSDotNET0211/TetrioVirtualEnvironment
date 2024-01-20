@@ -51,50 +51,50 @@ public class Options
 
 	public bool ClipListenIDs { get; internal set; }
 
-	public Options(EventFullData fullData)
+	public Options(EventFullOptionsData fullOptionsData)
 	{
-		Levels = fullData.options.levels ?? false;
-		GBase = fullData.options.gbase ?? 0.65;
-		GSpeed = fullData.options.gspeed ?? 0.007;
-		LevelSpeed = fullData.options.levelspeed ?? 0.42;
-		MasterLevels = fullData.options.masterlevels ?? false;
+		Levels = fullOptionsData.levels ?? false;
+		GBase = fullOptionsData.gbase ?? 0.65;
+		GSpeed = fullOptionsData.gspeed ?? 0.007;
+		LevelSpeed = fullOptionsData.levelspeed ?? 0.42;
+		MasterLevels = fullOptionsData.masterlevels ?? false;
 
-		Version = fullData.options.version;
-		GravityIncrease = fullData.options.gincrease ?? 0;
-		GravityMargin = fullData.options.gmargin ?? 0;
-		Gravity = fullData.options.g ?? 0;
-		GarbageIncrease = fullData.options.garbageincrease ?? 0;
-		GarbageMargin = fullData.options.garbagemargin ?? 0;
-		GarbageMultiplier = fullData.options.garbagemultiplier ?? 1;
-		GarbageCapIncrease = fullData.options.garbagecapincrease ?? 0;
-		GarbageCap = fullData.options.garbagecap ?? 8;
-		InfiniteMovement = fullData.options.infinitemovement ?? false;
-		InfiniteHold = fullData.options.infinitehold ?? false;
-		LockResets = fullData.options.lockresets ?? 15;
-		Allow180 = fullData.options.allow180 ?? true;
-		AllowHardDrop = fullData.options.allow_harddrop ?? true;
-		DisplayHold = fullData.options.display_hold ?? true;
-		LockTime = fullData.options.locktime ?? 30;
-		SpinBonuses = fullData.options.spinbonuses ?? SpinBonusesType.TSpins;
-		ComboTable = fullData.options.combotable ?? ComboTableType.Multiplier;
-		BTBChaining = fullData.options.btbchaining ?? true;
-		GarbageTargetBonus = fullData.options.garbagetargetbonus ?? GarbageTargetBonusType.None;
-		GarbageAttackCap = fullData.options.garbageattackcap ?? false;
-		GarbageBlocking = fullData.options.garbageblocking ?? GarbageBlockingType.ComboBlocking;
-		Passthrough = fullData.options.passthrough ?? PassthroughType.Limited;
-		GarbageSpeed = fullData.options.garbagespeed ?? 20;
-		BagType = fullData.options.bagtype ?? BagType.Bag7;
-		GarbagePhase = (fullData.options.garbagephase as int?) ?? 0;
-		GarbageQueue = fullData.options.garbagequeue ?? false;
-		GarbageHoleSize = fullData.options.garbageholesize ?? 1;
-		AllClears = fullData.options.allclears ?? true;
-		LineClearAre = fullData.options.lineclear_are ?? 0;
-		Are = fullData.options.are ?? 0;
-		GarbageEntry = fullData.options.garbageentry ?? GarbageEntryType.Instant;
-		GarbageAre = (int)(Math.Max(1, fullData.options.garbageare ?? 5));
-		Shielded = fullData.options.shielded ?? false;
-		HasGarbage = fullData.options.hasgarbage ?? true;
-		GarbageCapMax = fullData.options.garbagecapmax ?? 40;
+		Version = fullOptionsData.version;
+		GravityIncrease = fullOptionsData.gincrease ?? 0;
+		GravityMargin = fullOptionsData.gmargin ?? 0;
+		Gravity = fullOptionsData.g ?? 0;
+		GarbageIncrease = fullOptionsData.garbageincrease ?? 0;
+		GarbageMargin = fullOptionsData.garbagemargin ?? 0;
+		GarbageMultiplier = fullOptionsData.garbagemultiplier ?? 1;
+		GarbageCapIncrease = fullOptionsData.garbagecapincrease ?? 0;
+		GarbageCap = fullOptionsData.garbagecap ?? 8;
+		InfiniteMovement = fullOptionsData.infinitemovement ?? false;
+		InfiniteHold = fullOptionsData.infinitehold ?? false;
+		LockResets = fullOptionsData.lockresets ?? 15;
+		Allow180 = fullOptionsData.allow180 ?? true;
+		AllowHardDrop = fullOptionsData.allow_harddrop ?? true;
+		DisplayHold = fullOptionsData.display_hold ?? true;
+		LockTime = fullOptionsData.locktime ?? 30;
+		SpinBonuses = fullOptionsData.spinbonuses ?? SpinBonusesType.TSpins;
+		ComboTable = fullOptionsData.combotable ?? ComboTableType.Multiplier;
+		BTBChaining = fullOptionsData.btbchaining ?? true;
+		GarbageTargetBonus = fullOptionsData.garbagetargetbonus ?? GarbageTargetBonusType.None;
+		GarbageAttackCap = fullOptionsData.garbageattackcap ?? false;
+		GarbageBlocking = fullOptionsData.garbageblocking ?? GarbageBlockingType.ComboBlocking;
+		Passthrough = fullOptionsData.passthrough ?? PassthroughType.Limited;
+		GarbageSpeed = fullOptionsData.garbagespeed ?? 20;
+		BagType = fullOptionsData.bagtype ?? BagType.Bag7;
+		GarbagePhase = (fullOptionsData.garbagephase as int?) ?? 0;
+		GarbageQueue = fullOptionsData.garbagequeue ?? false;
+		GarbageHoleSize = fullOptionsData.garbageholesize ?? 1;
+		AllClears = fullOptionsData.allclears ?? true;
+		LineClearAre = fullOptionsData.lineclear_are ?? 0;
+		Are = fullOptionsData.are ?? 0;
+		GarbageEntry = fullOptionsData.garbageentry ?? GarbageEntryType.Instant;
+		GarbageAre = (int)(Math.Max(1, fullOptionsData.garbageare ?? 5));
+		Shielded = fullOptionsData.shielded ?? false;
+		HasGarbage = fullOptionsData.hasgarbage ?? true;
+		GarbageCapMax = fullOptionsData.garbagecapmax ?? 40;
 		ClipListenIDs = true;
 	}
 }

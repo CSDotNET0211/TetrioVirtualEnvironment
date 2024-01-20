@@ -153,7 +153,7 @@ public class FallInfo
 		_manager.GameData.Stats.PiecesPlaced++;
 
 		if (!emptyDrop && _manager.GameData.Handling.SafeLock != 0)
-			_manager.GameData.Handling.SafeLock = 7;
+			_manager.GameData.Falling.SafeLock = 7;
 
 		var lines = _manager.LineInfo.ClearLines();
 		var are = lines != 0 ? _manager.GameData.Options.LineClearAre : _manager.GameData.Options.Are;

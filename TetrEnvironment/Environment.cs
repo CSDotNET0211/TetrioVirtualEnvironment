@@ -9,6 +9,17 @@ namespace TetrEnvironment;
 
 public class Environment
 {
+	#region Enum
+
+	public enum GameModeEnum
+	{
+		SelfControl,
+		Normal,
+		EventBased
+	}
+
+	#endregion
+
 	#region Infos
 
 	public GarbageInfo GarbageInfo { get; private set; }
@@ -29,7 +40,7 @@ public class Environment
 	private readonly GameType? _gameType;
 	private readonly Environment _manager;
 	private ServiceProvider _provider;
-	private readonly EventFullData _eventFull;
+	private readonly EventFullOptionsData _eventFullOptions;
 
 	#endregion
 
@@ -44,10 +55,10 @@ public class Environment
 	public string? Username { get; private set; }
 	public bool[] PressingKeys { get; private set; }
 	public int TotalFrame { get; private set; }
-	public bool IsSelfControlMode { get; private set; }
+	public readonly GameModeEnum GameMode;
 	public GameData GameData { get; private set; }
 	public CustomStats CustomStats { get; private set; }
-	internal readonly KicksetBase Kickset;
+	public KicksetBase Kickset { get; private set; }
 
 	#endregion
 
@@ -61,11 +72,9 @@ public class Environment
 	/// <exception cref="Exception"></exception>
 	public Environment(IReadOnlyList<Event>? events, GameType? gametype)
 	{
-		IsSelfControlMode = false;
+		GameMode = GameModeEnum.Normal;
 		_manager = this;
 		_events = events;
-		//todo:implement it in Options
-		Kickset = new KicksetSRSPlus();
 
 		if (events != null &&
 		    events.FirstOrDefault(@event => @event.type == EventType.End) is EventEnd eventEnd)
@@ -75,31 +84,37 @@ public class Environment
 
 		try
 		{
-			_eventFull = (events.First(@event => @event.type == EventType.Full) as EventFull).data;
+			_eventFullOptions = (events.First(@event => @event.type == EventType.Full) as EventFull).data.options;
 		}
 		catch (Exception e)
 		{
 			throw new Exception(
-				"some of games in this replay has no FULL event! it will be ignored in TETR.IO. please consider to remove spetific game.");
+				"some of games in this replay has no Full event! it will be ignored in TETR.IO. please consider to remove spetific game.");
 		}
 
 		_gameType = gametype;
 		Reset();
 
-		Username = _eventFull.options.username;
+		Username = _eventFullOptions.username;
 	}
 
 	/// <summary>
 	/// for self control 
 	/// </summary>
-	/// <param name="fullData"></param>
-	public Environment(EventFullData fullData)
+	/// <param name="fullOptionsData"></param>
+	public Environment(EventFullOptionsData fullOptionsData)
 	{
-		IsSelfControlMode = true;
+		GameMode = GameModeEnum.SelfControl;
 		TotalFrame = -1;
 		_manager = this;
-		_eventFull = fullData;
+		_eventFullOptions = fullOptionsData;
 		Reset();
+	}
+
+	public Environment(EventFullOptions options)
+	{
+		GameMode = GameModeEnum.EventBased;
+		_manager = this;
 	}
 
 	private void SolveWithDI(ServiceProvider provider)
@@ -116,7 +131,7 @@ public class Environment
 		LineInfo = provider.GetService<LineInfo>() ?? throw new InvalidOperationException();
 	}
 
-	private void InitDI(EventFullData fullData, ref ServiceProvider provider)
+	private void InitDI(EventFullOptionsData fullDataOptions, ref ServiceProvider provider)
 	{
 		ServiceCollection service = new ServiceCollection();
 		service.AddSingleton<BagInfo>();
@@ -134,29 +149,37 @@ public class Environment
 		service.AddSingleton<Options>();
 		service.AddSingleton<Stats>();
 		service.AddSingleton<LineInfo>();
-		service.AddSingleton<EventFullData>(fullData);
+		service.AddSingleton<EventFullOptionsData>(fullDataOptions);
 		service.AddSingleton<Environment>(this);
 		service.AddSingleton<Handling>(new Handling()
 		{
-			ARR = fullData.options.handling.arr ?? 5,
-			DAS = fullData.options.handling.das ?? 12,
-			SDF = fullData.options.handling.sdf ?? 20,
-			DCD = fullData.options.handling.dcd ?? 20,
-			Cancel = fullData.options.handling.cancel ?? false,
-			SafeLock = fullData.options.handling.safelock == true ? 1 : 0,
+			ARR = fullDataOptions.handling.arr ?? 5,
+			DAS = fullDataOptions.handling.das ?? 12,
+			SDF = fullDataOptions.handling.sdf ?? 20,
+			DCD = fullDataOptions.handling.dcd ?? 20,
+			Cancel = fullDataOptions.handling.cancel ?? false,
+			SafeLock = fullDataOptions.handling.safelock == true ? 1 : 0,
 		});
 
 #if DEBUG
-		if (fullData.options?.handling?.arr == null)
+		if (fullDataOptions.handling?.arr == null)
 			Debug.WriteLine("options.handling is initialized by default. it is wrong in most case.");
 #endif
 
 		provider = service.BuildServiceProvider();
 	}
 
-
+	/// <summary>
+	/// for normal
+	/// </summary>
+	/// <returns></returns>
+	/// <exception cref="Exception"></exception>
 	public bool NextFrame()
 	{
+		if (GameMode != GameModeEnum.Normal)
+			throw new Exception("This NextFrame function is for normal.");
+
+
 		if (_manager.FrameInfo.CurrentFrame > TotalFrame)
 			return false;
 
@@ -164,35 +187,19 @@ public class Environment
 		_manager.FrameInfo.PullEvents(_events);
 		CurrentFrame++;
 
-		_manager.HandleInfo.ProcessShift(false, 1 - GameData.SubFrame);
-		_manager.FallInfo.FallEvent(null, 1 - GameData.SubFrame);
-		_manager.WaitingFrameInfo.ExcuteWaitingFrames();
-
-		//unsafe waiting
-
-		if (_manager.GameData.Options.GravityIncrease > 0 &&
-		    CurrentFrame > _manager.GameData.Options.GravityMargin)
-			_manager.GameData.Gravity += _manager.GameData.Options.GravityIncrease / 60;
-
-		if (_manager.GameData.Options.GarbageIncrease > 0 &&
-		    CurrentFrame > _manager.GameData.Options.GarbageMargin)
-			_manager.GameData.Options.GarbageMultiplier += _manager.GameData.Options.GarbageIncrease / 60;
-
-		if (_manager.GameData.Options.GarbageCapIncrease > 0)
-			_manager.GameData.Options.GarbageCap += _manager.GameData.Options.GarbageCapIncrease / 60;
-
+		InternalNextFrame();
 
 		return true;
 	}
 
 	/// <summary>
-	/// for self control
+	/// for self control or event-based
 	/// </summary>
 	/// <param name="event"></param>
 	public void NextFrame(Queue<Event> events)
 	{
-		if (!IsSelfControlMode)
-			throw new Exception("This NextFrame is for self control, please consider using normal NextFrame.");
+		if (GameMode is GameModeEnum.EventBased or GameModeEnum.SelfControl)
+			throw new Exception("This NextFrame function is for self control　or event-based.");
 
 		GameData.SubFrame = 0;
 
@@ -203,7 +210,12 @@ public class Environment
 		}
 
 		CurrentFrame++;
+		InternalNextFrame();
+	}
 
+
+	private void InternalNextFrame()
+	{
 		_manager.HandleInfo.ProcessShift(false, 1 - GameData.SubFrame);
 		_manager.FallInfo.FallEvent(null, 1 - GameData.SubFrame);
 		_manager.WaitingFrameInfo.ExcuteWaitingFrames();
@@ -220,10 +232,10 @@ public class Environment
 			_manager.GameData.Options.GarbageCap += _manager.GameData.Options.GarbageCapIncrease / 60;
 	}
 
-
 	public void Reset()
 	{
-		InitDI(_eventFull, ref _provider);
+		Kickset = new KicksetSRSPlus();
+		InitDI(_eventFullOptions, ref _provider);
 		SolveWithDI(_provider);
 		GameData = new GameData();
 		GameData.Initialize(_provider, _gameType);
