@@ -14,11 +14,11 @@ public class HandleInfo
 		_manager = manager;
 	}
 
-	public void KeyDown(EventKeyInputData @event)	
+	public void KeyDown(EventKeyInputData @event)
 	{
 		if ((int)@event.key < 8)
 			_manager.PressingKeys[(int)@event.key] = true;
-		
+
 		if (@event.subframe > _manager.GameData.SubFrame)
 		{
 			_manager.HandleInfo.ProcessShift(false, @event.subframe - _manager.GameData.SubFrame);
@@ -140,7 +140,7 @@ public class HandleInfo
 	{
 		if ((int)@event.key < 8)
 			_manager.PressingKeys[(int)@event.key] = false;
-		
+
 		if (@event.subframe > _manager.GameData.SubFrame)
 		{
 			_manager.HandleInfo.ProcessShift(false, @event.subframe - _manager.GameData.SubFrame);
@@ -256,11 +256,12 @@ public class HandleInfo
 
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.O)
 			return;
-	
-		var kicktable = _manager.Kickset.KICKSET_TABLE[currentNewRotation];
 
+		var kicktable = _manager.Kickset.KICKSET_TABLE[currentNewRotation];
 		if (_manager.GameData.Falling.Type == Constants.Tetromino.MinoType.I)
 			kicktable = _manager.Kickset.KICKSET_TABLE_I[currentNewRotation];
+
+		//if(_manager.GameData.Options.Version<17&&_manager.GameData.Options.kickset=="ARS")
 
 		for (var kicktableIndex = 0; kicktableIndex < kicktable.Length; kicktableIndex++)
 		{
@@ -351,6 +352,9 @@ public class HandleInfo
 				_manager.GameData.Falling.Last = Falling.LastKind.Move;
 				_manager.GameData.Falling.Clamped = false;
 
+				if (_manager.GameData.Options.Version >= 17 && _manager.FallInfo.Is20G())
+					_manager.FallInfo.SlamToFloor();
+
 				if (++_manager.GameData.Falling.LockResets < 15 || _manager.GameData.Options.InfiniteMovement)
 					_manager.GameData.Falling.Locking = 0;
 			}
@@ -404,6 +408,9 @@ public class HandleInfo
 				_manager.GameData.Falling.Last = Falling.LastKind.Move;
 				_manager.GameData.Falling.Clamped = false;
 
+				if (_manager.GameData.Options.Version >= 17 && _manager.FallInfo.Is20G())
+					_manager.FallInfo.SlamToFloor();
+				
 				if (++_manager.GameData.Falling.LockResets < 15 || _manager.GameData.Options.InfiniteMovement)
 					_manager.GameData.Falling.Locking = 0;
 			}

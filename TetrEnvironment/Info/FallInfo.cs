@@ -235,15 +235,23 @@ public class FallInfo
 
 		if (_manager.GameData.Falling.Ihs)
 		{
+			//TODO: t.setoptions.display_hold && !t.setoptions.display_hold
+			_manager.GameData.Falling.Ihs = false;
 			if (!_manager.GameData.HoldLocked)
 				SwapHold();
 		}
 
 		if (_manager.GameData.Falling.Irs != 0)
-			_manager.HandleInfo.RotatePiece((spawnRotation + _manager.GameData.Falling.Irs) % 14);
+		{
+			_manager.HandleInfo.RotatePiece((spawnRotation + _manager.GameData.Falling.Irs) % 4);
+			_manager.GameData.Falling.Irs = 0;
+		}
 
-		_manager.GameData.Falling.Irs = 0;
-		_manager.GameData.Falling.Ihs = false;
+		if (_manager.GameData.Options.Version >= 17)
+		{
+			if (Is20G())
+				SlamToFloor();
+		}
 	}
 
 	public void SwapHold()
@@ -339,5 +347,27 @@ public class FallInfo
 			spinType = Falling.SpinTypeKind.Normal;
 
 		return spinType;
+	}
+
+	public bool Is20G()
+	{
+		if (_manager.GameData.Options.Version < 17)
+			throw new Exception(
+				"The 20G check should not be called before TETR.IO engine version 17.");
+
+		var boardHeight = _manager.GameData.Options.BoardHeight;
+		if (_manager.GameData.SoftDrop)
+			return _manager.GameData.Handling.SDF == 41 ||
+			       _manager.GameData.Gravity * _manager.GameData.Handling.SDF >= boardHeight;
+		else
+			return _manager.GameData.Gravity >= boardHeight;
+	}
+
+	public void SlamToFloor()
+	{
+		var tempGravity = _manager.GameData.Gravity;
+		_manager.GameData.Gravity = int.MaxValue;
+		FallEvent(null, 1);
+		_manager.GameData.Gravity = tempGravity;
 	}
 }

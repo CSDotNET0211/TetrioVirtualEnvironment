@@ -48,7 +48,7 @@ public class Options
 	public bool Shielded { get; internal set; }
 	public bool HasGarbage { get; internal set; }
 	public int GarbageCapMax { get; internal set; }
-
+	public int BoardHeight { get; internal set; }
 	public bool ClipListenIDs { get; internal set; }
 
 	public Options(EventFullOptionsData fullOptionsData)
@@ -58,7 +58,7 @@ public class Options
 		GSpeed = fullOptionsData.gspeed ?? 0.007;
 		LevelSpeed = fullOptionsData.levelspeed ?? 0.42;
 		MasterLevels = fullOptionsData.masterlevels ?? false;
-
+		BoardHeight = fullOptionsData.boardheight ?? 20;
 		Version = fullOptionsData.version;
 		GravityIncrease = fullOptionsData.gincrease ?? 0;
 		GravityMargin = fullOptionsData.gmargin ?? 0;
