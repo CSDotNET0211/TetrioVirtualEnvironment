@@ -5,17 +5,20 @@ namespace TetrEnvironment;
 public class Rng
 {
 	private double _t;
+	public double Seed { get; private set; }
 
 	public Rng()
 	{
 	}
-	
+
 	public void Init(double seed)
 	{
+		Seed = seed;
 		_t = seed % 2147483647;
 		if (_t <= 0)
 			_t += 2147483646;
 	}
+
 	public double Next()
 	{
 		_t = 16807 * _t % 2147483647;
@@ -39,7 +42,7 @@ public class Rng
 			(array[length], array[swapIndex]) = (array[swapIndex], array[length]);
 		}
 	}
-	
+
 	public void ShuffleArray(List<Tetromino.MinoType> list)
 	{
 		int length = list.Count;

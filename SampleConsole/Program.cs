@@ -33,7 +33,7 @@ using (StreamReader reader = new StreamReader(input))
 {
 	string content = reader.ReadToEnd();
 	var replayData =
-		ReplayLoader.ParseReplay(content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
+		ReplayLoader.ParseReplay(ref content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
 	Replay replay = new Replay(replayData);
 
 	while (true)

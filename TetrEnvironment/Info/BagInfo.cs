@@ -6,17 +6,19 @@ namespace TetrEnvironment.Info;
 public class BagInfo
 {
 	private Environment _manager;
+	public int PulledCount { get; private set; }
 
 	public BagInfo(Environment manager)
 	{
 		_manager = manager;
+		PulledCount = 0;
 	}
 
 	public Tetromino.MinoType PullFromBag()
 	{
 		for (; _manager.GameData.Bag.Count < 14;)
 			PopulateBag();
-
+		PulledCount++;
 
 		return _manager.GameData.Bag.Dequeue();
 	}
@@ -52,7 +54,7 @@ public class BagInfo
 			case BagType.Pairs:
 				var minos = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
 				_manager.GameData.Rng.ShuffleArray(minos);
-				var array = new Tetromino.MinoType[6];	
+				var array = new Tetromino.MinoType[6];
 				array[0] = minos[0];
 				array[1] = minos[0];
 				array[2] = minos[0];

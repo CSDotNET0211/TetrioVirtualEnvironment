@@ -40,7 +40,17 @@ public class Environment
 	private readonly GameType? _gameType;
 	private readonly Environment _manager;
 	private ServiceProvider _provider;
+	private readonly CustomInjection _customInjection;
+
+	/// <summary>
+	/// Game settings
+	/// </summary>
 	private readonly EventFullOptionsData _eventFullOptions;
+
+	/// <summary>
+	/// Game start value
+	/// </summary>
+	private readonly EventFullGameData _eventFullGame;
 
 	#endregion
 
@@ -59,6 +69,7 @@ public class Environment
 	public GameData GameData { get; private set; }
 	public CustomStats CustomStats { get; private set; }
 	public KicksetBase Kickset { get; private set; }
+	public bool IsDead { get; internal set; }
 
 	#endregion
 
@@ -70,7 +81,7 @@ public class Environment
 	/// <param name="gametype">for blitz, others will be ignored</param>
 	/// <exception cref="NotImplementedException"></exception>
 	/// <exception cref="Exception"></exception>
-	public Environment(IReadOnlyList<Event>? events, GameType? gametype)
+	public Environment(IReadOnlyList<Event>? events, GameType? gametype, EventFullGameData? initializeData = null)
 	{
 		GameMode = GameModeEnum.Normal;
 		_manager = this;
@@ -92,7 +103,10 @@ public class Environment
 				"some of games in this replay has no Full event! it will be ignored in TETR.IO. please consider to remove spetific game.");
 		}
 
+		initializeData ??= new EventFullGameData();
+		_eventFullGame = initializeData;
 		_gameType = gametype;
+		_customInjection = new CustomInjection();
 		Reset();
 
 		Username = _eventFullOptions.username;
@@ -102,22 +116,33 @@ public class Environment
 	/// for self control 
 	/// </summary>
 	/// <param name="fullOptionsData"></param>
-	public Environment(EventFullOptionsData fullOptionsData)
+	public Environment(EventFullOptionsData fullOptionsData,
+		EventFullGameData? fullGameData = null,
+		CustomInjection? customInjection = null)
 	{
 		GameMode = GameModeEnum.SelfControl;
 		TotalFrame = -1;
 		_manager = this;
 		_eventFullOptions = fullOptionsData;
+		fullGameData ??= new EventFullGameData();
+		_eventFullGame = fullGameData;
+		customInjection ??= new CustomInjection();
+		_customInjection = customInjection;
 		Reset();
+
+		Username = _eventFullOptions.username;
+		GameData.Falling.DeepSleep = false;
+		FallInfo.Next(null);
 	}
 
 	public Environment(EventFullOptions options)
 	{
+		throw new Exception();
 		GameMode = GameModeEnum.EventBased;
 		_manager = this;
 	}
 
-	private void SolveWithDI(ServiceProvider provider)
+	private void SolveFieldWithDI(ServiceProvider provider)
 	{
 		GarbageInfo = provider.GetService<GarbageInfo>() ?? throw new InvalidOperationException();
 		HandleInfo = provider.GetService<HandleInfo>() ?? throw new InvalidOperationException();
@@ -131,7 +156,10 @@ public class Environment
 		LineInfo = provider.GetService<LineInfo>() ?? throw new InvalidOperationException();
 	}
 
-	private void InitDI(EventFullOptionsData fullDataOptions, ref ServiceProvider provider)
+	private void InitDI(EventFullOptionsData fullDataOptions,
+		EventFullGameData fullDataGame,
+		CustomInjection customInjection,
+		ref ServiceProvider provider)
 	{
 		ServiceCollection service = new ServiceCollection();
 		service.AddSingleton<BagInfo>();
@@ -147,9 +175,11 @@ public class Environment
 		service.AddSingleton<WaitingFrameInfo>();
 		service.AddSingleton<CustomStats>();
 		service.AddSingleton<Options>();
+		service.AddSingleton<CustomInjection>(customInjection);
 		service.AddSingleton<Stats>();
 		service.AddSingleton<LineInfo>();
 		service.AddSingleton<EventFullOptionsData>(fullDataOptions);
+		service.AddSingleton<EventFullGameData>(fullDataGame);
 		service.AddSingleton<Environment>(this);
 		service.AddSingleton<Handling>(new Handling()
 		{
@@ -195,15 +225,15 @@ public class Environment
 	/// <summary>
 	/// for self control or event-based
 	/// </summary>
-	/// <param name="event"></param>
-	public void NextFrame(Queue<Event> events)
+	/// <param name="events"></param>
+	public void NextFrame(Queue<Event>? events)
 	{
-		if (GameMode is GameModeEnum.EventBased or GameModeEnum.SelfControl)
+		if (GameMode != GameModeEnum.SelfControl)
 			throw new Exception("This NextFrame function is for self control　or event-based.");
 
 		GameData.SubFrame = 0;
 
-		while (events.Count != 0)
+		while (events != null && events.Count != 0)
 		{
 			var @event = events.Dequeue();
 			_manager.FrameInfo.PullEvent(@event);
@@ -232,11 +262,16 @@ public class Environment
 			_manager.GameData.Options.GarbageCap += _manager.GameData.Options.GarbageCapIncrease / 60;
 	}
 
+	public void Initialize()
+	{
+	}
+
 	public void Reset()
 	{
+		IsDead = false;
 		Kickset = new KicksetSRSPlus();
-		InitDI(_eventFullOptions, ref _provider);
-		SolveWithDI(_provider);
+		InitDI(_eventFullOptions, _eventFullGame, _customInjection, ref _provider);
+		SolveFieldWithDI(_provider);
 		GameData = new GameData();
 		GameData.Initialize(_provider, _gameType);
 		PressingKeys = new bool[8];

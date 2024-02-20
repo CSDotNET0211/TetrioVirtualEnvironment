@@ -14,29 +14,61 @@ public class GameData
 	{
 	}
 
-	public void Initialize(ServiceProvider provider,GameType? gametype)
+	public void Initialize(ServiceProvider provider, GameType? gametype)
 	{
 		Options = provider.GetService<Options>();
 		Handling = provider.GetService<Handling>();
 		SubFrame = 0;
 		WaitingFrames = new List<WaitingFrameData>();
 		Gravity = Options.Gravity;
-		provider.GetService<BoardInfo>().SetupBoard(out _board);
+		var boardInfo = provider.GetService<BoardInfo>();
+		boardInfo.SetupBoard(out _board);
+		var eventFullGame = provider.GetService<EventFullGameData>();
+
+		if (eventFullGame?.board != null)
+			for (int y = 0; y < boardInfo.Height; y++)
+			{
+				for (int x = 0; x < boardInfo.Width; x++)
+				{
+					_board[x + y * boardInfo.Width] = ParseString(eventFullGame.board[y][x]);
+				}
+			}
+
 		Bag = new Queue<Tetromino.MinoType>();
-		Hold = Tetromino.MinoType.Empty;
-		HoldLocked = false;
+		Hold = eventFullGame.hold != null && eventFullGame.hold.piece != null
+			? ParseString(eventFullGame.hold.piece)
+			: Tetromino.MinoType.Empty;
+
+		HoldLocked = eventFullGame.hold != null && eventFullGame.hold.locked != null
+			? (bool)eventFullGame.hold.locked
+			: false;
+
 
 		//next rng
-		var eventFullData = provider.GetService<EventFullOptionsData>();
+		var eventFullOptions = provider.GetService<EventFullOptionsData>();
 		Rng = new Rng();
-		Rng.Init(eventFullData.seed);
+		Rng.Init((double)eventFullOptions.seed);
 		provider.GetService<Environment>().BagInfo.PopulateBag();
-		if (eventFullData.no_szo == true && Bag.Count != 0)
+		if (eventFullOptions.no_szo == true && Bag.Count != 0)
 		{
 			for (int i = 0;
-			     i < Bag.Count && (Bag.Peek() is Tetromino.MinoType.S or Tetromino.MinoType.Z or Tetromino.MinoType.O);
-			     i++)
+				 i < Bag.Count && (Bag.Peek() is Tetromino.MinoType.S or Tetromino.MinoType.Z or Tetromino.MinoType.O);
+				 i++)
 				Bag.Enqueue(Bag.Dequeue());
+		}
+
+		var piecePulledCount = provider.GetService<CustomInjection>().PiecePulledCount;
+		for (int i = 0; i < piecePulledCount; i++)
+			provider.GetService<Environment>().BagInfo.PullFromBag();
+
+		if (eventFullGame.piece != null)
+		{
+			var tempBag = new Queue<Tetromino.MinoType>();
+			tempBag.Enqueue(ParseString(eventFullGame.piece));
+			while (Bag.Count > 0)
+				tempBag.Enqueue(Bag.Dequeue());
+
+			Bag = tempBag;
 		}
 
 		LastGenerated = null;
@@ -66,8 +98,34 @@ public class GameData
 		if (gametype == GameType.Blitz)
 		{
 			//TODO: startinglevel
-			provider.GetService<Environment>().LineInfo.LevelLines(0,true,1);
-		
+			provider.GetService<Environment>().LineInfo.LevelLines(0, true, 1);
+		}
+	}
+
+	private Tetromino.MinoType ParseString(string? value)
+	{
+		switch (value?.ToLower())
+		{
+			case "s":
+				return Tetromino.MinoType.S;
+			case "z":
+				return Tetromino.MinoType.Z;
+			case "l":
+				return Tetromino.MinoType.L;
+			case "j":
+				return Tetromino.MinoType.J;
+			case "t":
+				return Tetromino.MinoType.T;
+			case "o":
+				return Tetromino.MinoType.O;
+			case "i":
+				return Tetromino.MinoType.I;
+			case "gb":
+				return Tetromino.MinoType.Garbage;
+
+			default:
+				return Tetromino.MinoType.Empty;
+
 		}
 	}
 
