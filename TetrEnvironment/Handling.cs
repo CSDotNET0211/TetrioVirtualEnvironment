@@ -8,4 +8,5 @@ public class Handling
 	public double SDF { get; internal set; }
 	public double SafeLock { get; internal set; }
 	public bool Cancel { get; internal set; }
+	public bool May20G { get; internal set; }
 }

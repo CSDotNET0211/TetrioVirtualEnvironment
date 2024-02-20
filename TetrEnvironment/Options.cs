@@ -50,16 +50,18 @@ public class Options
 	public int GarbageCapMax { get; internal set; }
 	public int BoardHeight { get; internal set; }
 	public bool ClipListenIDs { get; internal set; }
+	public bool GravityMay20G { get; internal set; }
 
 	public Options(EventFullOptionsData fullOptionsData)
 	{
+		GravityMay20G = fullOptionsData.gravitymay20g ?? true;
 		Levels = fullOptionsData.levels ?? false;
 		GBase = fullOptionsData.gbase ?? 0.65;
 		GSpeed = fullOptionsData.gspeed ?? 0.007;
 		LevelSpeed = fullOptionsData.levelspeed ?? 0.42;
 		MasterLevels = fullOptionsData.masterlevels ?? false;
 		BoardHeight = fullOptionsData.boardheight ?? 20;
-		Version = fullOptionsData.version;
+		Version = (int)fullOptionsData.version;
 		GravityIncrease = fullOptionsData.gincrease ?? 0;
 		GravityMargin = fullOptionsData.gmargin ?? 0;
 		Gravity = fullOptionsData.g ?? 0;

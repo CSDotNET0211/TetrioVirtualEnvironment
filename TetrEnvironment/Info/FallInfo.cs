@@ -230,7 +230,7 @@ public class FallInfo
 			    _manager.GameData.Falling.R))
 		{
 			//dead
-			//	throw new Exception("dead");
+			_manager.IsDead = true;
 		}
 
 		if (_manager.GameData.Falling.Ihs)
@@ -356,11 +356,28 @@ public class FallInfo
 				"The 20G check should not be called before TETR.IO engine version 17.");
 
 		var boardHeight = _manager.GameData.Options.BoardHeight;
+		var gravityIsBiggerEqualBoardHeight = _manager.GameData.Gravity >= boardHeight;
+		var mode20G = !(_manager.GameData.Options.Version >= 18)
+		              || _manager.GameData.Options.GravityMay20G;
+
 		if (_manager.GameData.SoftDrop)
+		{
+			var mode2 = !(_manager.GameData.Options.Version >= 18)
+			            || _manager.GameData.Handling.May20G
+			            || gravityIsBiggerEqualBoardHeight
+			            && mode20G;
+			return (_manager.GameData.Handling.SDF == 41
+			        || _manager.GameData.Gravity * _manager.GameData.Handling.SDF >= boardHeight)
+			       && mode2;
+		}
+
+		return gravityIsBiggerEqualBoardHeight && mode20G;
+
+		/*if (_manager.GameData.SoftDrop)
 			return _manager.GameData.Handling.SDF == 41 ||
 			       _manager.GameData.Gravity * _manager.GameData.Handling.SDF >= boardHeight;
 		else
-			return _manager.GameData.Gravity >= boardHeight;
+			return _manager.GameData.Gravity >= boardHeight;*/
 	}
 
 	public void SlamToFloor()
