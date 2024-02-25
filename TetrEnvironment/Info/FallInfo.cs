@@ -1,4 +1,5 @@
-﻿using TetrEnvironment.Constants;
+﻿using System.Diagnostics;
+using TetrEnvironment.Constants;
 using TetrEnvironment.Constants.Kickset;
 using TetrLoader.Enum;
 
@@ -227,10 +228,14 @@ public class FallInfo
 		if (!_manager.BoardInfo.IsLegalAtPos(_manager.GameData.Falling.Type,
 			    _manager.GameData.Falling.X,
 			    _manager.GameData.Falling.Y,
-			    _manager.GameData.Falling.R))
+			    _manager.GameData.Falling.R) && !_manager.IsDied)
 		{
 			//dead
-			_manager.IsDead = true;
+			_manager.IsDied = true;
+			_manager.DeadFrameDiff = _manager.TotalFrame - _manager.CurrentFrame;
+			#if DEBUG
+			Debug.WriteLine(_manager.DeadFrameDiff);
+			#endif
 		}
 
 		if (_manager.GameData.Falling.Ihs)
@@ -363,9 +368,9 @@ public class FallInfo
 		if (_manager.GameData.SoftDrop)
 		{
 			var preferSoftDrop = !(_manager.GameData.Options.Version >= 18)
-			            || _manager.GameData.Handling.May20G
-			            || is20G
-			            && mode20G;
+			                     || _manager.GameData.Handling.May20G
+			                     || is20G
+			                     && mode20G;
 			return (_manager.GameData.Handling.SDF == 41
 			        || _manager.GameData.Gravity * _manager.GameData.Handling.SDF >= boardHeight)
 			       && preferSoftDrop;
