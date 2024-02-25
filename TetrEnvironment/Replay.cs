@@ -35,7 +35,7 @@ public class Replay
 
 		if (Usernames.Length > 2)
 			throw new Exception("over 3 players replay is not supported");
-
+		
 		for (int playerIndex = 0; playerIndex < Usernames.Length; playerIndex++)
 		{
 			var events = ReplayData.GetReplayEvents(Usernames[playerIndex], gameIndex);

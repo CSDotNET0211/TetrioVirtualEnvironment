@@ -109,6 +109,8 @@ void PrintBoard(List<Environment> environments, bool clearConsole, bool detail =
 			output += "\r\n";
 
 			output += "Sleep:" + (environments[playerIndex].GameData.Falling.Sleep ? "1" : "0") + " ";
+			output += "May20G:" + (environments[playerIndex].GameData.Handling.May20G ? "1" : "0") + " ";
+			output += "GravityMay20G:" + (environments[playerIndex].GameData.Options.GravityMay20G ? "1" : "0") + " ";
 			output += "DeepSleep:" + (environments[playerIndex].GameData.Falling.DeepSleep ? "1" : "0") + "\r\n";
 			output += "Level:" + (environments[playerIndex].GameData.Stats.Level) + "\r\n";
 			output += "LevelLinesNeeded:" + (environments[playerIndex].GameData.Stats.LevelLinesNeeded) + "\r\n";

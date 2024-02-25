@@ -189,6 +189,7 @@ public class Environment
 			DCD = fullDataOptions.handling.dcd ?? 20,
 			Cancel = fullDataOptions.handling.cancel ?? false,
 			SafeLock = fullDataOptions.handling.safelock == true ? 1 : 0,
+			May20G = fullDataOptions.handling.may20g ?? true
 		});
 
 #if DEBUG
