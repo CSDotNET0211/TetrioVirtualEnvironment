@@ -1,8 +1,8 @@
-# TETR.IO Environment.NET
+# TETR.IO Replay Parser
 
-TETR.IO Environment.NET is the environment of TETR.IO rewritten C# from tetrio.js.
+TETR.IO Replay Parser is the environment of TETR.IO rewritten C# from tetrio.js.
 
-## How to Use
+## How to use
 See ConsoleApp/Program.cs
 ## Support
 - ○ 40LINE
@@ -19,8 +19,8 @@ if you need to use old replay, please use v15 release
 SampleApp       - Simple TETR.IO replay viewer using this library  
 TetrEnvironment  - TETR.IO Environment Library  
 
-## How to Build and Run
-### My Development Environment 
+## How to build and run
+### My build environment 
 - Windows10
 - .NET7.0
 - Use external console
@@ -33,6 +33,7 @@ git clone https://github.com/CSDotNET0211/TetrLoader.git
 ## Example use (as Webassembly, old(until v15))
 
 https://app.csdotnet.dev/analyzer
+https://app.csdotnet.dev/ide
 
 ## Dependencies
 [TetrLoader](https://github.com/CSDotNET0211/TetrLoader)
