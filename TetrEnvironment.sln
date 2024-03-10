@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetrLoader", "..\TetrLoader
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsole", "SampleConsole\SampleConsole.csproj", "{E68D58CE-CB82-44E4-8E7F-1AB6EEE65891}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{E2D8996D-1D88-450E-AFCD-0C16A40B7D07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{E68D58CE-CB82-44E4-8E7F-1AB6EEE65891}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E68D58CE-CB82-44E4-8E7F-1AB6EEE65891}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E68D58CE-CB82-44E4-8E7F-1AB6EEE65891}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2D8996D-1D88-450E-AFCD-0C16A40B7D07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2D8996D-1D88-450E-AFCD-0C16A40B7D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2D8996D-1D88-450E-AFCD-0C16A40B7D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2D8996D-1D88-450E-AFCD-0C16A40B7D07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

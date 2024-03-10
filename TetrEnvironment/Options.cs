@@ -27,7 +27,10 @@ public class Options
 	public bool Allow180 { get; internal set; }
 	public bool AllowHardDrop { get; internal set; }
 	public bool? DisplayHold { get; internal set; }
+
 	public int? LockTime { get; internal set; }
+
+	//public int? SurvivalMessiness { get; internal set; }
 	public SpinBonusesType SpinBonuses { get; internal set; }
 	public ComboTableType ComboTable { get; internal set; }
 	public bool BTBChaining { get; internal set; }
@@ -51,6 +54,11 @@ public class Options
 	public int BoardHeight { get; internal set; }
 	public bool ClipListenIDs { get; internal set; }
 	public bool GravityMay20G { get; internal set; }
+	public bool MessinessNosame { get; internal set; }
+	public int MessinessTimeout { get; internal set; }
+	public double MessinessInner { get; internal set; }
+	public double MessinessChange { get; internal set; }
+
 
 	public Options(EventFullOptionsData fullOptionsData)
 	{
@@ -98,5 +106,9 @@ public class Options
 		HasGarbage = fullOptionsData.hasgarbage ?? true;
 		GarbageCapMax = fullOptionsData.garbagecapmax ?? 40;
 		ClipListenIDs = true;
+		MessinessNosame = fullOptionsData.messiness_nosame ?? false;
+		MessinessTimeout = fullOptionsData.messiness_timeout ?? 0;
+		MessinessInner = fullOptionsData.messiness_inner ?? 0;
+		MessinessChange = fullOptionsData.messiness_change ?? 1;
 	}
 }

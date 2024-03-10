@@ -146,6 +146,25 @@ public class GarbageInfo
 			Offence(attackLines);
 	}
 
+	private int? TempName()
+	{
+		var s = 0;
+		if (_manager.GameData.Options.MessinessNosame && _manager.GameData.LastColumn != null)
+		{
+			s = (int)(_manager.GameData.RngEx.NextFloat() * (_manager.BoardInfo.Width - 1));
+			if (s >= _manager.GameData.LastColumn)
+				s++;
+		}
+		else
+		{
+			s = (int)(_manager.GameData.RngEx.NextFloat() * _manager.BoardInfo.Width);
+			_manager.GameData.LastColumn = s;
+			return s;
+		}
+
+		return null;
+	}
+
 	public void Offence(int attackLines)
 	{
 		if (attackLines < 1)
@@ -345,10 +364,20 @@ public class GarbageInfo
 		if (_manager.GameData.GarbageAreLockedUntil > _manager.FrameInfo.CurrentFrame)
 			return;
 
-		var nnnnnn = true;
+		//var nnnnnn = true;
 		var garbageCap = hasGarbageCap ? 400 : GetGarbageCap();
 		//	var iiii = false;
-		var rrrr = false;
+		var flagL = false;
+		var flagC = false;
+
+		if (_manager.GameData.Options.MessinessTimeout > 0 &&
+		    _manager.CurrentFrame >= _manager.GameData.LastTankTime + _manager.GameData.Options.MessinessTimeout)
+		{
+			TempName();
+			flagC = true;
+		}
+
+		_manager.GameData.LastTankTime = _manager.CurrentFrame;
 
 		List<GarbageData> list = new List<GarbageData>();
 		for (int eIndex = _manager.GameData.ImpendingDamage.Count - 1; eIndex >= 0; eIndex--)
@@ -368,7 +397,20 @@ public class GarbageInfo
 			var garbage = _manager.GameData.ImpendingDamage[0];
 			garbage.amt--;
 			_manager.GameData.LastReceivedCount++;
-			var column = garbage.column;
+			var column = _manager.GameData.LastColumn;
+			if (garbage.column != null)
+			{
+				column = garbage.column;
+			}
+			else
+			{
+				if (column == null || _manager.GameData.RngEx.NextFloat() < _manager.GameData.Options.MessinessInner &&
+				    !flagC)
+					column = TempName();
+			}
+
+			flagC = false;
+
 			var size = garbage.size;
 			//	var edges
 			//iiii = true;
@@ -403,17 +445,19 @@ public class GarbageInfo
 					break;
 			}
 
-			nnnnnn = false;
+			//	nnnnnn = false;
 			if (garbage.amt == 0)
 			{
 				_manager.GameData.ImpendingDamage.RemoveAt(0);
-				rrrr = true;
-				nnnnnn = true;
+				flagL = true;
+				//flagN = true;
+				if (_manager.GameData.RngEx.NextFloat() < _manager.GameData.Options.MessinessChange)
+					TempName();
 			}
 		}
 
 		_manager.GameData.ImpendingDamage.AddRange(list.ToArray());
-		if (rrrr && _manager.GameData.ImpendingDamage.Count > 0 && (bool)_manager.GameData.ImpendingDamage[0].queued)
+		if (flagL && _manager.GameData.ImpendingDamage.Count > 0 && (bool)_manager.GameData.ImpendingDamage[0].queued)
 			ProcessGarbageStatus();
 	}
 

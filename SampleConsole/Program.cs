@@ -80,6 +80,8 @@ void PrintBoard(List<Environment> environments, bool clearConsole, bool detail =
 
 		//output += "Player" + (playerIndex + 1) + "\r\n";
 		output += "Player:" + environments[playerIndex].Username + "\r\n";
+		output += "stack:" + environments[playerIndex].CustomStats.stackCleared + "\r\n";
+		output += "garbage:" + environments[playerIndex].CustomStats.garbageCleared + "\r\n";
 		output += "CurrentFrame:";
 		output += environments[playerIndex].CurrentFrame + "\r\n";
 

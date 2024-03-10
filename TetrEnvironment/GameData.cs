@@ -12,6 +12,7 @@ public class GameData
 {
 	public GameData()
 	{
+		//TODO: 定数初期化はこっち
 	}
 
 	public void Initialize(ServiceProvider provider, GameType? gametype)
@@ -52,10 +53,13 @@ public class GameData
 		if (eventFullOptions.no_szo == true && Bag.Count != 0)
 		{
 			for (int i = 0;
-				 i < Bag.Count && (Bag.Peek() is Tetromino.MinoType.S or Tetromino.MinoType.Z or Tetromino.MinoType.O);
-				 i++)
+			     i < Bag.Count && (Bag.Peek() is Tetromino.MinoType.S or Tetromino.MinoType.Z or Tetromino.MinoType.O);
+			     i++)
 				Bag.Enqueue(Bag.Dequeue());
 		}
+
+		RngEx = new Rng();
+		RngEx.Init((double)eventFullOptions.seed);
 
 		var piecePulledCount = provider.GetService<CustomInjection>().PiecePulledCount;
 		for (int i = 0; i < piecePulledCount; i++)
@@ -88,12 +92,14 @@ public class GameData
 		Targets = new List<string>();
 		InteractionId = 0;
 		ImpendingDamage = new List<GarbageData>();
+		LastColumn = null;
 		GarbageId = 0;
 		GarbageBonus = 0;
 		GarbageAckNowledgements =
 			(new Dictionary<string, int?>(), new Dictionary<string, List<GarbageData>>());
 		LastReceivedCount = 0;
 		GarbageAreLockedUntil = 0;
+		LastTankTime = 0;
 
 		if (gametype == GameType.Blitz)
 		{
@@ -125,7 +131,6 @@ public class GameData
 
 			default:
 				return Tetromino.MinoType.Empty;
-
 		}
 	}
 
@@ -161,6 +166,7 @@ public class GameData
 	public List<string> Targets { get; internal set; } = new List<string>();
 	public int GarbageBonus { get; internal set; }
 	public List<GarbageData> ImpendingDamage { get; internal set; }
+	public int? LastColumn { get; internal set; }
 	public int InteractionId { get; internal set; }
 
 	public (Dictionary<String, int?> Incoming, Dictionary<string, List<GarbageData>> Outgoing) GarbageAckNowledgements
@@ -171,10 +177,12 @@ public class GameData
 
 	public List<WaitingFrameData> WaitingFrames { get; internal set; }
 	public Rng Rng { get; internal set; }
+	public Rng RngEx { get; internal set; }
 	public int? LastGenerated { get; internal set; }
 	public Queue<Tetromino.MinoType> Bag { get; internal set; }
 	public Tetromino.MinoType Hold { get; internal set; }
 	public int GarbageId { get; internal set; }
 	public int LastReceivedCount { get; internal set; }
 	public int GarbageAreLockedUntil { get; internal set; }
+	public int LastTankTime { get; internal set; }
 }

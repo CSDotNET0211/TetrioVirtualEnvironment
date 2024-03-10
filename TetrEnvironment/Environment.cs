@@ -91,7 +91,7 @@ public class Environment
 		    events.FirstOrDefault(@event => @event.type == EventType.End) is EventEnd eventEnd)
 			TotalFrame = (int)eventEnd.frame;
 		else //TODO: EventExit instead of EventEnd?
-			throw new Exception("no end event detected!");
+			throw new Exception("no end event detected!");	
 
 		try
 		{

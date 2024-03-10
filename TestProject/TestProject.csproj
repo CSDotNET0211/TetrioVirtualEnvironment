@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="3.2.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1"/>
+        <PackageReference Include="NUnit" Version="3.13.3"/>
+        <PackageReference Include="NUnit.Analyzers" Version="3.6.1"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="4.4.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TetrLoader\TetrLoader\TetrLoader.csproj" />
+      <ProjectReference Include="..\TetrEnvironment\TetrEnvironment.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="TestReplays\v15new\" />
+      <Folder Include="TestReplays\v15old\" />
+      <Folder Include="TestReplays\v16\" />
+      <Folder Include="TestReplays\v17\" />
+      <Folder Include="TestReplays\v18\" />
+    </ItemGroup>
+
+</Project>

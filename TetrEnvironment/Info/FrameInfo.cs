@@ -125,6 +125,7 @@ public class FrameInfo
 
 	public void DoSpecialEvents(EventIgeData igeEvent)
 	{
+		throw new NotImplementedException();
 		switch (igeEvent.type)
 		{
 		}

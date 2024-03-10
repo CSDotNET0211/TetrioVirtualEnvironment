@@ -75,7 +75,6 @@ public class BoardInfo
 		}
 
 		return true;
- 
 	}
 
 	public void PushActiveToStack()
@@ -128,6 +127,11 @@ public class BoardInfo
 				}
 			}
 		}
+	}
+
+	public void PushPermaLine()
+	{
+		throw new NotImplementedException("this is called by DoSpecialEvents function");
 	}
 
 
