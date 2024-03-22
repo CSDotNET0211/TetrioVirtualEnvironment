@@ -11,7 +11,7 @@ todo
 - ○ Blitz
 - ○ TETRA LEAGUE
 - ○ Custom game
-- ○ One or Two players in game.   
+- ○ ~2 players in game.   
 - × Custom constants such as combo-table, board-size, tetromino shape
 
 supported version is from alpha to v16  
