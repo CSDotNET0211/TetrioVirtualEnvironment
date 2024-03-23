@@ -1,6 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Runtime.InteropServices;
 using TetrEnvironment;
 using TetrEnvironment.Constants;
@@ -8,6 +6,7 @@ using TetrLoader;
 using TetrLoader.Enum;
 using Environment = TetrEnvironment.Environment;
 
+//setup for color blocks
 [DllImport("kernel32.dll", SetLastError = true)]
 static extern bool SetConsoleMode(IntPtr hConsoleHandle, int mode);
 
@@ -32,8 +31,10 @@ do
 using (StreamReader reader = new StreamReader(input))
 {
 	string content = reader.ReadToEnd();
+	//parse json to IReplayData
 	var replayData =
 		ReplayLoader.ParseReplay(ref content, Util.IsMulti(ref content) ? ReplayKind.TTRM : ReplayKind.TTR);
+
 	Replay replay = new Replay(replayData);
 
 	while (true)
@@ -43,7 +44,7 @@ using (StreamReader reader = new StreamReader(input))
 		for (int i = 0; i < replayData.GetGamesCount(); i++)
 			Console.WriteLine(i);
 
-
+		//select game to play
 		replay.LoadGame(int.Parse(Console.ReadLine()));
 		Console.Clear();
 		while (true)
@@ -51,11 +52,13 @@ using (StreamReader reader = new StreamReader(input))
 			int inputInt = -1;
 			PrintBoard(replay.Environments, false);
 
-			input = Console.ReadLine();
+			//	input = Console.ReadLine();
+			input = string.Empty;
 			int.TryParse(input, out inputInt);
 
 			if (input == string.Empty)
 			{
+				//step next frame
 				if (!replay.NextFrame())
 					break;
 			}
@@ -149,57 +152,49 @@ void PrintBoard(List<Environment> environments, bool clearConsole, bool detail =
 				switch (newBoard[x + y * 10])
 				{
 					case Tetromino.MinoType.Empty:
-						output += "\x1b[48;5;" + 0 + "m　";
+						output += "\x1b[48;5;" + 0 + "m  ";
 						break;
 
 					case Tetromino.MinoType.Z:
-						output += "\x1b[48;5;" + 196 + "m　";
+						output += "\x1b[48;5;" + 196 + "m  ";
 						break;
 
 					case Tetromino.MinoType.S:
-						output += "\x1b[48;5;" + 10 + "m　";
+						output += "\x1b[48;5;" + 10 + "m  ";
 						break;
 
 					case Tetromino.MinoType.O:
-						output += "\x1b[48;5;" + 226 + "m　";
+						output += "\x1b[48;5;" + 226 + "m  ";
 						break;
 
 					case Tetromino.MinoType.J:
-						output += "\x1b[48;5;" + 21 + "m　";
+						output += "\x1b[48;5;" + 21 + "m  ";
 						break;
 
 					case Tetromino.MinoType.I:
-						output += "\x1b[48;5;" + 39 + "m　";
+						output += "\x1b[48;5;" + 39 + "m  ";
 						break;
 
 					case Tetromino.MinoType.L:
-						output += "\x1b[48;5;" + 208 + "m　";
+						output += "\x1b[48;5;" + 208 + "m  ";
 						break;
 
 					case Tetromino.MinoType.Garbage:
-						output += "\x1b[48;5;" + 8 + "m　";
+						output += "\x1b[48;5;" + 8 + "m  ";
 						break;
 
 					case Tetromino.MinoType.T:
-						output += "\x1b[48;5;" + 128 + "m　";
+						output += "\x1b[48;5;" + 128 + "m  ";
 						break;
 				}
-
-				/*if (newBoard[x + y * 10] == Tetromino.MinoType.Empty)
-				{
-					output += "□";
-				}
-				else
-				{
-					output += "■";
-				}*/
 			}
 
+			output += "\x1b[48;5;" + 0 + "m  ";
 			output += "\r\n";
 		}
 
+		output += "\x1b[48;5;" + 0 + "m  ";
 		output += "\r\n";
-		output += "\x1b[48;5;" + 0 + "m　";
 		Console.WriteLine(output);
 	}
 }

@@ -59,7 +59,7 @@ public class Environment
 	public int CurrentFrame
 	{
 		get => _manager.FrameInfo.CurrentFrame;
-		set => _manager.FrameInfo.CurrentFrame = value;
+		private set => _manager.FrameInfo.CurrentFrame = value;
 	}
 
 	public string? Username { get; private set; }
@@ -230,7 +230,7 @@ public class Environment
 	public void NextFrame(Queue<Event>? events)
 	{
 		if (GameMode != GameModeEnum.SelfControl)
-			throw new Exception("This NextFrame function is for self control　or event-based.");
+			throw new Exception("This NextFrame function is for self control or event-based.");
 
 		GameData.SubFrame = 0;
 

@@ -3,6 +3,9 @@ using TetrLoader.JsonClass;
 
 namespace TetrEnvironment;
 
+/// <summary>
+/// basically, manage replay over this class
+/// </summary>
 public class Replay
 {
 	public enum ReplayStatusEnum
@@ -29,13 +32,18 @@ public class Replay
 		Usernames = ReplayData.GetUsernames();
 	}
 
+	/// <summary>
+	/// Load game you select to play
+	/// </summary>
+	/// <param name="gameIndex"></param>
+	/// <exception cref="Exception"></exception>
 	public void LoadGame(int gameIndex)
 	{
 		Environments.Clear();
 
 		if (Usernames.Length > 2)
 			throw new Exception("over 3 players replay is not supported");
-		
+
 		for (int playerIndex = 0; playerIndex < Usernames.Length; playerIndex++)
 		{
 			var events = ReplayData.GetReplayEvents(Usernames[playerIndex], gameIndex);
@@ -48,6 +56,10 @@ public class Replay
 		ReplayStatus = ReplayStatusEnum.Loaded;
 	}
 
+	/// <summary>
+	/// Jump to the frame
+	/// </summary>
+	/// <param name="frame">frame to jump</param>
 	public void JumpFrame(int frame)
 	{
 		if (Environments[0].CurrentFrame > frame)
@@ -75,6 +87,10 @@ public class Replay
 		}
 	}
 
+	/// <summary>
+	/// Step to next frame
+	/// </summary>
+	/// <returns>next frame available</returns>
 	public bool NextFrame()
 	{
 		int endEnvCount = 0;
