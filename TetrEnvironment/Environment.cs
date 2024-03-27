@@ -96,14 +96,14 @@ public class Environment
 
 		try
 		{
-			var options = (events.FirstOrDefault(@event => @event.type == EventType.Full) as EventFull)?.data?.options;
+			var options = (events.FirstOrDefault(@event => @event.type == EventType.Full) as EventFull).data.options;
 		//	options ??= eventEnd.data.export.options;
 			_eventFullOptions = options;
 		}
 		catch (Exception e)
 		{
 			throw new Exception(
-				"some of games in this replay has no Full event! it will be ignored in TETR.IO. please consider to remove spetific game.");
+				"this game has no full event! it will be ignored in TETR.IO. please consider to remove spetific game.");
 		}
 
 		initializeData ??= new EventFullGameData();
