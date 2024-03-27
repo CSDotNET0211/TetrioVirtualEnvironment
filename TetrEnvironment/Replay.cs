@@ -48,7 +48,7 @@ public class Replay
 		{
 			var events = ReplayData.GetReplayEvents(Usernames[playerIndex], gameIndex);
 			(ReplayData as ReplayDataTTRM)?.ProcessReplayData((ReplayData as ReplayDataTTRM), events);
-			Environments.Add(
+				Environments.Add(
 				new Environment(events, ReplayData.GetGameType()));
 		}
 

@@ -52,8 +52,8 @@ using (StreamReader reader = new StreamReader(input))
 			int inputInt = -1;
 			PrintBoard(replay.Environments, false);
 
-			//	input = Console.ReadLine();
-			input = string.Empty;
+				input = Console.ReadLine();
+			//input = string.Empty;
 			int.TryParse(input, out inputInt);
 
 			if (input == string.Empty)
