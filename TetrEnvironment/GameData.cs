@@ -17,6 +17,7 @@ public class GameData
 
 	public void Initialize(ServiceProvider provider, GameType? gametype)
 	{
+		BagId = 0;
 		Options = provider.GetService<Options>();
 		Handling = provider.GetService<Handling>();
 		SubFrame = 0;
@@ -36,6 +37,7 @@ public class GameData
 			}
 
 		Bag = new Queue<Tetromino.MinoType>();
+		BagEx = new List<Tetromino.MinoType>();
 		Hold = eventFullGame.hold != null && eventFullGame.hold.piece != null
 			? ParseString(eventFullGame.hold.piece)
 			: Tetromino.MinoType.Empty;
@@ -74,6 +76,7 @@ public class GameData
 
 			Bag = tempBag;
 		}
+
 
 		LastGenerated = null;
 		Falling = provider.GetService<Falling>();
@@ -134,6 +137,7 @@ public class GameData
 		}
 	}
 
+	public int BagId { get; internal set; }
 	public Stats Stats { get; internal set; }
 	public double SubFrame { get; internal set; }
 	public bool LShift { get; internal set; }
@@ -180,6 +184,7 @@ public class GameData
 	public Rng RngEx { get; internal set; }
 	public int? LastGenerated { get; internal set; }
 	public Queue<Tetromino.MinoType> Bag { get; internal set; }
+	public List<Tetromino.MinoType> BagEx { get; internal set; }
 	public Tetromino.MinoType Hold { get; internal set; }
 	public int GarbageId { get; internal set; }
 	public int LastReceivedCount { get; internal set; }

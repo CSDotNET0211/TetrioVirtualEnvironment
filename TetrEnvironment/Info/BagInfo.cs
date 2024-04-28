@@ -5,6 +5,7 @@ namespace TetrEnvironment.Info;
 
 public class BagInfo
 {
+	private readonly int[] BAG7_ARRAY = new int[] { 3, 2, 1, 1 };
 	private Environment _manager;
 	public int PulledCount { get; private set; }
 
@@ -75,9 +76,47 @@ public class BagInfo
 				list = newArray.ToList();
 				break;
 
-			case BagType.Bag7_oo:
+			case BagType.Bag7OO:
 				throw new NotImplementedException();
 				minos = (Tetromino.MinoType[])Tetromino.MINOTYPES.Clone();
+				break;
+
+			case BagType.Bag7Plus1:
+				newList = new List<Tetromino.MinoType>();
+				newList.AddRange((Tetromino.MinoType[])Tetromino.MINOTYPES.Clone());
+				newList.Add(Tetromino.MINOTYPES[(int)(_manager.GameData.Rng.NextFloat() * Tetromino.MINOTYPES.Length)]);
+				_manager.GameData.Rng.ShuffleArray(newList);
+				list = newList;
+				break;
+
+			case BagType.Bag7Plus2:
+				newList = new List<Tetromino.MinoType>();
+				newList.AddRange((Tetromino.MinoType[])Tetromino.MINOTYPES.Clone());
+				newList.Add(Tetromino.MINOTYPES[(int)(_manager.GameData.Rng.NextFloat() * Tetromino.MINOTYPES.Length)]);
+				newList.Add(Tetromino.MINOTYPES[(int)(_manager.GameData.Rng.NextFloat() * Tetromino.MINOTYPES.Length)]);
+				_manager.GameData.Rng.ShuffleArray(newList);
+				list = newList;
+				break;
+
+			case BagType.Bag7PlusX:
+				//TODO: performance
+				newList = new List<Tetromino.MinoType>();
+				int n;
+				n = BAG7_ARRAY.Length > _manager.GameData.BagId ? 
+					BAG7_ARRAY[_manager.GameData.BagId] : 0;
+				if (_manager.GameData.BagEx.Count < n)
+				{
+					_manager.GameData.BagEx.Clear();
+					_manager.GameData.BagEx.AddRange((Tetromino.MinoType[])Tetromino.MINOTYPES.Clone());
+					_manager.GameData.Rng.ShuffleArray(_manager.GameData.BagEx);
+				}
+
+				newList.AddRange((Tetromino.MinoType[])Tetromino.MINOTYPES.Clone());
+				newList.AddRange(_manager.GameData.BagEx.Take(n));
+				_manager.GameData.BagEx.RemoveRange(0, n);
+				_manager.GameData.Rng.ShuffleArray(newList);
+
+				list = newList;
 				break;
 
 			default:
@@ -88,5 +127,6 @@ public class BagInfo
 
 		foreach (var mino in list)
 			_manager.GameData.Bag.Enqueue(mino);
+		_manager.GameData.BagId++;
 	}
 }
