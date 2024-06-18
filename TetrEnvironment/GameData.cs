@@ -28,13 +28,24 @@ public class GameData
 		var eventFullGame = provider.GetService<EventFullGameData>();
 
 		if (eventFullGame?.board != null)
+		{
 			for (int y = 0; y < boardInfo.Height; y++)
 			{
 				for (int x = 0; x < boardInfo.Width; x++)
 				{
-					_board[x + y * boardInfo.Width] = ParseString(eventFullGame.board[y][x]);
+					try
+					{
+						_board[x + y * boardInfo.Width] =
+							ParseString(((List<List<string?>?>?)eventFullGame.board)[y][x]);
+					}
+					catch
+					{
+						//TODO:
+					}
 				}
 			}
+		}
+
 
 		Bag = new Queue<Tetromino.MinoType>();
 		BagEx = new List<Tetromino.MinoType>();
